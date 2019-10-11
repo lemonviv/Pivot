@@ -4,12 +4,17 @@ set(CMAKE_DEPENDS_LANGUAGES
   )
 # The set of files for implicit dependencies of each language:
 set(CMAKE_DEPENDS_CHECK_CXX
-  "/Users/wuyuncheng/Documents/projects/CollaborativeML/main.cpp" "/Users/wuyuncheng/Documents/projects/CollaborativeML/cmake-build-debug/CMakeFiles/CollaborativeML.dir/main.cpp.o"
+  "/home/wuyuncheng/Documents/projects/CollaborativeML/main.cpp" "/home/wuyuncheng/Documents/projects/CollaborativeML/cmake-build-debug/CMakeFiles/CollaborativeML.dir/main.cpp.o"
+  "/home/wuyuncheng/Documents/projects/CollaborativeML/src/client/Client.cpp" "/home/wuyuncheng/Documents/projects/CollaborativeML/cmake-build-debug/CMakeFiles/CollaborativeML.dir/src/client/Client.cpp.o"
+  "/home/wuyuncheng/Documents/projects/CollaborativeML/src/models/logistic_regression.cpp" "/home/wuyuncheng/Documents/projects/CollaborativeML/cmake-build-debug/CMakeFiles/CollaborativeML.dir/src/models/logistic_regression.cpp.o"
+  "/home/wuyuncheng/Documents/projects/CollaborativeML/src/utils/util.cpp" "/home/wuyuncheng/Documents/projects/CollaborativeML/cmake-build-debug/CMakeFiles/CollaborativeML.dir/src/utils/util.cpp.o"
   )
-set(CMAKE_CXX_COMPILER_ID "AppleClang")
+set(CMAKE_CXX_COMPILER_ID "GNU")
 
 # The include file search paths:
 set(CMAKE_CXX_TARGET_INCLUDE_PATH
+  "/home/wuyuncheng/libscapi/include"
+  "/home/wuyuncheng/Documents/projects/boost_1_64_0/stage/lib"
   )
 
 # Targets to which this target links.

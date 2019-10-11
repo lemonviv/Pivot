@@ -34,19 +34,19 @@ cmake_force:
 SHELL = /bin/sh
 
 # The CMake executable.
-CMAKE_COMMAND = /Applications/CLion.app/Contents/bin/cmake/mac/bin/cmake
+CMAKE_COMMAND = /home/wuyuncheng/Documents/softwares/clion-2019.2/bin/cmake/linux/bin/cmake
 
 # The command to remove a file.
-RM = /Applications/CLion.app/Contents/bin/cmake/mac/bin/cmake -E remove -f
+RM = /home/wuyuncheng/Documents/softwares/clion-2019.2/bin/cmake/linux/bin/cmake -E remove -f
 
 # Escaping for special characters.
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /Users/wuyuncheng/Documents/projects/CollaborativeML
+CMAKE_SOURCE_DIR = /home/wuyuncheng/Documents/projects/CollaborativeML
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /Users/wuyuncheng/Documents/projects/CollaborativeML/cmake-build-debug
+CMAKE_BINARY_DIR = /home/wuyuncheng/Documents/projects/CollaborativeML/cmake-build-debug
 
 # Include any dependencies generated for this target.
 include CMakeFiles/CollaborativeML.dir/depend.make
@@ -59,28 +59,76 @@ include CMakeFiles/CollaborativeML.dir/flags.make
 
 CMakeFiles/CollaborativeML.dir/main.cpp.o: CMakeFiles/CollaborativeML.dir/flags.make
 CMakeFiles/CollaborativeML.dir/main.cpp.o: ../main.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/Users/wuyuncheng/Documents/projects/CollaborativeML/cmake-build-debug/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object CMakeFiles/CollaborativeML.dir/main.cpp.o"
-	/Library/Developer/CommandLineTools/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/CollaborativeML.dir/main.cpp.o -c /Users/wuyuncheng/Documents/projects/CollaborativeML/main.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/wuyuncheng/Documents/projects/CollaborativeML/cmake-build-debug/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object CMakeFiles/CollaborativeML.dir/main.cpp.o"
+	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/CollaborativeML.dir/main.cpp.o -c /home/wuyuncheng/Documents/projects/CollaborativeML/main.cpp
 
 CMakeFiles/CollaborativeML.dir/main.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/CollaborativeML.dir/main.cpp.i"
-	/Library/Developer/CommandLineTools/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /Users/wuyuncheng/Documents/projects/CollaborativeML/main.cpp > CMakeFiles/CollaborativeML.dir/main.cpp.i
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/wuyuncheng/Documents/projects/CollaborativeML/main.cpp > CMakeFiles/CollaborativeML.dir/main.cpp.i
 
 CMakeFiles/CollaborativeML.dir/main.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/CollaborativeML.dir/main.cpp.s"
-	/Library/Developer/CommandLineTools/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /Users/wuyuncheng/Documents/projects/CollaborativeML/main.cpp -o CMakeFiles/CollaborativeML.dir/main.cpp.s
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/wuyuncheng/Documents/projects/CollaborativeML/main.cpp -o CMakeFiles/CollaborativeML.dir/main.cpp.s
+
+CMakeFiles/CollaborativeML.dir/src/client/Client.cpp.o: CMakeFiles/CollaborativeML.dir/flags.make
+CMakeFiles/CollaborativeML.dir/src/client/Client.cpp.o: ../src/client/Client.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/wuyuncheng/Documents/projects/CollaborativeML/cmake-build-debug/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Building CXX object CMakeFiles/CollaborativeML.dir/src/client/Client.cpp.o"
+	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/CollaborativeML.dir/src/client/Client.cpp.o -c /home/wuyuncheng/Documents/projects/CollaborativeML/src/client/Client.cpp
+
+CMakeFiles/CollaborativeML.dir/src/client/Client.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/CollaborativeML.dir/src/client/Client.cpp.i"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/wuyuncheng/Documents/projects/CollaborativeML/src/client/Client.cpp > CMakeFiles/CollaborativeML.dir/src/client/Client.cpp.i
+
+CMakeFiles/CollaborativeML.dir/src/client/Client.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/CollaborativeML.dir/src/client/Client.cpp.s"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/wuyuncheng/Documents/projects/CollaborativeML/src/client/Client.cpp -o CMakeFiles/CollaborativeML.dir/src/client/Client.cpp.s
+
+CMakeFiles/CollaborativeML.dir/src/utils/util.cpp.o: CMakeFiles/CollaborativeML.dir/flags.make
+CMakeFiles/CollaborativeML.dir/src/utils/util.cpp.o: ../src/utils/util.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/wuyuncheng/Documents/projects/CollaborativeML/cmake-build-debug/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building CXX object CMakeFiles/CollaborativeML.dir/src/utils/util.cpp.o"
+	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/CollaborativeML.dir/src/utils/util.cpp.o -c /home/wuyuncheng/Documents/projects/CollaborativeML/src/utils/util.cpp
+
+CMakeFiles/CollaborativeML.dir/src/utils/util.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/CollaborativeML.dir/src/utils/util.cpp.i"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/wuyuncheng/Documents/projects/CollaborativeML/src/utils/util.cpp > CMakeFiles/CollaborativeML.dir/src/utils/util.cpp.i
+
+CMakeFiles/CollaborativeML.dir/src/utils/util.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/CollaborativeML.dir/src/utils/util.cpp.s"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/wuyuncheng/Documents/projects/CollaborativeML/src/utils/util.cpp -o CMakeFiles/CollaborativeML.dir/src/utils/util.cpp.s
+
+CMakeFiles/CollaborativeML.dir/src/models/logistic_regression.cpp.o: CMakeFiles/CollaborativeML.dir/flags.make
+CMakeFiles/CollaborativeML.dir/src/models/logistic_regression.cpp.o: ../src/models/logistic_regression.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/wuyuncheng/Documents/projects/CollaborativeML/cmake-build-debug/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Building CXX object CMakeFiles/CollaborativeML.dir/src/models/logistic_regression.cpp.o"
+	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/CollaborativeML.dir/src/models/logistic_regression.cpp.o -c /home/wuyuncheng/Documents/projects/CollaborativeML/src/models/logistic_regression.cpp
+
+CMakeFiles/CollaborativeML.dir/src/models/logistic_regression.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/CollaborativeML.dir/src/models/logistic_regression.cpp.i"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/wuyuncheng/Documents/projects/CollaborativeML/src/models/logistic_regression.cpp > CMakeFiles/CollaborativeML.dir/src/models/logistic_regression.cpp.i
+
+CMakeFiles/CollaborativeML.dir/src/models/logistic_regression.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/CollaborativeML.dir/src/models/logistic_regression.cpp.s"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/wuyuncheng/Documents/projects/CollaborativeML/src/models/logistic_regression.cpp -o CMakeFiles/CollaborativeML.dir/src/models/logistic_regression.cpp.s
 
 # Object files for target CollaborativeML
 CollaborativeML_OBJECTS = \
-"CMakeFiles/CollaborativeML.dir/main.cpp.o"
+"CMakeFiles/CollaborativeML.dir/main.cpp.o" \
+"CMakeFiles/CollaborativeML.dir/src/client/Client.cpp.o" \
+"CMakeFiles/CollaborativeML.dir/src/utils/util.cpp.o" \
+"CMakeFiles/CollaborativeML.dir/src/models/logistic_regression.cpp.o"
 
 # External object files for target CollaborativeML
 CollaborativeML_EXTERNAL_OBJECTS =
 
 CollaborativeML: CMakeFiles/CollaborativeML.dir/main.cpp.o
+CollaborativeML: CMakeFiles/CollaborativeML.dir/src/client/Client.cpp.o
+CollaborativeML: CMakeFiles/CollaborativeML.dir/src/utils/util.cpp.o
+CollaborativeML: CMakeFiles/CollaborativeML.dir/src/models/logistic_regression.cpp.o
 CollaborativeML: CMakeFiles/CollaborativeML.dir/build.make
+CollaborativeML: /usr/lib/x86_64-linux-gnu/libgmp.so
+CollaborativeML: /home/wuyuncheng/Documents/projects/libhcs/lib/libhcs.so
+CollaborativeML: /home/wuyuncheng/libscapi/libscapi.a
 CollaborativeML: CMakeFiles/CollaborativeML.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/Users/wuyuncheng/Documents/projects/CollaborativeML/cmake-build-debug/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Linking CXX executable CollaborativeML"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/wuyuncheng/Documents/projects/CollaborativeML/cmake-build-debug/CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "Linking CXX executable CollaborativeML"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/CollaborativeML.dir/link.txt --verbose=$(VERBOSE)
 
 # Rule to build all files generated by this target.
@@ -93,6 +141,6 @@ CMakeFiles/CollaborativeML.dir/clean:
 .PHONY : CMakeFiles/CollaborativeML.dir/clean
 
 CMakeFiles/CollaborativeML.dir/depend:
-	cd /Users/wuyuncheng/Documents/projects/CollaborativeML/cmake-build-debug && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /Users/wuyuncheng/Documents/projects/CollaborativeML /Users/wuyuncheng/Documents/projects/CollaborativeML /Users/wuyuncheng/Documents/projects/CollaborativeML/cmake-build-debug /Users/wuyuncheng/Documents/projects/CollaborativeML/cmake-build-debug /Users/wuyuncheng/Documents/projects/CollaborativeML/cmake-build-debug/CMakeFiles/CollaborativeML.dir/DependInfo.cmake --color=$(COLOR)
+	cd /home/wuyuncheng/Documents/projects/CollaborativeML/cmake-build-debug && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/wuyuncheng/Documents/projects/CollaborativeML /home/wuyuncheng/Documents/projects/CollaborativeML /home/wuyuncheng/Documents/projects/CollaborativeML/cmake-build-debug /home/wuyuncheng/Documents/projects/CollaborativeML/cmake-build-debug /home/wuyuncheng/Documents/projects/CollaborativeML/cmake-build-debug/CMakeFiles/CollaborativeML.dir/DependInfo.cmake --color=$(COLOR)
 .PHONY : CMakeFiles/CollaborativeML.dir/depend
 

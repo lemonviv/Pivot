@@ -39,19 +39,19 @@ cmake_force:
 SHELL = /bin/sh
 
 # The CMake executable.
-CMAKE_COMMAND = /Applications/CLion.app/Contents/bin/cmake/mac/bin/cmake
+CMAKE_COMMAND = /home/wuyuncheng/Documents/softwares/clion-2019.2/bin/cmake/linux/bin/cmake
 
 # The command to remove a file.
-RM = /Applications/CLion.app/Contents/bin/cmake/mac/bin/cmake -E remove -f
+RM = /home/wuyuncheng/Documents/softwares/clion-2019.2/bin/cmake/linux/bin/cmake -E remove -f
 
 # Escaping for special characters.
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /Users/wuyuncheng/Documents/projects/CollaborativeML
+CMAKE_SOURCE_DIR = /home/wuyuncheng/Documents/projects/CollaborativeML
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /Users/wuyuncheng/Documents/projects/CollaborativeML/cmake-build-debug
+CMAKE_BINARY_DIR = /home/wuyuncheng/Documents/projects/CollaborativeML/cmake-build-debug
 
 #=============================================================================
 # Targets provided globally by CMake.
@@ -59,7 +59,7 @@ CMAKE_BINARY_DIR = /Users/wuyuncheng/Documents/projects/CollaborativeML/cmake-bu
 # Special rule for the target rebuild_cache
 rebuild_cache:
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Running CMake to regenerate build system..."
-	/Applications/CLion.app/Contents/bin/cmake/mac/bin/cmake -S$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR)
+	/home/wuyuncheng/Documents/softwares/clion-2019.2/bin/cmake/linux/bin/cmake -S$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR)
 .PHONY : rebuild_cache
 
 # Special rule for the target rebuild_cache
@@ -70,7 +70,7 @@ rebuild_cache/fast: rebuild_cache
 # Special rule for the target edit_cache
 edit_cache:
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "No interactive CMake dialog available..."
-	/Applications/CLion.app/Contents/bin/cmake/mac/bin/cmake -E echo No\ interactive\ CMake\ dialog\ available.
+	/home/wuyuncheng/Documents/softwares/clion-2019.2/bin/cmake/linux/bin/cmake -E echo No\ interactive\ CMake\ dialog\ available.
 .PHONY : edit_cache
 
 # Special rule for the target edit_cache
@@ -80,9 +80,9 @@ edit_cache/fast: edit_cache
 
 # The main all target
 all: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /Users/wuyuncheng/Documents/projects/CollaborativeML/cmake-build-debug/CMakeFiles /Users/wuyuncheng/Documents/projects/CollaborativeML/cmake-build-debug/CMakeFiles/progress.marks
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/wuyuncheng/Documents/projects/CollaborativeML/cmake-build-debug/CMakeFiles /home/wuyuncheng/Documents/projects/CollaborativeML/cmake-build-debug/CMakeFiles/progress.marks
 	$(MAKE) -f CMakeFiles/Makefile2 all
-	$(CMAKE_COMMAND) -E cmake_progress_start /Users/wuyuncheng/Documents/projects/CollaborativeML/cmake-build-debug/CMakeFiles 0
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/wuyuncheng/Documents/projects/CollaborativeML/cmake-build-debug/CMakeFiles 0
 .PHONY : all
 
 # The main clean target
@@ -150,6 +150,87 @@ main.cpp.s:
 	$(MAKE) -f CMakeFiles/CollaborativeML.dir/build.make CMakeFiles/CollaborativeML.dir/main.cpp.s
 .PHONY : main.cpp.s
 
+src/client/Client.o: src/client/Client.cpp.o
+
+.PHONY : src/client/Client.o
+
+# target to build an object file
+src/client/Client.cpp.o:
+	$(MAKE) -f CMakeFiles/CollaborativeML.dir/build.make CMakeFiles/CollaborativeML.dir/src/client/Client.cpp.o
+.PHONY : src/client/Client.cpp.o
+
+src/client/Client.i: src/client/Client.cpp.i
+
+.PHONY : src/client/Client.i
+
+# target to preprocess a source file
+src/client/Client.cpp.i:
+	$(MAKE) -f CMakeFiles/CollaborativeML.dir/build.make CMakeFiles/CollaborativeML.dir/src/client/Client.cpp.i
+.PHONY : src/client/Client.cpp.i
+
+src/client/Client.s: src/client/Client.cpp.s
+
+.PHONY : src/client/Client.s
+
+# target to generate assembly for a file
+src/client/Client.cpp.s:
+	$(MAKE) -f CMakeFiles/CollaborativeML.dir/build.make CMakeFiles/CollaborativeML.dir/src/client/Client.cpp.s
+.PHONY : src/client/Client.cpp.s
+
+src/models/logistic_regression.o: src/models/logistic_regression.cpp.o
+
+.PHONY : src/models/logistic_regression.o
+
+# target to build an object file
+src/models/logistic_regression.cpp.o:
+	$(MAKE) -f CMakeFiles/CollaborativeML.dir/build.make CMakeFiles/CollaborativeML.dir/src/models/logistic_regression.cpp.o
+.PHONY : src/models/logistic_regression.cpp.o
+
+src/models/logistic_regression.i: src/models/logistic_regression.cpp.i
+
+.PHONY : src/models/logistic_regression.i
+
+# target to preprocess a source file
+src/models/logistic_regression.cpp.i:
+	$(MAKE) -f CMakeFiles/CollaborativeML.dir/build.make CMakeFiles/CollaborativeML.dir/src/models/logistic_regression.cpp.i
+.PHONY : src/models/logistic_regression.cpp.i
+
+src/models/logistic_regression.s: src/models/logistic_regression.cpp.s
+
+.PHONY : src/models/logistic_regression.s
+
+# target to generate assembly for a file
+src/models/logistic_regression.cpp.s:
+	$(MAKE) -f CMakeFiles/CollaborativeML.dir/build.make CMakeFiles/CollaborativeML.dir/src/models/logistic_regression.cpp.s
+.PHONY : src/models/logistic_regression.cpp.s
+
+src/utils/util.o: src/utils/util.cpp.o
+
+.PHONY : src/utils/util.o
+
+# target to build an object file
+src/utils/util.cpp.o:
+	$(MAKE) -f CMakeFiles/CollaborativeML.dir/build.make CMakeFiles/CollaborativeML.dir/src/utils/util.cpp.o
+.PHONY : src/utils/util.cpp.o
+
+src/utils/util.i: src/utils/util.cpp.i
+
+.PHONY : src/utils/util.i
+
+# target to preprocess a source file
+src/utils/util.cpp.i:
+	$(MAKE) -f CMakeFiles/CollaborativeML.dir/build.make CMakeFiles/CollaborativeML.dir/src/utils/util.cpp.i
+.PHONY : src/utils/util.cpp.i
+
+src/utils/util.s: src/utils/util.cpp.s
+
+.PHONY : src/utils/util.s
+
+# target to generate assembly for a file
+src/utils/util.cpp.s:
+	$(MAKE) -f CMakeFiles/CollaborativeML.dir/build.make CMakeFiles/CollaborativeML.dir/src/utils/util.cpp.s
+.PHONY : src/utils/util.cpp.s
+
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -157,11 +238,20 @@ help:
 	@echo "... clean"
 	@echo "... depend"
 	@echo "... rebuild_cache"
-	@echo "... edit_cache"
 	@echo "... CollaborativeML"
+	@echo "... edit_cache"
 	@echo "... main.o"
 	@echo "... main.i"
 	@echo "... main.s"
+	@echo "... src/client/Client.o"
+	@echo "... src/client/Client.i"
+	@echo "... src/client/Client.s"
+	@echo "... src/models/logistic_regression.o"
+	@echo "... src/models/logistic_regression.i"
+	@echo "... src/models/logistic_regression.s"
+	@echo "... src/utils/util.o"
+	@echo "... src/utils/util.i"
+	@echo "... src/utils/util.s"
 .PHONY : help
 
 
