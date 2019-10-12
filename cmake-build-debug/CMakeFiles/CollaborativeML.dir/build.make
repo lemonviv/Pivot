@@ -109,12 +109,40 @@ CMakeFiles/CollaborativeML.dir/src/models/logistic_regression.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/CollaborativeML.dir/src/models/logistic_regression.cpp.s"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/wuyuncheng/Documents/projects/CollaborativeML/src/models/logistic_regression.cpp -o CMakeFiles/CollaborativeML.dir/src/models/logistic_regression.cpp.s
 
+CMakeFiles/CollaborativeML.dir/src/utils/encoder.cpp.o: CMakeFiles/CollaborativeML.dir/flags.make
+CMakeFiles/CollaborativeML.dir/src/utils/encoder.cpp.o: ../src/utils/encoder.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/wuyuncheng/Documents/projects/CollaborativeML/cmake-build-debug/CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "Building CXX object CMakeFiles/CollaborativeML.dir/src/utils/encoder.cpp.o"
+	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/CollaborativeML.dir/src/utils/encoder.cpp.o -c /home/wuyuncheng/Documents/projects/CollaborativeML/src/utils/encoder.cpp
+
+CMakeFiles/CollaborativeML.dir/src/utils/encoder.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/CollaborativeML.dir/src/utils/encoder.cpp.i"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/wuyuncheng/Documents/projects/CollaborativeML/src/utils/encoder.cpp > CMakeFiles/CollaborativeML.dir/src/utils/encoder.cpp.i
+
+CMakeFiles/CollaborativeML.dir/src/utils/encoder.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/CollaborativeML.dir/src/utils/encoder.cpp.s"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/wuyuncheng/Documents/projects/CollaborativeML/src/utils/encoder.cpp -o CMakeFiles/CollaborativeML.dir/src/utils/encoder.cpp.s
+
+CMakeFiles/CollaborativeML.dir/src/utils/djcs_aux.cpp.o: CMakeFiles/CollaborativeML.dir/flags.make
+CMakeFiles/CollaborativeML.dir/src/utils/djcs_aux.cpp.o: ../src/utils/djcs_aux.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/wuyuncheng/Documents/projects/CollaborativeML/cmake-build-debug/CMakeFiles --progress-num=$(CMAKE_PROGRESS_6) "Building CXX object CMakeFiles/CollaborativeML.dir/src/utils/djcs_aux.cpp.o"
+	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/CollaborativeML.dir/src/utils/djcs_aux.cpp.o -c /home/wuyuncheng/Documents/projects/CollaborativeML/src/utils/djcs_aux.cpp
+
+CMakeFiles/CollaborativeML.dir/src/utils/djcs_aux.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/CollaborativeML.dir/src/utils/djcs_aux.cpp.i"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/wuyuncheng/Documents/projects/CollaborativeML/src/utils/djcs_aux.cpp > CMakeFiles/CollaborativeML.dir/src/utils/djcs_aux.cpp.i
+
+CMakeFiles/CollaborativeML.dir/src/utils/djcs_aux.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/CollaborativeML.dir/src/utils/djcs_aux.cpp.s"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/wuyuncheng/Documents/projects/CollaborativeML/src/utils/djcs_aux.cpp -o CMakeFiles/CollaborativeML.dir/src/utils/djcs_aux.cpp.s
+
 # Object files for target CollaborativeML
 CollaborativeML_OBJECTS = \
 "CMakeFiles/CollaborativeML.dir/main.cpp.o" \
 "CMakeFiles/CollaborativeML.dir/src/client/Client.cpp.o" \
 "CMakeFiles/CollaborativeML.dir/src/utils/util.cpp.o" \
-"CMakeFiles/CollaborativeML.dir/src/models/logistic_regression.cpp.o"
+"CMakeFiles/CollaborativeML.dir/src/models/logistic_regression.cpp.o" \
+"CMakeFiles/CollaborativeML.dir/src/utils/encoder.cpp.o" \
+"CMakeFiles/CollaborativeML.dir/src/utils/djcs_aux.cpp.o"
 
 # External object files for target CollaborativeML
 CollaborativeML_EXTERNAL_OBJECTS =
@@ -123,12 +151,14 @@ CollaborativeML: CMakeFiles/CollaborativeML.dir/main.cpp.o
 CollaborativeML: CMakeFiles/CollaborativeML.dir/src/client/Client.cpp.o
 CollaborativeML: CMakeFiles/CollaborativeML.dir/src/utils/util.cpp.o
 CollaborativeML: CMakeFiles/CollaborativeML.dir/src/models/logistic_regression.cpp.o
+CollaborativeML: CMakeFiles/CollaborativeML.dir/src/utils/encoder.cpp.o
+CollaborativeML: CMakeFiles/CollaborativeML.dir/src/utils/djcs_aux.cpp.o
 CollaborativeML: CMakeFiles/CollaborativeML.dir/build.make
 CollaborativeML: /usr/lib/x86_64-linux-gnu/libgmp.so
 CollaborativeML: /home/wuyuncheng/Documents/projects/libhcs/lib/libhcs.so
 CollaborativeML: /home/wuyuncheng/libscapi/libscapi.a
 CollaborativeML: CMakeFiles/CollaborativeML.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/wuyuncheng/Documents/projects/CollaborativeML/cmake-build-debug/CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "Linking CXX executable CollaborativeML"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/wuyuncheng/Documents/projects/CollaborativeML/cmake-build-debug/CMakeFiles --progress-num=$(CMAKE_PROGRESS_7) "Linking CXX executable CollaborativeML"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/CollaborativeML.dir/link.txt --verbose=$(VERBOSE)
 
 # Rule to build all files generated by this target.

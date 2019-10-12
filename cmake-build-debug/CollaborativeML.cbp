@@ -103,6 +103,18 @@
 		<Unit filename="/home/wuyuncheng/Documents/projects/CollaborativeML/src/models/logistic_regression.h">
 			<Option target="CollaborativeML"/>
 		</Unit>
+		<Unit filename="/home/wuyuncheng/Documents/projects/CollaborativeML/src/utils/djcs_aux.cpp">
+			<Option target="CollaborativeML"/>
+		</Unit>
+		<Unit filename="/home/wuyuncheng/Documents/projects/CollaborativeML/src/utils/djcs_aux.h">
+			<Option target="CollaborativeML"/>
+		</Unit>
+		<Unit filename="/home/wuyuncheng/Documents/projects/CollaborativeML/src/utils/encoder.cpp">
+			<Option target="CollaborativeML"/>
+		</Unit>
+		<Unit filename="/home/wuyuncheng/Documents/projects/CollaborativeML/src/utils/encoder.h">
+			<Option target="CollaborativeML"/>
+		</Unit>
 		<Unit filename="/home/wuyuncheng/Documents/projects/CollaborativeML/src/utils/util.cpp">
 			<Option target="CollaborativeML"/>
 		</Unit>

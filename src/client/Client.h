@@ -19,7 +19,7 @@ private:
     int client_num;                                    // total clients in the system
     bool has_label;                                    // only one client has label, default client 0
     std::vector< std::vector<float> > local_data;      // local data
-    std::vector<float> labels;                         // if has_label == true, then has labels
+    std::vector<int> labels;                           // if has_label == true, then has labels
     int sample_num;                                    // number of samples
     int feature_num;                                   // number of features
     std::vector< shared_ptr<CommParty> > channels;     // established communication channels with the other clients

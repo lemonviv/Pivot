@@ -6,12 +6,12 @@
 #define COLLABORATIVEML_LOGISTIC_REGRESSION_H
 
 #include <vector>
-#include "../utils/util.h"
 #include "gmp.h"
 #include "../client/Client.h"
+#include "../utils/util.h"
+#include "../utils/encoder.h"
 
 #define MAX_FEATURE_NUM 100
-#define FLOAT_PRECISION 8
 
 class LogisticRegression {
 private:
@@ -20,7 +20,8 @@ private:
     float converge_threshold;                          // threshold of model accuracy convergence
     float model_accuracy;                              // accuracy of the model
     int feature_num;                                   // feature number of a client
-    mpz_t local_weights[MAX_FEATURE_NUM];              // local weights of features
+    //std::vector<EncodedNumber> local_weights;        // local weights of features
+    EncodedNumber local_weights[MAX_FEATURE_NUM];      // local weights of features
 public:
     /**
      * default constructor
@@ -54,7 +55,7 @@ public:
      * @param res
      */
     void partial_predict(djcs_public_key* public_key, hcs_random* hr,
-            std::vector<long> instance, mpz_t res);
+            std::vector<EncodedNumber> instance, EncodedNumber res);
 
     /**
      * init encrypted local weights with feature_num values
@@ -74,7 +75,7 @@ public:
      * @param res (with 0)
      */
     void instance_partial_sum(djcs_public_key* public_key, hcs_random* hr,
-            std::vector<long> instance, mpz_t res);
+            std::vector<EncodedNumber> instance, EncodedNumber res);
 
     /**
      * (client who owns labels do this computation)
@@ -87,23 +88,36 @@ public:
      * @param aggregated_sum
      */
     void aggregate_partial_sum_instance(djcs_public_key* public_key, hcs_random* hr,
-            mpz_t *partial_sum, int client_num, mpz_t aggregated_sum);
+            std::vector<EncodedNumber> partial_sum, int client_num, EncodedNumber aggregated_sum);
 
     /**
      * compute batch loss by conversion between mpc and back
      *
+     * @param public_key
+     * @param hr
      * @param aggregated_res
-     * @param labels
+     * @param labels : should be represented with fixed point integer, with FLOAT_PRECISION
+     * @param losses : should be truncated from K * FLOAT_PRECISION to FLOAT_PRECISION exponent
      */
-    void compute_batch_loss(mpz_t *aggregated_res, mpz_t *labels);
+    void compute_batch_loss(djcs_public_key* public_key, hcs_random* hr,
+            std::vector<EncodedNumber> aggregated_res,
+            std::vector<EncodedNumber> labels,
+            std::vector<EncodedNumber> losses);
 
     /**
      * update client's local weights when receiving loss
+     * according to L2 regularization
+     * [w_j] := [w_j] - \alpha * \sum_{i=1}^{|B|}([losses[i]] * x_{ij}) - 2 * \lambda * [w_j]
      *
+     * @param public_key
+     * @param hr
      * @param batch_data
-     * @param loss
+     * @param losses
+     * @param alpha : learning rate
+     * @param lambda : regularization term
      */
-    void update_local_weights(std::vector<float> batch_data, mpz_t *loss);
+    void update_local_weights(djcs_public_key public_key, hcs_random* hr,
+            std::vector<EncodedNumber> batch_data, std::vector<EncodedNumber> losses, float alpha, float lambda);
 
     /**
      * destructor

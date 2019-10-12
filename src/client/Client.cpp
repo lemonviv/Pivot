@@ -50,7 +50,7 @@ Client::Client(int param_client_id, int param_client_num, int param_has_label,
     if (has_label) {
         // slice the last item as label
         for (int i = 0; i < sample_num; i++) {
-            labels.push_back(local_data[i][feature_num-1]);
+            labels.push_back((int) local_data[i][feature_num-1]);
             local_data[i].pop_back();
         }
         feature_num = feature_num - 1;
@@ -134,7 +134,7 @@ Client::~Client()
 
     // free labels if has_label == true
     if (has_label) {
-        std::vector<float>().swap(labels);
+        std::vector<int>().swap(labels);
     }
 
     // free channels

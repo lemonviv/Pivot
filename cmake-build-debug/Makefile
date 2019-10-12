@@ -204,6 +204,60 @@ src/models/logistic_regression.cpp.s:
 	$(MAKE) -f CMakeFiles/CollaborativeML.dir/build.make CMakeFiles/CollaborativeML.dir/src/models/logistic_regression.cpp.s
 .PHONY : src/models/logistic_regression.cpp.s
 
+src/utils/djcs_aux.o: src/utils/djcs_aux.cpp.o
+
+.PHONY : src/utils/djcs_aux.o
+
+# target to build an object file
+src/utils/djcs_aux.cpp.o:
+	$(MAKE) -f CMakeFiles/CollaborativeML.dir/build.make CMakeFiles/CollaborativeML.dir/src/utils/djcs_aux.cpp.o
+.PHONY : src/utils/djcs_aux.cpp.o
+
+src/utils/djcs_aux.i: src/utils/djcs_aux.cpp.i
+
+.PHONY : src/utils/djcs_aux.i
+
+# target to preprocess a source file
+src/utils/djcs_aux.cpp.i:
+	$(MAKE) -f CMakeFiles/CollaborativeML.dir/build.make CMakeFiles/CollaborativeML.dir/src/utils/djcs_aux.cpp.i
+.PHONY : src/utils/djcs_aux.cpp.i
+
+src/utils/djcs_aux.s: src/utils/djcs_aux.cpp.s
+
+.PHONY : src/utils/djcs_aux.s
+
+# target to generate assembly for a file
+src/utils/djcs_aux.cpp.s:
+	$(MAKE) -f CMakeFiles/CollaborativeML.dir/build.make CMakeFiles/CollaborativeML.dir/src/utils/djcs_aux.cpp.s
+.PHONY : src/utils/djcs_aux.cpp.s
+
+src/utils/encoder.o: src/utils/encoder.cpp.o
+
+.PHONY : src/utils/encoder.o
+
+# target to build an object file
+src/utils/encoder.cpp.o:
+	$(MAKE) -f CMakeFiles/CollaborativeML.dir/build.make CMakeFiles/CollaborativeML.dir/src/utils/encoder.cpp.o
+.PHONY : src/utils/encoder.cpp.o
+
+src/utils/encoder.i: src/utils/encoder.cpp.i
+
+.PHONY : src/utils/encoder.i
+
+# target to preprocess a source file
+src/utils/encoder.cpp.i:
+	$(MAKE) -f CMakeFiles/CollaborativeML.dir/build.make CMakeFiles/CollaborativeML.dir/src/utils/encoder.cpp.i
+.PHONY : src/utils/encoder.cpp.i
+
+src/utils/encoder.s: src/utils/encoder.cpp.s
+
+.PHONY : src/utils/encoder.s
+
+# target to generate assembly for a file
+src/utils/encoder.cpp.s:
+	$(MAKE) -f CMakeFiles/CollaborativeML.dir/build.make CMakeFiles/CollaborativeML.dir/src/utils/encoder.cpp.s
+.PHONY : src/utils/encoder.cpp.s
+
 src/utils/util.o: src/utils/util.cpp.o
 
 .PHONY : src/utils/util.o
@@ -249,6 +303,12 @@ help:
 	@echo "... src/models/logistic_regression.o"
 	@echo "... src/models/logistic_regression.i"
 	@echo "... src/models/logistic_regression.s"
+	@echo "... src/utils/djcs_aux.o"
+	@echo "... src/utils/djcs_aux.i"
+	@echo "... src/utils/djcs_aux.s"
+	@echo "... src/utils/encoder.o"
+	@echo "... src/utils/encoder.i"
+	@echo "... src/utils/encoder.s"
 	@echo "... src/utils/util.o"
 	@echo "... src/utils/util.i"
 	@echo "... src/utils/util.s"

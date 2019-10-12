@@ -6,12 +6,7 @@
 #include <cstdarg>
 #include <ctime>
 
-/**
- * log file
- * @param out
- * @param format
- * @param ...
- */
+
 void logger(FILE *out, const char *format, ...) {
 
     char buf[BUFSIZ] = {'\0'};
@@ -36,10 +31,9 @@ void logger(FILE *out, const char *format, ...) {
     fprintf(out, "%s %s", date_buf, buf);
 }
 
-/**
- * print for debug
- * @param str
- */
+
 void print_string(const char *str){
     logger(stdout, "%s", str);
 }
+
+
