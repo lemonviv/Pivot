@@ -95,6 +95,15 @@ public:
      */
     void decode_with_truncation(float & v, int truncated_exponent);
 
+
+    /**
+    * when exponent is large, decode with truncation
+    *
+    * @param truncated_exponent
+    */
+    //void truncate_exponent(int truncated_exponent);
+
+
     /**
      * check encoded number
      * if value >= n, then return Invalid

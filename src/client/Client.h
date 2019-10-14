@@ -23,8 +23,8 @@ private:
     int sample_num;                                    // number of samples
     int feature_num;                                   // number of features
     std::vector< shared_ptr<CommParty> > channels;     // established communication channels with the other clients
-    pcs_t_public_key* pk;                              // public key of threshold Paillier
-    pcs_t_auth_server* au;                             // private share (auth server) of threshold Paillier
+    djcs_t_public_key* pk;                             // public key of threshold Paillier
+    djcs_t_auth_server* au;                            // private share (auth server) of threshold Paillier
     hcs_random* hr;                                    // random value of threshold Paillier
 
 public:
@@ -73,7 +73,7 @@ public:
      * @param si
      * @param i
      */
-    void set_keys(pcs_t_public_key *param_pk, hcs_random* param_hr, mpz_t si, unsigned long i);
+    void set_keys(djcs_t_public_key *param_pk, hcs_random* param_hr, mpz_t si, unsigned long i);
 };
 
 

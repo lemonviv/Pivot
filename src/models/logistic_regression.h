@@ -113,10 +113,11 @@ public:
      * @param batch_data
      * @param losses
      * @param alpha : learning rate
-     * @param lambda : regularization term
+     * @param lambda : regularization term, currently set NULL because of the exponent scaling problem
      */
     void update_local_weights(djcs_t_public_key* pk, hcs_random* hr,
-            std::vector<EncodedNumber> batch_data, std::vector<EncodedNumber> losses, float alpha, float lambda);
+            std::vector< std::vector<EncodedNumber> > batch_data, std::vector<EncodedNumber> losses,
+            float alpha, float lambda = NULL);
 
     /**
      * destructor

@@ -96,8 +96,8 @@ void LogisticRegression::aggregate_partial_sum_instance(djcs_t_public_key* pk, h
 }
 
 
-void update_local_weights(djcs_t_public_key* pk, hcs_random* hr,
-                          std::vector<EncodedNumber> batch_data,
+void LogisticRegression::update_local_weights(djcs_t_public_key* pk, hcs_random* hr,
+                          std::vector< std::vector<EncodedNumber> > batch_data,
                           std::vector<EncodedNumber> losses,
                           float alpha, float lambda)
 {
@@ -108,9 +108,58 @@ void update_local_weights(djcs_t_public_key* pk, hcs_random* hr,
     //     * How to resolve this problem? Truncation seems not be possible because the exponent of [w_j]
     //     * will expand in every iteration
 
-    // should be careful for the fixed point integer representation
-    // TODO: add an exponent indicator to the encrypted value
+    if (losses.size() != batch_data.size()) {
+        logger(stdout, "the losses size %d not equal to batch data size %d\n",
+                losses.size(), batch_data.size());
+        return;
+    }
 
+    if (losses.size() == 0) {
+        logger(stdout, "no update needed\n");
+        return;
+    }
+
+    // 1. represent -alpha with EncodeNumber
+    mpz_t n;
+    mpz_init(n);
+    mpz_set(n, losses[0].n);
+    EncodedNumber *encoded_alpha = new EncodedNumber();
+    encoded_alpha->set_float(n, 0 - alpha, FLOAT_PRECISION);
+
+    // 2. multiply -alpha with batch_data
+    // for each sample
+    for (int i = 0; i < batch_data.size(); i++) {
+        // for each column
+        for (int j = 0; j < batch_data[0].size(); j++) {
+
+            mpz_mul(batch_data[i][j].value, batch_data[i][j].value, encoded_alpha->value);
+            batch_data[i][j].exponent += encoded_alpha->exponent;
+
+            //truncate the plaintext results to desired exponent, lose some precision here
+            //(here truncate 2 * FLOAT_PRECISION to FLOAT_PRECISION)
+            batch_data[i][j].increase_exponent(0 - FLOAT_PRECISION);
+        }
+    }
+
+    // 3. homomorphic update the result
+    // update each local weight
+    for (int j = 0; j < feature_num; j++) {
+        // for each sample i in the batch, compute \sum_{i=1}^{|B|} [losses[i]] * batch_data[i][j]
+        EncodedNumber sum;
+        sum.set_integer(n, 0);
+        djcs_t_aux_encrypt(pk, hr, sum, sum);
+        for (int i = 0; i < batch_data.size(); i++) {
+            EncodedNumber tmp;
+            tmp.set_integer(n, 0);
+            djcs_t_aux_ep_mul(pk, tmp, losses[i], batch_data[i][j]);
+            djcs_t_aux_ee_add(pk, sum, sum, tmp);
+        }
+        // update by [w_j] := [w_j] + \sum_{i=1}^{|B|} [losses[i]] * batch_data[i][j]
+        // where batch_data[i][j] = - batch_data[i][j] * \alpha
+        djcs_t_aux_ee_add(pk, local_weights[j], local_weights[j], sum);
+    }
+
+    mpz_clear(n);
 
 }
 

@@ -94,16 +94,70 @@ void EncodedNumber::increase_exponent(int new_exponent)
 }
 
 
+//void EncodedNumber::truncate_exponent(int truncated_exponent)
+//{
+//    switch (check_encoded_number()) {
+//        case Positive:
+//            break;
+//        case Negative:
+//            mpz_sub(value, value, n);
+//            break;
+//        case Overflow:
+//            logger(stdout, "encoded number %Zd is overflow\n", value);
+//            return;
+//        default:
+//            logger(stdout, "encoded number %Zd is corrupted\n", value);
+//            return;
+//    }
+//
+//    if (exponent >= 0 || truncated_exponent >= 0) {
+//        logger(stdout, "truncate mpz_t failed\n");
+//        return;
+//    }
+//
+//    int real_exponent = exponent >= truncated_exponent ? exponent : truncated_exponent;
+//
+//    // convert to string and truncate string before assign to long
+//    mpz_t res;
+//    mpz_init(res);
+//    char *t = mpz_get_str(NULL, 10, res);
+//    std::string s = t;
+//
+//    // should preserve the former (s_size - exponent + real_exponent) elements
+//    int v_size = s.size() - exponent + real_exponent;
+//
+//    if (v_size <= 0) {
+//        logger(stdout, "error when truncating to desired exponent\n");
+//        return;
+//    }
+//
+//    char *r = new char[v_size];
+//    for (int j = 0; j < v_size; ++j) {
+//        r[j] = t[j];
+//    }
+//
+//    long v = ::atol(r);
+//    float vv = (float) (v * pow(10, real_exponent));
+//
+//    long rr = fixed_pointed_integer_representation(vv, -truncated_exponent);
+//    mpz_set_si(value, rr);
+//    exponent = truncated_exponent;
+//}
+
+
 void EncodedNumber::decode(long &v)
 {
     switch (check_encoded_number()) {
         case Positive:
             fixed_pointed_decode(v, value);
+            break;
         case Negative:
             mpz_sub(value, value, n);
             fixed_pointed_decode(v, value);
+            break;
         case Overflow:
             logger(stdout, "encoded number %Zd is overflow\n", value);
+            return;
         default:
             logger(stdout, "encoded number %Zd is corrupted\n", value);
             return;
@@ -116,11 +170,14 @@ void EncodedNumber::decode(float &v)
     switch (check_encoded_number()) {
         case Positive:
             fixed_pointed_decode(v, value, exponent);
+            break;
         case Negative:
             mpz_sub(value, value, n);
             fixed_pointed_decode(v, value, exponent);
+            break;
         case Overflow:
             logger(stdout, "encoded number %Zd is overflow\n", value);
+            return;
         default:
             logger(stdout, "encoded number %Zd is corrupted\n", value);
             return;
@@ -133,11 +190,14 @@ void EncodedNumber::decode_with_truncation(float &v, int truncated_exponent)
     switch (check_encoded_number()) {
         case Positive:
             fixed_pointed_decode_truncated(v, value, exponent, truncated_exponent);
+            break;
         case Negative:
             mpz_sub(value, value, n);
             fixed_pointed_decode_truncated(v, value, exponent, truncated_exponent);
+            break;
         case Overflow:
             logger(stdout, "encoded number %Zd is overflow\n", value);
+            break;
         default:
             logger(stdout, "encoded number %Zd is corrupted\n", value);
             return;
