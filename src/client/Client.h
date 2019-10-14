@@ -23,9 +23,9 @@ private:
     int sample_num;                                    // number of samples
     int feature_num;                                   // number of features
     std::vector< shared_ptr<CommParty> > channels;     // established communication channels with the other clients
-    djcs_public_key* public_key;                       // public key of DamgardJurik cryptosystem
-    djcs_private_key* private_key;                     // private key of DamgardJurik cryptosystem (not threhsold)
-    hcs_random* hr;                                    // random value of DamgardJurik cryptosystem
+    pcs_t_public_key* pk;                              // public key of threshold Paillier
+    pcs_t_auth_server* au;                             // private share (auth server) of threshold Paillier
+    hcs_random* hr;                                    // random value of threshold Paillier
 
 public:
     /**
@@ -55,13 +55,25 @@ public:
     ~Client();
 
     /**
-     * generate DamgardJurik cryptosystem keys (currently the client who
-     * owns labels)
-     * @param epsilon : layered cryptosystem with default epsilon_s = 1
+     * generate paillier keys (currently the client who owns labels)
+     * @param epsilon : layered cryptosystem with default epsilon_s = 1 (current Paillier)
      * @param key_size : security parameter of cryptosystem
+     * @param client_num
+     * @param required_client_num
      * @return
      */
-    bool generate_djcs_keys(int epsilon_s, int key_size);
+    bool generate_pcs_t_keys(int epsilon_s, int key_size, int client_num, int required_client_num);
+
+
+    /**
+     * set the client key when receiving messages from the trusted third party
+     *
+     * @param param_pk
+     * @param param_hr
+     * @param si
+     * @param i
+     */
+    void set_keys(pcs_t_public_key *param_pk, hcs_random* param_hr, mpz_t si, unsigned long i);
 };
 
 

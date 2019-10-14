@@ -112,18 +112,42 @@ Client::Client(int param_client_id, int param_client_num, int param_has_label,
     }
 
     // init DamgardJurik keys
-    public_key = djcs_init_public_key();
-    private_key = djcs_init_private_key();
+    pk = pcs_t_init_public_key();
+    au = pcs_t_init_auth_server();
     hr = hcs_init_random();
 }
 
 
-bool Client::generate_djcs_keys(int epsilon_s, int key_size)
+bool Client::generate_pcs_t_keys(int epsilon_s, int key_size, int client_num, int required_client_num)
 {
-    // TODO: use threshold Damgard Jurik cryptosystem
+    // Initialize data structures
+    pcs_t_public_key *param_pk = pcs_t_init_public_key();
+    pcs_t_private_key *param_vk = pcs_t_init_private_key();
+    hcs_random *param_hr = hcs_init_random();
 
-    // generate a key pair with modulus of size key_size bits
-    djcs_generate_key_pair(public_key, private_key, hr, epsilon_s, key_size);
+    // Generate a key pair with modulus of size key_size bits
+    pcs_t_generate_key_pair(param_pk, param_vk, param_hr, key_size, required_client_num, client_num);
+
+    pcs_t_polynomial *coeff = pcs_t_init_polynomial(param_vk, param_hr);
+    pcs_t_auth_server **param_au =
+            (pcs_t_auth_server **)malloc(client_num * sizeof(pcs_t_auth_server *));
+    mpz_t *si = (mpz_t *)malloc(required_client_num * sizeof(mpz_t));
+    for (int i = 0; i < client_num; i++) {
+        mpz_init(si[i]);
+        pcs_t_compute_polynomial(param_vk, coeff, si[i], i);
+        // TODO: send to corresponding client via network (param_pk, param_hr, si, i)
+        //param_au[i] = pcs_t_init_auth_server();
+        //pcs_t_set_auth_server(param_au[i], si[i], i);
+    }
+}
+
+
+void Client::set_keys(pcs_t_public_key *param_pk, hcs_random *param_hr, __mpz_struct *si, unsigned long i)
+{
+    // set the keys when receiving from the trusted third party
+    pk = param_pk;
+    hr = param_hr;
+    pcs_t_set_auth_server(au, si, i);
 }
 
 
@@ -141,7 +165,7 @@ Client::~Client()
     std::vector< shared_ptr<CommParty> >().swap(channels);
 
     // free keys
-    djcs_free_private_key(private_key);
-    djcs_free_public_key(public_key);
+    pcs_t_free_public_key(pk);
+    pcs_t_free_auth_server(au);
     hcs_free_random(hr);
 }

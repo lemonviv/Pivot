@@ -5,7 +5,7 @@
 #ifndef COLLABORATIVEML_ENCODER_H
 #define COLLABORATIVEML_ENCODER_H
 
-#include "libhcs.h"
+//#include "libhcs.h"
 #include "gmp.h"
 #include "util.h"
 
