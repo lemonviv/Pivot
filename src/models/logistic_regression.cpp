@@ -4,7 +4,7 @@
 
 #include "logistic_regression.h"
 #include "../utils/encoder.h"
-#include "../utils/pcs_t_aux.h"
+#include "../utils/djcs_t_aux.h"
 #include <cstdlib>
 #include <ctime>
 #include <cstring>
@@ -25,7 +25,7 @@ LogisticRegression::LogisticRegression(int param_batch_size, int param_max_itera
 }
 
 
-void LogisticRegression::init_encrypted_local_weights(pcs_t_public_key *pk, hcs_random* hr)
+void LogisticRegression::init_encrypted_local_weights(djcs_t_public_key *pk, hcs_random* hr)
 {
     srand(static_cast<unsigned> (time(0)));
 
@@ -43,21 +43,21 @@ void LogisticRegression::init_encrypted_local_weights(pcs_t_public_key *pk, hcs_
         local_weights[i].set_float(n, fr, 2 * FLOAT_PRECISION);
 
         // 4. encrypt with public_key
-        pcs_t_aux_encrypt(pk, hr, local_weights[i], local_weights[i]);
+        djcs_t_aux_encrypt(pk, hr, local_weights[i], local_weights[i]);
 
         mpz_clear(n);
     }
 }
 
 
-void LogisticRegression::partial_predict(pcs_t_public_key *pk, hcs_random *hr,
+void LogisticRegression::partial_predict(djcs_t_public_key *pk, hcs_random *hr,
         std::vector<EncodedNumber> instance, EncodedNumber res)
 {
     instance_partial_sum(pk, hr, instance, res);
 }
 
 
-void LogisticRegression::instance_partial_sum(pcs_t_public_key* pk, hcs_random* hr,
+void LogisticRegression::instance_partial_sum(djcs_t_public_key* pk, hcs_random* hr,
         std::vector<EncodedNumber> instance, EncodedNumber res)
 {
     std::vector<EncodedNumber> weights;
@@ -66,11 +66,11 @@ void LogisticRegression::instance_partial_sum(pcs_t_public_key* pk, hcs_random* 
     }
 
     // homomorphic dot product computation
-    pcs_t_aux_inner_product(pk, hr, res, instance, weights);
+    djcs_t_aux_inner_product(pk, hr, res, instance, weights);
 }
 
 
-void LogisticRegression::compute_batch_loss(pcs_t_public_key* pk, hcs_random* hr,
+void LogisticRegression::compute_batch_loss(djcs_t_public_key* pk, hcs_random* hr,
                                             std::vector<EncodedNumber> aggregated_res,
                                             std::vector<EncodedNumber> labels,
                                             std::vector<EncodedNumber> losses)
@@ -78,25 +78,25 @@ void LogisticRegression::compute_batch_loss(pcs_t_public_key* pk, hcs_random* hr
     // homomorphic addition
     for (int i = 0; i < labels.size(); ++i) {
         // TODO: assume labels are already negative
-        pcs_t_aux_encrypt(pk, hr, labels[i], labels[i]);
-        pcs_t_aux_ee_add(pk, losses[i], aggregated_res[i], labels[i]);
+        djcs_t_aux_encrypt(pk, hr, labels[i], labels[i]);
+        djcs_t_aux_ee_add(pk, losses[i], aggregated_res[i], labels[i]);
     }
 }
 
 
-void LogisticRegression::aggregate_partial_sum_instance(pcs_t_public_key* pk, hcs_random* hr,
+void LogisticRegression::aggregate_partial_sum_instance(djcs_t_public_key* pk, hcs_random* hr,
         std::vector<EncodedNumber> partial_sum, int client_num, EncodedNumber aggregated_sum)
 {
-    pcs_t_aux_encrypt(pk, hr, aggregated_sum, aggregated_sum);
+    djcs_t_aux_encrypt(pk, hr, aggregated_sum, aggregated_sum);
 
     // homomorphic addition to aggregated_sum
     for (int i = 0; i < client_num; ++i) {
-        pcs_t_aux_ee_add(pk, aggregated_sum, aggregated_sum, partial_sum[i]);
+        djcs_t_aux_ee_add(pk, aggregated_sum, aggregated_sum, partial_sum[i]);
     }
 }
 
 
-void update_local_weights(pcs_t_public_key* pk, hcs_random* hr,
+void update_local_weights(djcs_t_public_key* pk, hcs_random* hr,
                           std::vector<EncodedNumber> batch_data,
                           std::vector<EncodedNumber> losses,
                           float alpha, float lambda)

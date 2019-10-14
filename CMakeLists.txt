@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.14)
 project(CollaborativeML)
 set(CMAKE_CXX_STANDARD 11)
 
-set(SOURCE_FILES main.cpp src/client/Client.cpp src/client/Client.h src/utils/util.h src/utils/util.cpp src/models/logistic_regression.h src/models/logistic_regression.cpp src/utils/encoder.h src/utils/encoder.cpp src/utils/pcs_t_aux.h src/utils/pcs_t_aux.cpp)
+set(SOURCE_FILES main.cpp src/client/Client.cpp src/client/Client.h src/utils/util.h src/utils/util.cpp src/models/logistic_regression.h src/models/logistic_regression.cpp src/utils/encoder.h src/utils/encoder.cpp src/utils/djcs_t_aux.h src/utils/djcs_t_aux.cpp)
 
 include_directories($ENV{HOME}/libscapi/include $ENV{HOME}/Documents/projects/boost_1_64_0/stage/lib)
 

@@ -3,34 +3,29 @@
 //
 
 
-#include "pcs_t_aux.h"
+#include "djcs_t_aux.h"
 
 
-void pcs_t_aux_encrypt(pcs_t_public_key* pk, hcs_random* hr, EncodedNumber res, EncodedNumber plain) {
+void djcs_t_aux_encrypt(djcs_t_public_key* pk, hcs_random* hr, EncodedNumber res, EncodedNumber plain) {
     mpz_set(res.n, plain.n);
     res.exponent = plain.exponent;
-    pcs_t_encrypt(pk, hr, res.value, plain.value);
+    djcs_t_encrypt(pk, hr, res.value, plain.value);
 }
 
 
-void pcs_t_aux_partial_decrypt(pcs_t_public_key* pk, pcs_t_auth_server* au, EncodedNumber res, EncodedNumber cipher) {
+void djcs_t_aux_partial_decrypt(djcs_t_public_key* pk, djcs_t_auth_server* au, EncodedNumber res, EncodedNumber cipher) {
     mpz_set(res.n, cipher.n);
     res.exponent = cipher.exponent;
-    pcs_t_share_decrypt(pk, au, res.value, cipher.value);
+    djcs_t_share_decrypt(pk, au, res.value, cipher.value);
 }
 
 
-void pcs_t_aux_hcs_share_combine(pcs_t_public_key* pk, EncodedNumber res, hcs_shares* hs) {
-    pcs_t_share_combine(pk, res.value, hs);
+void djcs_t_aux_share_combine(djcs_t_public_key* pk, EncodedNumber res, mpz_t* shares) {
+    djcs_t_share_combine(pk, res.value, shares);
 }
 
 
-void pcs_t_aux_hcs_set_share(hcs_shares *shares, EncodedNumber partial_dec, unsigned long i) {
-    hcs_set_share(shares, partial_dec.value, i);
-}
-
-
-void pcs_t_aux_ee_add(pcs_t_public_key* pk, EncodedNumber res, EncodedNumber cipher1, EncodedNumber cipher2) {
+void djcs_t_aux_ee_add(djcs_t_public_key* pk, EncodedNumber res, EncodedNumber cipher1, EncodedNumber cipher2) {
 
     if (mpz_cmp(cipher1.n, cipher2.n) != 0) {
         logger(stdout, "two ciphertexts not with the same public key\n");
@@ -51,11 +46,11 @@ void pcs_t_aux_ee_add(pcs_t_public_key* pk, EncodedNumber res, EncodedNumber cip
         res.exponent = cipher2.exponent;
     }
 
-    pcs_t_ee_add(pk, res.value, cipher1.value, cipher2.value);
+    djcs_t_ee_add(pk, res.value, cipher1.value, cipher2.value);
 }
 
 
-void pcs_t_aux_ep_mul(pcs_t_public_key* pk, EncodedNumber res, EncodedNumber cipher, EncodedNumber plain) {
+void djcs_t_aux_ep_mul(djcs_t_public_key* pk, EncodedNumber res, EncodedNumber cipher, EncodedNumber plain) {
 
     if (mpz_cmp(cipher.n, plain.n) != 0) {
         logger(stdout, "two values not under the same public key\n");
@@ -63,11 +58,11 @@ void pcs_t_aux_ep_mul(pcs_t_public_key* pk, EncodedNumber res, EncodedNumber cip
     }
     mpz_set(res.n, cipher.n);
     res.exponent = cipher.exponent + plain.exponent;
-    pcs_t_ep_mul(pk, res.value, cipher.value, plain.value);
+    djcs_t_ep_mul(pk, res.value, cipher.value, plain.value);
 }
 
 
-void pcs_t_aux_inner_product(pcs_t_public_key* pk, hcs_random* hr, EncodedNumber res,
+void djcs_t_aux_inner_product(djcs_t_public_key* pk, hcs_random* hr, EncodedNumber res,
         std::vector<EncodedNumber> ciphers, std::vector<EncodedNumber> plains) {
 
     if (ciphers.size() != plains.size()) {
@@ -89,10 +84,10 @@ void pcs_t_aux_inner_product(pcs_t_public_key* pk, hcs_random* hr, EncodedNumber
     mpz_set(res.n, ciphers[0].n);
     res.exponent = ciphers[0].exponent + plains[0].exponent;
     mpz_set_ui(res.value, 0);
-    pcs_t_aux_encrypt(pk, hr, res, res);
+    djcs_t_aux_encrypt(pk, hr, res, res);
     for (int i = 0; i < ciphers.size(); ++i) {
         EncodedNumber number;
-        pcs_t_aux_ep_mul(pk, number, ciphers[i], plains[i]);
-        pcs_t_aux_ee_add(pk, res, res, number);
+        djcs_t_aux_ep_mul(pk, number, ciphers[i], plains[i]);
+        djcs_t_aux_ee_add(pk, res, res, number);
     }
 }

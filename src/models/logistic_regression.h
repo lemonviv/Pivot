@@ -54,7 +54,7 @@ public:
      * @param instance (fixed point integer representation)
      * @param res
      */
-    void partial_predict(pcs_t_public_key* pk, hcs_random* hr,
+    void partial_predict(djcs_t_public_key* pk, hcs_random* hr,
             std::vector<EncodedNumber> instance, EncodedNumber res);
 
     /**
@@ -63,7 +63,7 @@ public:
      * @param pk
      * @param hr
      */
-    void init_encrypted_local_weights(pcs_t_public_key* pk, hcs_random* hr);
+    void init_encrypted_local_weights(djcs_t_public_key* pk, hcs_random* hr);
 
     /**
      * compute partial aggregation result for an instance using local_weights,
@@ -74,7 +74,7 @@ public:
      * @param instance (fixed point integer representation)
      * @param res (with 0)
      */
-    void instance_partial_sum(pcs_t_public_key* pk, hcs_random* hr,
+    void instance_partial_sum(djcs_t_public_key* pk, hcs_random* hr,
             std::vector<EncodedNumber> instance, EncodedNumber res);
 
     /**
@@ -87,7 +87,7 @@ public:
      * @param client_num
      * @param aggregated_sum
      */
-    void aggregate_partial_sum_instance(pcs_t_public_key* pk, hcs_random* hr,
+    void aggregate_partial_sum_instance(djcs_t_public_key* pk, hcs_random* hr,
             std::vector<EncodedNumber> partial_sum, int client_num, EncodedNumber aggregated_sum);
 
     /**
@@ -99,7 +99,7 @@ public:
      * @param labels : should be represented with fixed point integer, with FLOAT_PRECISION
      * @param losses : should be truncated from K * FLOAT_PRECISION to FLOAT_PRECISION exponent
      */
-    void compute_batch_loss(pcs_t_public_key* pk, hcs_random* hr,
+    void compute_batch_loss(djcs_t_public_key* pk, hcs_random* hr,
             std::vector<EncodedNumber> aggregated_res,
             std::vector<EncodedNumber> labels,
             std::vector<EncodedNumber> losses);
@@ -115,7 +115,7 @@ public:
      * @param alpha : learning rate
      * @param lambda : regularization term
      */
-    void update_local_weights(pcs_t_public_key pk, hcs_random* hr,
+    void update_local_weights(djcs_t_public_key* pk, hcs_random* hr,
             std::vector<EncodedNumber> batch_data, std::vector<EncodedNumber> losses, float alpha, float lambda);
 
     /**
