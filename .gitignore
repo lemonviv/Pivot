@@ -61,3 +61,8 @@ obj/
 cmake-build-debug/
 logs/
 .cmake/
+Testing/
+bin/
+Makefile
+CTestTestfile.cmake
+CollaborativeML

@@ -13,8 +13,10 @@
 LogisticRegression::LogisticRegression(){}
 
 
-LogisticRegression::LogisticRegression(int param_batch_size, int param_max_iteration,
-        float param_converge_threshold, int param_feature_num)
+LogisticRegression::LogisticRegression(int param_batch_size,
+        int param_max_iteration,
+        float param_converge_threshold,
+        int param_feature_num)
 {
     // copy params
     batch_size = param_batch_size;
@@ -22,6 +24,7 @@ LogisticRegression::LogisticRegression(int param_batch_size, int param_max_itera
     converge_threshold = param_converge_threshold;
     feature_num = param_feature_num;
     model_accuracy = 0.0;
+    local_weights = new EncodedNumber[feature_num];
 }
 
 
@@ -42,7 +45,7 @@ void LogisticRegression::init_encrypted_local_weights(djcs_t_public_key *pk, hcs
         // 3. set for float value
         local_weights[i].set_float(n, fr, 2 * FLOAT_PRECISION);
 
-        // 4. encrypt with public_key
+        // 4. encrypt with public_key (should use another EncodeNumber to represent cipher?)
         djcs_t_aux_encrypt(pk, hr, local_weights[i], local_weights[i]);
 
         mpz_clear(n);
@@ -51,32 +54,29 @@ void LogisticRegression::init_encrypted_local_weights(djcs_t_public_key *pk, hcs
 
 
 void LogisticRegression::partial_predict(djcs_t_public_key *pk, hcs_random *hr,
-        std::vector<EncodedNumber> instance, EncodedNumber res)
+        EncodedNumber instance[],
+        EncodedNumber res)
 {
     instance_partial_sum(pk, hr, instance, res);
 }
 
 
 void LogisticRegression::instance_partial_sum(djcs_t_public_key* pk, hcs_random* hr,
-        std::vector<EncodedNumber> instance, EncodedNumber res)
+        EncodedNumber instance[],
+        EncodedNumber res)
 {
-    std::vector<EncodedNumber> weights;
-    for (int i = 0; i < instance.size(); ++i) {
-        weights.push_back(local_weights[i]);
-    }
-
     // homomorphic dot product computation
-    djcs_t_aux_inner_product(pk, hr, res, instance, weights);
+    djcs_t_aux_inner_product(pk, hr, res, local_weights, instance, feature_num);
 }
 
 
 void LogisticRegression::compute_batch_loss(djcs_t_public_key* pk, hcs_random* hr,
-                                            std::vector<EncodedNumber> aggregated_res,
-                                            std::vector<EncodedNumber> labels,
-                                            std::vector<EncodedNumber> losses)
+                                            EncodedNumber aggregated_res[],
+                                            EncodedNumber labels[],
+                                            EncodedNumber losses[])
 {
     // homomorphic addition
-    for (int i = 0; i < labels.size(); ++i) {
+    for (int i = 0; i < batch_size; ++i) {
         // TODO: assume labels are already negative
         djcs_t_aux_encrypt(pk, hr, labels[i], labels[i]);
         djcs_t_aux_ee_add(pk, losses[i], aggregated_res[i], labels[i]);
@@ -85,7 +85,9 @@ void LogisticRegression::compute_batch_loss(djcs_t_public_key* pk, hcs_random* h
 
 
 void LogisticRegression::aggregate_partial_sum_instance(djcs_t_public_key* pk, hcs_random* hr,
-        std::vector<EncodedNumber> partial_sum, int client_num, EncodedNumber aggregated_sum)
+        EncodedNumber partial_sum[],
+        int client_num,
+        EncodedNumber aggregated_sum)
 {
     djcs_t_aux_encrypt(pk, hr, aggregated_sum, aggregated_sum);
 
@@ -97,9 +99,10 @@ void LogisticRegression::aggregate_partial_sum_instance(djcs_t_public_key* pk, h
 
 
 void LogisticRegression::update_local_weights(djcs_t_public_key* pk, hcs_random* hr,
-                          std::vector< std::vector<EncodedNumber> > batch_data,
-                          std::vector<EncodedNumber> losses,
-                          float alpha, float lambda)
+                          EncodedNumber **batch_data,
+                          EncodedNumber losses[],
+                          float alpha,
+                          float lambda)
 {
     // update client's local weights when receiving loss
     //     * according to L2 regularization (current do not consider L2 regularization because of scaling)
@@ -108,13 +111,8 @@ void LogisticRegression::update_local_weights(djcs_t_public_key* pk, hcs_random*
     //     * How to resolve this problem? Truncation seems not be possible because the exponent of [w_j]
     //     * will expand in every iteration
 
-    if (losses.size() != batch_data.size()) {
-        logger(stdout, "the losses size %d not equal to batch data size %d\n",
-                losses.size(), batch_data.size());
-        return;
-    }
 
-    if (losses.size() == 0) {
+    if (batch_size == 0) {
         logger(stdout, "no update needed\n");
         return;
     }
@@ -128,9 +126,9 @@ void LogisticRegression::update_local_weights(djcs_t_public_key* pk, hcs_random*
 
     // 2. multiply -alpha with batch_data
     // for each sample
-    for (int i = 0; i < batch_data.size(); i++) {
+    for (int i = 0; i < batch_size; i++) {
         // for each column
-        for (int j = 0; j < batch_data[0].size(); j++) {
+        for (int j = 0; j < feature_num; j++) {
 
             mpz_mul(batch_data[i][j].value, batch_data[i][j].value, encoded_alpha->value);
             batch_data[i][j].exponent += encoded_alpha->exponent;
@@ -141,14 +139,13 @@ void LogisticRegression::update_local_weights(djcs_t_public_key* pk, hcs_random*
         }
     }
 
-    // 3. homomorphic update the result
-    // update each local weight
+    // 3. homomorphic update the result -- update each local weight
     for (int j = 0; j < feature_num; j++) {
         // for each sample i in the batch, compute \sum_{i=1}^{|B|} [losses[i]] * batch_data[i][j]
         EncodedNumber sum;
         sum.set_integer(n, 0);
         djcs_t_aux_encrypt(pk, hr, sum, sum);
-        for (int i = 0; i < batch_data.size(); i++) {
+        for (int i = 0; i < batch_size; i++) {
             EncodedNumber tmp;
             tmp.set_integer(n, 0);
             djcs_t_aux_ep_mul(pk, tmp, losses[i], batch_data[i][j]);
@@ -160,15 +157,11 @@ void LogisticRegression::update_local_weights(djcs_t_public_key* pk, hcs_random*
     }
 
     mpz_clear(n);
-
 }
 
 
 LogisticRegression::~LogisticRegression()
 {
     // free local weights
-    for (int j = 0; j < feature_num; ++j) {
-    }
+    delete [] local_weights;
 }
-
-

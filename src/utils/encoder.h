@@ -11,6 +11,8 @@
 
 
 /**
+ * After decryption, there are four states for the decrypted number:
+ *
  * Invalid : corrupted encoded number (should mod n if needed)
  * Positive: encoded number is a positive number
  * Negative: encoded number is a negative number, should minus n before decoding
@@ -24,6 +26,7 @@ public:
     mpz_t            n;               // max value in public key for encoding
     mpz_t            value;           // the value in mpz_t form
     int              exponent;        // fixed pointed integer representation, 0 for integer, negative for float
+    bool             is_encrypted;    // default is false, a plaintext value; after encryption, set true
 public:
     /**
      * default constructor
@@ -110,6 +113,11 @@ public:
      * else if value <= max_int then return positive
      * else if value >= n - max_int then return negative
      * else (max_int < value < n - max_int) then return overflow
+     *
+     * NOTE: this function only works for the plaintext after decryption,
+     * if an encoded number is not encrypted and decrypted, it should always return
+     * a positive state because we assume the plaintext will never
+     * surpass the max_int of the djcs_t cryptosystem?
      *
      * @return
      */

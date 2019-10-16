@@ -21,7 +21,7 @@ private:
     float model_accuracy;                              // accuracy of the model
     int feature_num;                                   // feature number of a client
     //std::vector<EncodedNumber> local_weights;        // local weights of features
-    EncodedNumber local_weights[MAX_FEATURE_NUM];      // local weights of features
+    EncodedNumber *local_weights;                      // local weights of features
 public:
     /**
      * default constructor
@@ -36,8 +36,10 @@ public:
      * @param param_converge_threshold
      * @param param_feature_num
      */
-    LogisticRegression(int param_batch_size, int param_max_iteration,
-            float param_converge_threshold, int param_feature_num);
+    LogisticRegression(int param_batch_size,
+            int param_max_iteration,
+            float param_converge_threshold,
+            int param_feature_num);
     /**
      * (client who owns label is responsible for training)
      * train a lr model using local_data
@@ -55,7 +57,8 @@ public:
      * @param res
      */
     void partial_predict(djcs_t_public_key* pk, hcs_random* hr,
-            std::vector<EncodedNumber> instance, EncodedNumber res);
+            EncodedNumber instance[],
+            EncodedNumber res);
 
     /**
      * init encrypted local weights with feature_num values
@@ -75,7 +78,8 @@ public:
      * @param res (with 0)
      */
     void instance_partial_sum(djcs_t_public_key* pk, hcs_random* hr,
-            std::vector<EncodedNumber> instance, EncodedNumber res);
+            EncodedNumber instance[],
+            EncodedNumber res);
 
     /**
      * (client who owns labels do this computation)
@@ -88,7 +92,9 @@ public:
      * @param aggregated_sum
      */
     void aggregate_partial_sum_instance(djcs_t_public_key* pk, hcs_random* hr,
-            std::vector<EncodedNumber> partial_sum, int client_num, EncodedNumber aggregated_sum);
+            EncodedNumber partial_sum[],
+            int client_num,
+            EncodedNumber aggregated_sum);
 
     /**
      * compute batch loss by conversion between mpc and back
@@ -100,9 +106,9 @@ public:
      * @param losses : should be truncated from K * FLOAT_PRECISION to FLOAT_PRECISION exponent
      */
     void compute_batch_loss(djcs_t_public_key* pk, hcs_random* hr,
-            std::vector<EncodedNumber> aggregated_res,
-            std::vector<EncodedNumber> labels,
-            std::vector<EncodedNumber> losses);
+            EncodedNumber aggregated_res[],
+            EncodedNumber labels[],
+            EncodedNumber losses[]);
 
     /**
      * update client's local weights when receiving loss
@@ -116,16 +122,16 @@ public:
      * @param lambda : regularization term, currently set NULL because of the exponent scaling problem
      */
     void update_local_weights(djcs_t_public_key* pk, hcs_random* hr,
-            std::vector< std::vector<EncodedNumber> > batch_data, std::vector<EncodedNumber> losses,
-            float alpha, float lambda = NULL);
+            EncodedNumber **batch_data,
+            EncodedNumber losses[],
+            float alpha,
+            float lambda = NULL);
 
     /**
      * destructor
      */
     ~LogisticRegression();
 };
-
-
 
 
 #endif //COLLABORATIVEML_LOGISTIC_REGRESSION_H

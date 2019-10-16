@@ -7,8 +7,8 @@
 
 #include <stdio.h>
 
-
 #define FLOAT_PRECISION 8
+#define PRECISION_THRESHOLD 1e-8
 
 /**
  * log file

@@ -6,12 +6,14 @@
 #include <iomanip>
 #include <sstream>
 #include <cmath>
+#include <iostream>
 
 
 EncodedNumber::EncodedNumber()
 {
     mpz_init(n);
     mpz_init(value);
+    is_encrypted = false;
 }
 
 
@@ -31,6 +33,8 @@ void EncodedNumber::set_float(mpz_t pn, float v, int precision)
 
 EncodedNumber::~EncodedNumber()
 {
+    //std::cout<<"destructor of EncodedNumber"<<std::endl;
+    //gmp_printf("value = %Zd\n", value);
     mpz_clear(n);
     mpz_clear(value);
 }
@@ -79,12 +83,14 @@ void EncodedNumber::increase_exponent(int new_exponent)
         return;
     }
 
-    char *r = new char[v_size];
+    char *r = new char[v_size + 1];
     for (int j = 0; j < v_size; ++j) {
         r[j] = t[j];
     }
+    r[v_size] = '\0';  // if miss this line, new_value would be any value unexpected
 
     // 3. convert back
+    exponent = new_exponent;
     mpz_t new_value;
     mpz_init(new_value);
     mpz_set_str(new_value, r, 10);
@@ -147,6 +153,12 @@ void EncodedNumber::increase_exponent(int new_exponent)
 
 void EncodedNumber::decode(long &v)
 {
+    if (exponent != 0) {
+        // not integer, should not call this decode function
+        logger(stdout, "exponent is not zero, failed, should call decode with float\n");
+        return;
+    }
+
     switch (check_encoded_number()) {
         case Positive:
             fixed_pointed_decode(v, value);
@@ -289,17 +301,18 @@ void fixed_pointed_decode_truncated(float & value, mpz_t res, int exponent, int 
     std::string s = t;
 
     // should preserve the former (s_size - exponent + real_exponent) elements
-    int v_size = s.size() - exponent + real_exponent;
+    int v_size = s.size() + exponent - real_exponent;
 
     if (v_size <= 0) {
         logger(stdout, "decode error when truncating to desired exponent\n");
         return;
     }
 
-    char *r = new char[v_size];
+    char *r = new char[v_size + 1];
     for (int j = 0; j < v_size; ++j) {
         r[j] = t[j];
     }
+    r[v_size] = '\0';
 
     long v = ::atol(r);
     value = (float) (v * pow(10, real_exponent));
