@@ -24,6 +24,11 @@ Client::Client(int param_client_id, int param_client_num, int param_has_label,
     client_num = param_client_num;
     has_label = param_has_label == 1;
 
+    // init threshold DamgardJurik keys
+    m_pk = djcs_t_init_public_key();
+    m_au = djcs_t_init_auth_server();
+    m_hr = hcs_init_random();
+
     // read local dataset
     std::ifstream data_infile(param_local_data_file);
 
@@ -33,8 +38,8 @@ Client::Client(int param_client_id, int param_client_num, int param_has_label,
     }
 
     std::string line;
-    std::vector<float> items;
     while (std::getline(data_infile, line)) {
+        std::vector<float> items;
         std::istringstream ss(line);
         std::string item;
         // split line with delimiter, default ','
@@ -110,15 +115,29 @@ Client::Client(int param_client_id, int param_client_num, int param_has_label,
             channels.push_back(channel);
         }
     }
-
-    // init threshold DamgardJurik keys
-    pk = djcs_t_init_public_key();
-    au = djcs_t_init_auth_server();
-    hr = hcs_init_random();
 }
 
 
-bool Client::generate_pcs_t_keys(int epsilon_s, int key_size, int client_num, int required_client_num)
+Client::Client(const Client &client) {
+    feature_num = client.feature_num;
+    sample_num = client.sample_num;
+    client_id = client.client_id;
+    client_num = client.client_num;
+    has_label = client.has_label;
+    local_data = client.local_data;
+    labels = client.labels;
+    channels = client.channels;
+
+    m_pk = djcs_t_init_public_key();
+    m_au = djcs_t_init_auth_server();
+    m_hr = hcs_init_random();
+    m_pk = client.m_pk;
+    m_au = client.m_au;
+    m_hr = client.m_hr;
+}
+
+
+bool Client::generate_djcs_t_keys(int epsilon_s, int key_size, int client_num, int required_client_num)
 {
     // Initialize data structures
     djcs_t_public_key *param_pk = djcs_t_init_public_key();
@@ -146,9 +165,32 @@ bool Client::generate_pcs_t_keys(int epsilon_s, int key_size, int client_num, in
 void Client::set_keys(djcs_t_public_key *param_pk, hcs_random *param_hr, mpz_t si, unsigned long i)
 {
     // set the keys when receiving from the trusted third party
-    pk = param_pk;
-    hr = param_hr;
-    djcs_t_set_auth_server(au, si, i);
+    m_pk = param_pk;
+    m_hr = param_hr;
+    djcs_t_set_auth_server(m_au, si, i);
+}
+
+
+void Client::print_local_data() {
+    for (int i = 0; i < sample_num; i++) {
+        std::cout<<"sample "<<i<<" = ";
+        for (int j = 0; j < feature_num; j++) {
+            if (j != feature_num - 1) {
+                std::cout<<local_data[i][j]<<", ";
+            } else {
+                std::cout<<local_data[i][j]<<std::endl;
+            }
+        }
+    }
+}
+
+
+void Client::print_labels() {
+    if (!has_label) return;
+
+    for (int i = 0; i < sample_num; i++) {
+        std::cout<<"sample "<<i<<" label = "<<labels[i]<<std::endl;
+    }
 }
 
 
@@ -166,7 +208,7 @@ Client::~Client()
     std::vector< shared_ptr<CommParty> >().swap(channels);
 
     // free keys
-    djcs_t_free_public_key(pk);
-    djcs_t_free_auth_server(au);
-    hcs_free_random(hr);
+    djcs_t_free_public_key(m_pk);
+    djcs_t_free_auth_server(m_au);
+    hcs_free_random(m_hr);
 }

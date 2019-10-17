@@ -14,7 +14,7 @@
  */
 class Client {
 
-private:
+public:
     int client_id;                                     // id for each client
     int client_num;                                    // total clients in the system
     bool has_label;                                    // only one client has label, default client 0
@@ -23,9 +23,9 @@ private:
     int sample_num;                                    // number of samples
     int feature_num;                                   // number of features
     std::vector< shared_ptr<CommParty> > channels;     // established communication channels with the other clients
-    djcs_t_public_key* pk;                             // public key of threshold Paillier
-    djcs_t_auth_server* au;                            // private share (auth server) of threshold Paillier
-    hcs_random* hr;                                    // random value of threshold Paillier
+    djcs_t_public_key* m_pk;                           // public key of threshold Paillier
+    djcs_t_auth_server* m_au;                          // private share (auth server) of threshold Paillier
+    hcs_random* m_hr;                                  // random value of threshold Paillier
 
 public:
     /**
@@ -49,6 +49,14 @@ public:
     Client(int param_client_id, int param_client_num, int param_has_label,
             std::string param_network_config_file, std::string param_local_data_file);
 
+
+    /**
+     * copy constructor
+     *
+     * @param client
+     */
+    Client(const Client & client);
+
     /**
      * destructor
      */
@@ -62,7 +70,7 @@ public:
      * @param required_client_num
      * @return
      */
-    bool generate_pcs_t_keys(int epsilon_s, int key_size, int client_num, int required_client_num);
+    bool generate_djcs_t_keys(int epsilon_s, int key_size, int client_num, int required_client_num);
 
 
     /**
@@ -74,6 +82,16 @@ public:
      * @param i
      */
     void set_keys(djcs_t_public_key *param_pk, hcs_random* param_hr, mpz_t si, unsigned long i);
+
+    /**
+     * print for debugging
+     */
+    void print_local_data();
+
+    /**
+     * print for debugging
+     */
+    void print_labels();
 };
 
 

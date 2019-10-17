@@ -1,4 +1,5 @@
 #include <iostream>
+#include <string>
 #include "tests/test_encoder.h"
 #include "tests/test_djcs_t_aux.h"
 #include "tests/test_logistic_regression.h"
@@ -49,14 +50,29 @@ void system_free() {
     free(au);
 }
 
-int main() {
+int main(int argc, char *argv[]) {
 
     system_setup();
 
-    //test_encoder();
-    //test_djcs_t_aux();
-    test_lr();
+    int client_num = TOTAL_CLIENT_NUM;
+    int client_id = atoi(argv[1]);
+    bool has_label = (client_id == 0);
+    std::string network_file = "/home/wuyuncheng/Documents/projects/CollaborativeML/data/networks/Parties.txt";
+    std::string s1("/home/wuyuncheng/Documents/projects/CollaborativeML/data/datasets/");
+    std::string s2 = std::to_string(client_id);
+    std::string data_file = s1 + "client_" + s2 + ".txt";
+
+    Client client(client_id, client_num, has_label, network_file, data_file);
+
+    // print client's data
+    client.print_local_data();
+    client.print_labels();
+
+//    for (int i = 0; i < client.client_num; i++) {
+//        client.channels[i]->write("Hello world from client" + std::to_string(client_id));
+//    }
 
     system_free();
+
     return 0;
 }
