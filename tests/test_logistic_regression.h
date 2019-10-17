@@ -12,7 +12,7 @@
 #include "libhcs.h"
 
 
-void decrypt_temp(djcs_t_public_key *pk, djcs_t_auth_server **au, int required_client_num, EncodedNumber & rop, EncodedNumber v);
+
 int test_lr();
 void test_init_weights(djcs_t_public_key *pk, hcs_random *hr);
 void test_instance_partial_sum(djcs_t_public_key *pk, hcs_random *hr, int feature_num);

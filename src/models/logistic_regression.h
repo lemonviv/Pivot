@@ -36,7 +36,8 @@ public:
      * @param param_converge_threshold
      * @param param_feature_num
      */
-    LogisticRegression(int param_batch_size,
+    LogisticRegression(
+            int param_batch_size,
             int param_max_iteration,
             float param_converge_threshold,
             int param_feature_num);
@@ -56,7 +57,9 @@ public:
      * @param instance (fixed point integer representation)
      * @param res
      */
-    void partial_predict(djcs_t_public_key* pk, hcs_random* hr,
+    void partial_predict(
+            djcs_t_public_key* pk,
+            hcs_random* hr,
             EncodedNumber instance[],
             EncodedNumber & res);
 
@@ -65,8 +68,12 @@ public:
      *
      * @param pk
      * @param hr
+     * @param precision
      */
-    void init_encrypted_local_weights(djcs_t_public_key* pk, hcs_random* hr);
+    void init_encrypted_local_weights(
+            djcs_t_public_key* pk,
+            hcs_random* hr,
+            int precision = 2 * FLOAT_PRECISION);
 
     /**
      * compute partial aggregation result for an instance using local_weights,
@@ -77,7 +84,9 @@ public:
      * @param instance (fixed point integer representation)
      * @param res (with 0)
      */
-    void instance_partial_sum(djcs_t_public_key* pk, hcs_random* hr,
+    void instance_partial_sum(
+            djcs_t_public_key* pk,
+            hcs_random* hr,
             EncodedNumber instance[],
             EncodedNumber & res);
 
@@ -88,13 +97,17 @@ public:
      * @param pk
      * @param hr
      * @param partial_sum
-     * @param client_num
      * @param aggregated_sum
-     */
-    void aggregate_partial_sum_instance(djcs_t_public_key* pk, hcs_random* hr,
+     * @param client_num
+     * @param desired_precision
+     * */
+    void aggregate_partial_sum_instance(
+            djcs_t_public_key* pk,
+            hcs_random* hr,
             EncodedNumber partial_sum[],
+            EncodedNumber & aggregated_sum,
             int client_num,
-            EncodedNumber & aggregated_sum);
+            int desired_precision = FLOAT_PRECISION);
 
     /**
      * compute batch loss by conversion between mpc and back
@@ -105,10 +118,12 @@ public:
      * @param labels : should be represented with fixed point integer, with FLOAT_PRECISION
      * @param losses : should be truncated from K * FLOAT_PRECISION to FLOAT_PRECISION exponent
      */
-    void compute_batch_loss(djcs_t_public_key* pk, hcs_random* hr,
+    void compute_batch_loss(
+            djcs_t_public_key* pk,
+            hcs_random* hr,
             EncodedNumber aggregated_res[],
             EncodedNumber labels[],
-            EncodedNumber *&losses);
+            EncodedNumber *& losses);
 
     /**
      * update client's local weights when receiving loss
@@ -121,7 +136,9 @@ public:
      * @param alpha : learning rate
      * @param lambda : regularization term, currently set NULL because of the exponent scaling problem
      */
-    void update_local_weights(djcs_t_public_key* pk, hcs_random* hr,
+    void update_local_weights(
+            djcs_t_public_key* pk,
+            hcs_random* hr,
             EncodedNumber **batch_data,
             EncodedNumber losses[],
             float alpha,

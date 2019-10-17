@@ -5,7 +5,7 @@
 #ifndef COLLABORATIVEML_TEST_ENCODER_H
 #define COLLABORATIVEML_TEST_ENCODER_H
 
-void compute_thresholds();
+//void compute_thresholds();
 void test_positive_int(int x);
 void test_negative_int(int x);
 void test_positive_float(float x);

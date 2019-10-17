@@ -42,3 +42,18 @@ void print_string(const char *str){
 
 
 
+void compute_thresholds(djcs_t_public_key *pk, mpz_t n, mpz_t positive_threshold, mpz_t negative_threshold) {
+    mpz_t g;
+    mpz_init(g);
+    mpz_set(g, pk->g);
+    mpz_sub_ui(n, g, 1);
+
+    mpz_t t;
+    mpz_init(t);
+    mpz_fdiv_q_ui(t, n, 3);
+    mpz_sub_ui(positive_threshold, t, 1);  // this is positive threshold
+    mpz_sub(negative_threshold, n, positive_threshold);  // this is negative threshold
+
+    mpz_clear(g);
+    mpz_clear(t);
+}

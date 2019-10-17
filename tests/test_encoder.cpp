@@ -11,29 +11,28 @@
 #include <sstream>
 #include "test_encoder.h"
 
-static hcs_random *hr;
-static djcs_t_public_key *pk;
-static djcs_t_private_key *vk;
-
-static mpz_t n, positive_threshold, negative_threshold;
+extern hcs_random *hr;
+extern djcs_t_public_key *pk;
+extern djcs_t_private_key *vk;
+extern mpz_t n, positive_threshold, negative_threshold;
 
 int total_cases_num, passed_cases_num;
 
-void compute_thresholds() {
-    mpz_t g;
-    mpz_init(g);
-    mpz_set(g, pk->g);
-    mpz_sub_ui(n, g, 1);
-
-    mpz_t t;
-    mpz_init(t);
-    mpz_fdiv_q_ui(t, n, 3);
-    mpz_sub_ui(positive_threshold, t, 1);  // this is positive threshold
-    mpz_sub(negative_threshold, n, positive_threshold);  // this is negative threshold
-
-    mpz_clear(g);
-    mpz_clear(t);
-}
+//void compute_thresholds() {
+//    mpz_t g;
+//    mpz_init(g);
+//    mpz_set(g, pk->g);
+//    mpz_sub_ui(n, g, 1);
+//
+//    mpz_t t;
+//    mpz_init(t);
+//    mpz_fdiv_q_ui(t, n, 3);
+//    mpz_sub_ui(positive_threshold, t, 1);  // this is positive threshold
+//    mpz_sub(negative_threshold, n, positive_threshold);  // this is negative threshold
+//
+//    mpz_clear(g);
+//    mpz_clear(t);
+//}
 
 
 void test_positive_int(int x) {
@@ -356,21 +355,21 @@ int test_encoder()
 {
     logger(stdout, "Test encode and decode functions\n");
 
-    hr = hcs_init_random();
-    pk = djcs_t_init_public_key();
-    vk = djcs_t_init_private_key();
+//    hr = hcs_init_random();
+//    pk = djcs_t_init_public_key();
+//    vk = djcs_t_init_private_key();
 
-    djcs_t_generate_key_pair(pk, vk, hr, 1, 512, 3, 3);
+//    djcs_t_generate_key_pair(pk, vk, hr, 1, 512, 3, 3);
 
-    mpz_init(n);
-    mpz_init(positive_threshold);
-    mpz_init(negative_threshold);
+//    mpz_init(n);
+//    mpz_init(positive_threshold);
+//    mpz_init(negative_threshold);
 
     total_cases_num = 0;
     passed_cases_num = 0;
 
     // compute thresholds
-    compute_thresholds();
+    // compute_thresholds();
 
     // 1. test positive int
     test_positive_int(5);
@@ -413,13 +412,13 @@ int test_encoder()
             total_cases_num, passed_cases_num);
 
     // free memory
-    hcs_free_random(hr);
-    djcs_t_free_public_key(pk);
-    djcs_t_free_private_key(vk);
+//    hcs_free_random(hr);
+//    djcs_t_free_public_key(pk);
+//    djcs_t_free_private_key(vk);
 
-    mpz_clear(n);
-    mpz_clear(positive_threshold);
-    mpz_clear(negative_threshold);
+//    mpz_clear(n);
+//    mpz_clear(positive_threshold);
+//    mpz_clear(negative_threshold);
 
     return 0;
 }

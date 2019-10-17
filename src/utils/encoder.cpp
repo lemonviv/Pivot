@@ -27,6 +27,15 @@ EncodedNumber::EncodedNumber(const EncodedNumber &number)
     is_encrypted = number.is_encrypted;
 }
 
+EncodedNumber& EncodedNumber::operator=(const EncodedNumber &number) {
+    mpz_init(n);
+    mpz_init(value);
+    mpz_set(n, number.n);
+    mpz_set(value, number.value);
+    exponent = number.exponent;
+    is_encrypted = number.is_encrypted;
+}
+
 
 void EncodedNumber::set_integer(mpz_t pn, int v)
 {
@@ -332,4 +341,29 @@ void fixed_pointed_decode_truncated(float & value, mpz_t res, int exponent, int 
 
     long v = ::atol(r);
     value = (float) (v * pow(10, real_exponent));
+}
+
+
+void decrypt_temp(djcs_t_public_key *pk, djcs_t_auth_server **au, int required_client_num, EncodedNumber & rop, EncodedNumber v) {
+
+    mpz_t t;
+    mpz_init(t);
+
+    rop.exponent = v.exponent;
+    rop.is_encrypted = false;
+    mpz_set(rop.n, v.n);
+
+    auto *dec = (mpz_t *) malloc (required_client_num * sizeof(mpz_t));
+    for (int j = 0; j < required_client_num; j++) {
+        mpz_init(dec[j]);
+    }
+
+    for (int j = 0; j < required_client_num; j++) {
+        //djcs_t_share_decrypt(pk1, au[j], dec[j], ciphers[2].value);
+        djcs_t_share_decrypt(pk, au[j], dec[j], v.value);
+    }
+    djcs_t_share_combine(pk, t, dec);
+    mpz_set(rop.value, t);
+
+    mpz_clear(t);
 }
