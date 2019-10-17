@@ -38,10 +38,10 @@ void compute_thresholds() {
 
 void test_positive_int(int x) {
     EncodedNumber a;
-    long y;
+    float y;
     a.set_integer(n, x);
     a.decode(y);
-    if ((long) x != y) {
+    if ((float) x != y) {
         logger(stdout, "test_positive_int(%d) failed\n", x);
         total_cases_num += 1;
     } else {
@@ -53,10 +53,10 @@ void test_positive_int(int x) {
 
 void test_negative_int(int x) {
     EncodedNumber a;
-    long y;
+    float y;
     a.set_integer(n, x);
     a.decode(y);
-    if ((long) x != y) {
+    if ((float) x != y) {
         logger(stdout, "test_negative_int(%d) failed\n", x);
         total_cases_num += 1;
     } else {

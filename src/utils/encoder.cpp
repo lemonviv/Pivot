@@ -17,10 +17,22 @@ EncodedNumber::EncodedNumber()
 }
 
 
+EncodedNumber::EncodedNumber(const EncodedNumber &number)
+{
+    mpz_init(n);
+    mpz_init(value);
+    mpz_set(n, number.n);
+    mpz_set(value, number.value);
+    exponent = number.exponent;
+    is_encrypted = number.is_encrypted;
+}
+
+
 void EncodedNumber::set_integer(mpz_t pn, int v)
 {
-    mpz_set(n, pn);
-    fixed_pointed_encode(v, value, exponent);
+    //mpz_set(n, pn);
+    //fixed_pointed_encode(v, value, exponent);
+    set_float(pn, (float) v);
 }
 
 
@@ -151,30 +163,30 @@ void EncodedNumber::increase_exponent(int new_exponent)
 //}
 
 
-void EncodedNumber::decode(long &v)
-{
-    if (exponent != 0) {
-        // not integer, should not call this decode function
-        logger(stdout, "exponent is not zero, failed, should call decode with float\n");
-        return;
-    }
-
-    switch (check_encoded_number()) {
-        case Positive:
-            fixed_pointed_decode(v, value);
-            break;
-        case Negative:
-            mpz_sub(value, value, n);
-            fixed_pointed_decode(v, value);
-            break;
-        case Overflow:
-            logger(stdout, "encoded number %Zd is overflow\n", value);
-            return;
-        default:
-            logger(stdout, "encoded number %Zd is corrupted\n", value);
-            return;
-    }
-}
+//void EncodedNumber::decode(long &v)
+//{
+//    if (exponent != 0) {
+//        // not integer, should not call this decode function
+//        logger(stdout, "exponent is not zero, failed, should call decode with float\n");
+//        return;
+//    }
+//
+//    switch (check_encoded_number()) {
+//        case Positive:
+//            fixed_pointed_decode(v, value);
+//            break;
+//        case Negative:
+//            mpz_sub(value, value, n);
+//            fixed_pointed_decode(v, value);
+//            break;
+//        case Overflow:
+//            logger(stdout, "encoded number %Zd is overflow\n", value);
+//            return;
+//        default:
+//            logger(stdout, "encoded number %Zd is corrupted\n", value);
+//            return;
+//    }
+//}
 
 
 void EncodedNumber::decode(float &v)
@@ -189,7 +201,7 @@ void EncodedNumber::decode(float &v)
             break;
         case Overflow:
             logger(stdout, "encoded number %Zd is overflow\n", value);
-            return;
+            break;
         default:
             logger(stdout, "encoded number %Zd is corrupted\n", value);
             return;
@@ -246,12 +258,12 @@ void EncodedNumber::compute_decode_threshold(mpz_t max_int)
 }
 
 
-long fixed_pointed_integer_representation(float value, int precision){
-    long ex = (long) pow(10, precision);
+long long fixed_pointed_integer_representation(float value, int precision){
+    long long ex = (long long) pow(10, precision);
     std::stringstream ss;
     ss << std::fixed << std::setprecision(precision) << value;
     std::string s = ss.str();
-    long r = (long) (::atof(s.c_str()) * ex);
+    long long r = (long long) (::atof(s.c_str()) * ex);
     return r;
 }
 
@@ -263,7 +275,7 @@ void fixed_pointed_encode(long value, mpz_t res, int & exponent) {
 
 
 void fixed_pointed_encode(float value, int precision, mpz_t res, int & exponent) {
-    long r = fixed_pointed_integer_representation(value, precision);
+    long long r = fixed_pointed_integer_representation(value, precision);
     mpz_set_si(res, r);
     exponent = 0 - precision;
 }
@@ -281,9 +293,13 @@ void fixed_pointed_decode(float & value, mpz_t res, int exponent) {
         return;
     }
 
-    char *t = mpz_get_str(NULL, 10, res);
-    long v = ::atol(t);
-    value = (float) (v * pow(10, exponent));
+    if (exponent <= 0 - 2 * FLOAT_PRECISION) {
+        fixed_pointed_decode_truncated(value, res, exponent, 0 - 2 * FLOAT_PRECISION);
+    } else {
+        char *t = mpz_get_str(NULL, 10, res);
+        long v = ::atol(t);
+        value = (float) (v * pow(10, exponent));
+    }
 }
 
 

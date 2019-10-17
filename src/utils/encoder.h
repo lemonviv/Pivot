@@ -34,6 +34,13 @@ public:
     EncodedNumber();
 
     /**
+     * copy constructor
+     *
+     * @param number
+     */
+    EncodedNumber(const EncodedNumber & number);
+
+    /**
      * set for int value
      *
      * @param n
@@ -58,7 +65,7 @@ public:
 
     /**
      * make two EncodedNumber exponent the same for computation
-     * on the same level
+     * on the same level, only reasonable when is on plaintexts
      *
      * @param new_exponent
      */
@@ -77,6 +84,7 @@ public:
 
     /**
      * decode to long value
+     * @deprecated
      *
      * @param v
      */
@@ -140,7 +148,7 @@ public:
  * @param precision : exponent with precision
  * @return
  */
-long fixed_pointed_integer_representation(float value, int precision);
+long long fixed_pointed_integer_representation(float value, int precision);
 
 /**
  * encode an integer with mpz_t

@@ -6,8 +6,10 @@
 #define COLLABORATIVEML_TEST_DJCS_T_AUX_H
 
 #include "gmp.h"
+#include "libhcs.h"
 
-void decrypt_temp(mpz_t rop, mpz_t v);
+
+
 void aux_compute_thresholds();
 void test_encryption_decryption_int(int x);
 void test_encryption_decryption_float(float x);

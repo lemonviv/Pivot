@@ -14,7 +14,7 @@ set(SOURCE_FILES main.cpp
         src/utils/djcs_t_aux.h
         src/utils/djcs_t_aux.cpp
         tests/test_encoder.cpp
-        tests/test_djcs_t_aux.cpp tests/test_encoder.h tests/test_djcs_t_aux.h)
+        tests/test_djcs_t_aux.cpp tests/test_encoder.h tests/test_djcs_t_aux.h tests/test_logistic_regression.h tests/test_logistic_regression.cpp)
 
 include_directories($ENV{HOME}/libscapi/include $ENV{HOME}/Documents/projects/boost_1_64_0/stage/lib)
 

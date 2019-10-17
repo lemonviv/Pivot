@@ -111,7 +111,7 @@ Client::Client(int param_client_id, int param_client_num, int param_has_label,
         }
     }
 
-    // init DamgardJurik keys
+    // init threshold DamgardJurik keys
     pk = djcs_t_init_public_key();
     au = djcs_t_init_auth_server();
     hr = hcs_init_random();

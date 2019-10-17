@@ -37,16 +37,19 @@ void LogisticRegression::init_encrypted_local_weights(djcs_t_public_key *pk, hcs
         // 1. generate random fixed point float values
         float fr = static_cast<float>(rand()) / static_cast<float> (RAND_MAX);
 
+        logger(stdout, "initialized local weight %d value = %f\n", i, fr);
+
         // 2. compute public key size in encoded number
         mpz_t n;
         mpz_init(n);
         mpz_sub_ui(n, pk->g, 1);
 
         // 3. set for float value
-        local_weights[i].set_float(n, fr, 2 * FLOAT_PRECISION);
+        EncodedNumber tmp;
+        tmp.set_float(n, fr, 2 * FLOAT_PRECISION);
 
         // 4. encrypt with public_key (should use another EncodeNumber to represent cipher?)
-        djcs_t_aux_encrypt(pk, hr, local_weights[i], local_weights[i]);
+        djcs_t_aux_encrypt(pk, hr, local_weights[i], tmp);
 
         mpz_clear(n);
     }
@@ -55,7 +58,7 @@ void LogisticRegression::init_encrypted_local_weights(djcs_t_public_key *pk, hcs
 
 void LogisticRegression::partial_predict(djcs_t_public_key *pk, hcs_random *hr,
         EncodedNumber instance[],
-        EncodedNumber res)
+        EncodedNumber & res)
 {
     instance_partial_sum(pk, hr, instance, res);
 }
@@ -63,7 +66,7 @@ void LogisticRegression::partial_predict(djcs_t_public_key *pk, hcs_random *hr,
 
 void LogisticRegression::instance_partial_sum(djcs_t_public_key* pk, hcs_random* hr,
         EncodedNumber instance[],
-        EncodedNumber res)
+        EncodedNumber & res)
 {
     // homomorphic dot product computation
     djcs_t_aux_inner_product(pk, hr, res, local_weights, instance, feature_num);
@@ -73,7 +76,7 @@ void LogisticRegression::instance_partial_sum(djcs_t_public_key* pk, hcs_random*
 void LogisticRegression::compute_batch_loss(djcs_t_public_key* pk, hcs_random* hr,
                                             EncodedNumber aggregated_res[],
                                             EncodedNumber labels[],
-                                            EncodedNumber losses[])
+                                            EncodedNumber *&losses)
 {
     // homomorphic addition
     for (int i = 0; i < batch_size; ++i) {
@@ -87,11 +90,10 @@ void LogisticRegression::compute_batch_loss(djcs_t_public_key* pk, hcs_random* h
 void LogisticRegression::aggregate_partial_sum_instance(djcs_t_public_key* pk, hcs_random* hr,
         EncodedNumber partial_sum[],
         int client_num,
-        EncodedNumber aggregated_sum)
+        EncodedNumber & aggregated_sum)
 {
+    aggregated_sum.set_float(partial_sum[0].n, 0.0);
     djcs_t_aux_encrypt(pk, hr, aggregated_sum, aggregated_sum);
-
-    // homomorphic addition to aggregated_sum
     for (int i = 0; i < client_num; ++i) {
         djcs_t_aux_ee_add(pk, aggregated_sum, aggregated_sum, partial_sum[i]);
     }
@@ -143,7 +145,8 @@ void LogisticRegression::update_local_weights(djcs_t_public_key* pk, hcs_random*
     for (int j = 0; j < feature_num; j++) {
         // for each sample i in the batch, compute \sum_{i=1}^{|B|} [losses[i]] * batch_data[i][j]
         EncodedNumber sum;
-        sum.set_integer(n, 0);
+        // TODO: here exponent set for correct addition
+        sum.set_float(n, 0.0, -(losses[0].exponent + batch_data[0][0].exponent));
         djcs_t_aux_encrypt(pk, hr, sum, sum);
         for (int i = 0; i < batch_size; i++) {
             EncodedNumber tmp;
@@ -153,6 +156,7 @@ void LogisticRegression::update_local_weights(djcs_t_public_key* pk, hcs_random*
         }
         // update by [w_j] := [w_j] + \sum_{i=1}^{|B|} [losses[i]] * batch_data[i][j]
         // where batch_data[i][j] = - batch_data[i][j] * \alpha
+        // TODO: the sum exponent here should be truncated equal to local_weights[j] before addition (using mpc)
         djcs_t_aux_ee_add(pk, local_weights[j], local_weights[j], sum);
     }
 

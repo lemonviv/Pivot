@@ -61,23 +61,22 @@ void djcs_t_aux_ee_add(djcs_t_public_key* pk, EncodedNumber & res, EncodedNumber
         logger(stdout, "two ciphertexts not with the same public key\n");
         return;
     }
-    mpz_set(res.n, cipher1.n);
 
-    // align the two ciphertexts with the same exponent
-    if (cipher1.exponent == cipher2.exponent) {
-        res.exponent = cipher1.exponent;
-    } else if (cipher1.exponent < cipher2.exponent) {
-        // cipher1's precision is high, should decrease cipher2
-        cipher2.decrease_exponent(cipher1.exponent);
-        res.exponent = cipher1.exponent;
-    } else {
-        // cipher2's precision is high, should decrease cipher1
-        cipher1.decrease_exponent(cipher2.exponent);
-        res.exponent = cipher2.exponent;
+    if (cipher1.exponent != cipher2.exponent) {
+        logger(stdout, "two ciphertexts do not have the same exponents, meaningless addtion\n");
+        return;
     }
 
-    djcs_t_ee_add(pk, res.value, cipher1.value, cipher2.value);
+    mpz_t t;
+    mpz_init(t);
+
+    djcs_t_ee_add(pk, t, cipher1.value, cipher2.value);
+    mpz_set(res.value, t);
+    mpz_set(res.n, cipher1.n);
     res.is_encrypted = true;
+    res.exponent = cipher1.exponent;
+
+    mpz_clear(t);
 }
 
 
@@ -147,6 +146,8 @@ void djcs_t_aux_inner_product(djcs_t_public_key* pk, hcs_random* hr, EncodedNumb
 //        mpz_clear(tmp);
 //    }
 
+    // assume the elements in the plains have the same exponent, so does ciphers
+
     mpz_t *mpz_ciphers = (mpz_t *) malloc (feature_num * sizeof(mpz_t));
     mpz_t *mpz_plains = (mpz_t *) malloc (feature_num * sizeof(mpz_t));
 
@@ -177,6 +178,7 @@ void djcs_t_aux_inner_product(djcs_t_public_key* pk, hcs_random* hr, EncodedNumb
     }
 
     mpz_set(res.value, sum);
+
 
 //    mpz_set_si(res.value, 0);
 //    djcs_t_aux_encrypt(pk, hr, res, res);

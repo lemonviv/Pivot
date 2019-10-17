@@ -14,7 +14,7 @@
 #define MAX_FEATURE_NUM 100
 
 class LogisticRegression {
-private:
+public:
     int batch_size;                                    // batch size in stochastic gradient descent
     int max_iteration;                                 // maximum number of iteration for training
     float converge_threshold;                          // threshold of model accuracy convergence
@@ -58,7 +58,7 @@ public:
      */
     void partial_predict(djcs_t_public_key* pk, hcs_random* hr,
             EncodedNumber instance[],
-            EncodedNumber res);
+            EncodedNumber & res);
 
     /**
      * init encrypted local weights with feature_num values
@@ -79,7 +79,7 @@ public:
      */
     void instance_partial_sum(djcs_t_public_key* pk, hcs_random* hr,
             EncodedNumber instance[],
-            EncodedNumber res);
+            EncodedNumber & res);
 
     /**
      * (client who owns labels do this computation)
@@ -94,7 +94,7 @@ public:
     void aggregate_partial_sum_instance(djcs_t_public_key* pk, hcs_random* hr,
             EncodedNumber partial_sum[],
             int client_num,
-            EncodedNumber aggregated_sum);
+            EncodedNumber & aggregated_sum);
 
     /**
      * compute batch loss by conversion between mpc and back
@@ -108,7 +108,7 @@ public:
     void compute_batch_loss(djcs_t_public_key* pk, hcs_random* hr,
             EncodedNumber aggregated_res[],
             EncodedNumber labels[],
-            EncodedNumber losses[]);
+            EncodedNumber *&losses);
 
     /**
      * update client's local weights when receiving loss

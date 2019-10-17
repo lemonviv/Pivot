@@ -3,8 +3,10 @@
 //
 
 #include "util.h"
+#include "encoder.h"
 #include <cstdarg>
 #include <ctime>
+#include <cstdlib>
 
 
 void logger(FILE *out, const char *format, ...) {
@@ -35,5 +37,8 @@ void logger(FILE *out, const char *format, ...) {
 void print_string(const char *str){
     logger(stdout, "%s", str);
 }
+
+
+
 
 

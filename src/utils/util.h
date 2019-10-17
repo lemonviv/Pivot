@@ -6,9 +6,11 @@
 #define COLLABORATIVEML_UTIL_H
 
 #include <stdio.h>
+#include "gmp.h"
+#include "libhcs.h"
 
 #define FLOAT_PRECISION 8
-#define PRECISION_THRESHOLD 1e-8
+#define PRECISION_THRESHOLD 1e-6
 
 /**
  * log file
@@ -25,6 +27,9 @@ void logger(FILE* out, const char *format, ...);
  * @param str
  */
 void print_string(const char *str);
+
+
+
 
 
 #endif //COLLABORATIVEML_UTIL_H
