@@ -1,8 +1,16 @@
 #include <iostream>
 #include <string>
+#include "src/utils/util.h"
+#include "src/utils/encoder.h"
+#include "src/utils/djcs_t_aux.h"
+#include "src/utils/pb_converter.h"
+#include "src/models/logistic_regression.h"
+#include "src/client/Client.h"
+
 #include "tests/test_encoder.h"
 #include "tests/test_djcs_t_aux.h"
 #include "tests/test_logistic_regression.h"
+#include "tests/test_pb_converter.h"
 
 hcs_random *hr;
 djcs_t_public_key *pk;
@@ -54,6 +62,11 @@ int main(int argc, char *argv[]) {
 
     system_setup();
 
+    test_encoder();
+    test_djcs_t_aux();
+    test_lr();
+    test_pb();
+
     int client_num = TOTAL_CLIENT_NUM;
     int client_id = atoi(argv[1]);
     bool has_label = (client_id == 0);
@@ -63,14 +76,52 @@ int main(int argc, char *argv[]) {
     std::string data_file = s1 + "client_" + s2 + ".txt";
 
     Client client(client_id, client_num, has_label, network_file, data_file);
+    //client.set_keys(pk, hr, si[client_id], (unsigned long) client_id);
 
     // print client's data
-    client.print_local_data();
-    client.print_labels();
+    // client.print_local_data();
+    // client.print_labels();
 
-//    for (int i = 0; i < client.client_num; i++) {
-//        client.channels[i]->write("Hello world from client" + std::to_string(client_id));
+    for (int i = 0; i < client.client_num; i++) {
+        if (i != client_id){
+            std::string send_message = "Hello world from client " + std::to_string(client_id);
+            int size = send_message.size();
+            std::string recv_message;
+            byte buffer[100];
+            client.send_messages(client.channels[i].get(), send_message);
+            client.recv_messages(client.channels[i].get(), recv_message, buffer, size);
+
+            string longMessage = "Hi, this is a long message to test the writeWithSize approach";
+            client.channels[i].get()->writeWithSize(longMessage);
+
+            vector<byte> resMsg;
+            client.channels[i].get()->readWithSizeIntoVector(resMsg);
+            const byte * uc = &(resMsg[0]);
+            string resMsgStr(reinterpret_cast<char const*>(uc), resMsg.size());
+            string eq = (resMsgStr == longMessage)? "yes" : "no";
+            cout << "Got long message: " << resMsgStr << ".\nequal? " << eq << "!" << endl;
+        }
+    }
+
+//    if (client_id == 0) {
+//        // client with label
+//        mpz_t x;
+//        mpz_init(x);
+//        mpz_set_si(x, 9);
+//        char *t = mpz_get_str(NULL, 10, x);
+//        std::string s = t;
+//        djcs_t_encrypt(pk, hr, x, x);
+//        for (int i = 0; i < client_num; i++) {
+//
+//            int size = s.size();
+//            std::string recv_message;
+//            byte buffer[100];
+//            client.send_messages(client.channels[i].get(), s);
+//            client.recv_messages(client.channels[i].get(), recv_message, buffer, size);
+//        }
 //    }
+
+
 
     system_free();
 

@@ -228,7 +228,7 @@ void test_update_weights(djcs_t_public_key *pk, hcs_random *hr, int feature_num,
 
 int test_lr() {
 
-    logger(stdout, "Test logistic regression functions\n");
+    logger(stdout, "****** Test logistic regression functions ******\n");
 
 //    hcs_random *hr = hcs_init_random();
 //    djcs_t_public_key *pk = djcs_t_init_public_key();
@@ -270,7 +270,7 @@ int test_lr() {
     // test update weight
     test_update_weights(pk, hr, 3, 2, 1.0);
 
-    logger(stdout, "total_cases_num = %d, passed_cases_num = %d\n",
+    logger(stdout, "****** total_cases_num = %d, passed_cases_num = %d ******\n",
            total_cases_num, passed_cases_num);
 
     // free memory

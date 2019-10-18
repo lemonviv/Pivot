@@ -90,7 +90,6 @@ Client::Client(int param_client_id, int param_client_num, int param_has_label,
             // connect to the other party
             channel->join(500,5000);
             logger(stdout, "channel established\n");
-            channel->write("hello party " + i);
 
             // add channel to the other client
             channels.push_back(channel);
@@ -105,7 +104,6 @@ Client::Client(int param_client_id, int param_client_num, int param_has_label,
             // connect to the other party
             channel->join(500,5000);
             logger(stdout, "channel established\n");
-            channel->write("hello party " + i);
 
             // add channel to the other client
             channels.push_back(channel);
@@ -171,6 +169,27 @@ void Client::set_keys(djcs_t_public_key *param_pk, hcs_random *param_hr, mpz_t s
 }
 
 
+void Client::send_messages(CommParty* commParty, string message) {
+    print_send_message(message);
+    commParty->write((const byte *) message.c_str(), message.size());
+}
+
+void Client::recv_messages(CommParty* commParty, string messages, byte * buffer, int expectedSize) {
+    commParty->read(buffer, expectedSize);
+    // the size of all strings is 2. Parse the message to get the original strings
+    auto s = string(reinterpret_cast<char const*>(buffer), expectedSize);
+    print_recv_message(s);
+    messages = s;
+}
+
+void Client::print_send_message(const string  &s) {
+    logger(stdout, "Sending message: %s\n", s.c_str());
+}
+
+void Client::print_recv_message(const string &s) {
+    logger(stdout, "Receiving message: %s\n", s.c_str());
+}
+
 void Client::print_local_data() {
     for (int i = 0; i < sample_num; i++) {
         std::cout<<"sample "<<i<<" = ";
@@ -192,7 +211,6 @@ void Client::print_labels() {
         std::cout<<"sample "<<i<<" label = "<<labels[i]<<std::endl;
     }
 }
-
 
 Client::~Client()
 {

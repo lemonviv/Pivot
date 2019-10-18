@@ -327,7 +327,7 @@ void test_inner_product_float() {
 
 int test_djcs_t_aux()
 {
-    logger(stdout, "Test djcs_t auxiliary functions\n");
+    logger(stdout, "****** Test djcs_t auxiliary functions ******\n");
 
 //    hr = hcs_init_random();
 //    pk = djcs_t_init_public_key();
@@ -375,7 +375,7 @@ int test_djcs_t_aux()
     test_inner_product_float();
 
 
-    logger(stdout, "total_cases_num = %d, passed_cases_num = %d\n",
+    logger(stdout, "****** total_cases_num = %d, passed_cases_num = %d ******\n",
            total_cases_num, passed_cases_num);
 
     // free memory

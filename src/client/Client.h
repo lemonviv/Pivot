@@ -83,6 +83,18 @@ public:
      */
     void set_keys(djcs_t_public_key *param_pk, hcs_random* param_hr, mpz_t si, unsigned long i);
 
+
+
+    void send_messages(CommParty* commParty, std::string message);
+
+
+    void recv_messages(CommParty* commParty, std::string message, byte * buffer, int expectedSize);
+
+    void print_send_message(const string  &s);
+
+    void print_recv_message(const string &s);
+
+
     /**
      * print for debugging
      */

@@ -14,9 +14,23 @@ set(SOURCE_FILES main.cpp
         src/utils/djcs_t_aux.h
         src/utils/djcs_t_aux.cpp
         tests/test_encoder.cpp
-        tests/test_djcs_t_aux.cpp tests/test_encoder.h tests/test_djcs_t_aux.h tests/test_logistic_regression.h tests/test_logistic_regression.cpp)
+        tests/test_djcs_t_aux.cpp
+        tests/test_encoder.h
+        tests/test_djcs_t_aux.h
+        tests/test_logistic_regression.h
+        tests/test_logistic_regression.cpp
+        src/utils/pb_converter.h
+        src/utils/pb_converter.cpp
+        src/include/protobuf/common.pb.h
+        src/include/protobuf/common.pb.cc
+        src/include/protobuf/logistic.pb.h
+        src/include/protobuf/logistic.pb.cc tests/test_pb_converter.h tests/test_pb_converter.cpp)
 
-include_directories($ENV{HOME}/libscapi/include $ENV{HOME}/Documents/projects/boost_1_64_0/stage/lib)
+include(FindProtobuf)
+find_package(Protobuf REQUIRED)
+
+include_directories($ENV{HOME}/libscapi/include $ENV{HOME}/Documents/projects/boost_1_64_0/stage/lib
+        ${PROTOBUF_INCLUDE_DIR})
 
 link_directories(/usr/ssl/lib $ENV{HOME}/libscapi/install/lib)
 
@@ -26,7 +40,8 @@ target_link_libraries(CollaborativeML
         /usr/lib/x86_64-linux-gnu/libgmpxx.so
         $ENV{HOME}/Documents/projects/libhcs/lib/libhcs.so
         $ENV{HOME}/libscapi/libscapi.a
-        libboost_thread.a libboost_system.a pthread crypto)
+        libboost_thread.a libboost_system.a pthread crypto
+        ${PROTOBUF_LIBRARY})
 
 #set(TEST_DIR "tests/")
 #set(BINARY_DIR "bin/")

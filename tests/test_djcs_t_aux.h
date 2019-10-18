@@ -8,8 +8,6 @@
 #include "gmp.h"
 #include "libhcs.h"
 
-
-
 void aux_compute_thresholds();
 void test_encryption_decryption_int(int x);
 void test_encryption_decryption_float(float x);

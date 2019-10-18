@@ -353,7 +353,7 @@ void test_decode_with_truncation_float() {
 
 int test_encoder()
 {
-    logger(stdout, "Test encode and decode functions\n");
+    logger(stdout, "****** Test encode and decode functions ******\n");
 
 //    hr = hcs_init_random();
 //    pk = djcs_t_init_public_key();
@@ -408,7 +408,7 @@ int test_encoder()
     test_decode_with_truncation_float();
 
 
-    logger(stdout, "total_cases_num = %d, passed_cases_num = %d\n",
+    logger(stdout, "****** total_cases_num = %d, passed_cases_num = %d ******\n",
             total_cases_num, passed_cases_num);
 
     // free memory
