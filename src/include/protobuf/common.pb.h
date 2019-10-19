@@ -130,11 +130,11 @@ class PB_EncodedNumber : public ::google::protobuf::Message /* @@protoc_insertio
   ::google::protobuf::int32 exponent() const;
   void set_exponent(::google::protobuf::int32 value);
 
-  // optional bool is_encrypted = 4;
-  void clear_is_encrypted();
-  static const int kIsEncryptedFieldNumber = 4;
-  bool is_encrypted() const;
-  void set_is_encrypted(bool value);
+  // optional int32 type = 4;
+  void clear_type();
+  static const int kTypeFieldNumber = 4;
+  ::google::protobuf::int32 type() const;
+  void set_type(::google::protobuf::int32 value);
 
   // @@protoc_insertion_point(class_scope:com.collaborative.ml.PB_EncodedNumber)
  private:
@@ -144,7 +144,7 @@ class PB_EncodedNumber : public ::google::protobuf::Message /* @@protoc_insertio
   ::google::protobuf::internal::ArenaStringPtr n_;
   ::google::protobuf::internal::ArenaStringPtr value_;
   ::google::protobuf::int32 exponent_;
-  bool is_encrypted_;
+  ::google::protobuf::int32 type_;
   mutable int _cached_size_;
   friend void  protobuf_AddDesc_common_2eproto();
   friend void protobuf_AssignDesc_common_2eproto();
@@ -263,18 +263,18 @@ inline void PB_EncodedNumber::set_exponent(::google::protobuf::int32 value) {
   // @@protoc_insertion_point(field_set:com.collaborative.ml.PB_EncodedNumber.exponent)
 }
 
-// optional bool is_encrypted = 4;
-inline void PB_EncodedNumber::clear_is_encrypted() {
-  is_encrypted_ = false;
+// optional int32 type = 4;
+inline void PB_EncodedNumber::clear_type() {
+  type_ = 0;
 }
-inline bool PB_EncodedNumber::is_encrypted() const {
-  // @@protoc_insertion_point(field_get:com.collaborative.ml.PB_EncodedNumber.is_encrypted)
-  return is_encrypted_;
+inline ::google::protobuf::int32 PB_EncodedNumber::type() const {
+  // @@protoc_insertion_point(field_get:com.collaborative.ml.PB_EncodedNumber.type)
+  return type_;
 }
-inline void PB_EncodedNumber::set_is_encrypted(bool value) {
+inline void PB_EncodedNumber::set_type(::google::protobuf::int32 value) {
   
-  is_encrypted_ = value;
-  // @@protoc_insertion_point(field_set:com.collaborative.ml.PB_EncodedNumber.is_encrypted)
+  type_ = value;
+  // @@protoc_insertion_point(field_set:com.collaborative.ml.PB_EncodedNumber.type)
 }
 
 #endif  // !PROTOBUF_INLINE_NOT_IN_HEADERS

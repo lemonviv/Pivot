@@ -7,6 +7,7 @@
 
 #include "gmp.h"
 #include "libhcs.h"
+#include "../utils/encoder.h"
 #include <comm/Comm.hpp>
 
 /**
@@ -83,15 +84,119 @@ public:
      */
     void set_keys(djcs_t_public_key *param_pk, hcs_random* param_hr, mpz_t si, unsigned long i);
 
+    /**
+     * set the client keys when receiving from the trusted third party
+     *
+     * @param recv_keys
+     */
+    void recv_set_keys(std::string recv_keys);
 
 
-    void send_messages(CommParty* commParty, std::string message);
+    /**
+     * serialize the generated keys for other clients
+     *
+     * @param send_keys
+     * @param pk
+     * @param si
+     * @param i
+     */
+    void serialize_send_keys(std::string & send_keys, djcs_t_public_key *pk, mpz_t si, int i);
 
 
-    void recv_messages(CommParty* commParty, std::string message, byte * buffer, int expectedSize);
+    /**
+     * share decrypt a batch ciphertexts
+     * when size = 1, is a prediction request
+     *
+     * @param ciphers
+     * @param decrypted_res
+     * @param size
+     */
+    void share_batch_decrypt(EncodedNumber *ciphers, EncodedNumber *& decrypted_res, int size = 1);
 
+
+    /**
+     * decrypt batch pieces and return
+     *
+     * @param s
+     * @param response_s
+     * @param src_client_id
+     * @param size
+     */
+    void decrypt_batch_piece(std::string s, std::string & response_s, int src_client_id, int size = 1);
+
+
+    /**
+     * conversion from homomorphic encryption to secret shares
+     * for input to SCALE-MAMBA library, Robin circle computation
+     * when size = 1, is a prediction request
+     *
+     * @param src_ciphers
+     * @param des_shares
+     * @param size
+     */
+    void djcs_t_2_secret_shares_batch(EncodedNumber *src_ciphers, EncodedNumber *& des_shares, int size = 1);
+
+
+    /**
+     * conversion from secret shares to homomorphic encryption
+     * for local computations
+     * when size = 1, is a prediction request
+     *
+     * @param src_shares
+     * @param des_ciphers
+     * @param size
+     */
+    void secret_shares_2_djcs_t_batch(EncodedNumber *src_shares, EncodedNumber *& des_ciphers, int size = 1);
+
+
+    /**
+     * send message via channel commParty
+     *
+     * @param comm_party
+     * @param message
+     */
+    void send_messages(CommParty* comm_party, std::string message);
+
+
+    /**
+     * send long message via commParty
+     *
+     * @param comm_party
+     * @param message
+     */
+    void send_long_messages(CommParty* comm_party, string message);
+
+
+    /**
+     * receive message from channel comm_party
+     *
+     * @param comm_party
+     * @param message
+     * @param buffer
+     * @param expected_size
+     */
+    void recv_messages(CommParty* comm_party, std::string message, byte * buffer, int expected_size);
+
+    /**
+     * receive message from channel comm_party
+     *
+     * @param comm_party
+     * @param message
+     */
+    void recv_long_messages(CommParty* comm_party, std::string & message);
+
+    /**
+     * print send message s
+     *
+     * @param s
+     */
     void print_send_message(const string  &s);
 
+    /**
+     * print received message s
+     *
+     * @param s
+     */
     void print_recv_message(const string &s);
 
 

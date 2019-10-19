@@ -63,7 +63,7 @@ void test_encryption_decryption_int(int x) {
         djcs_t_share_decrypt(pk, au[j], dec[j], encrypted_a->value);
     }
     djcs_t_share_combine(pk, decrypted_a->value, dec);
-    decrypted_a->is_encrypted = false;
+    decrypted_a->type = Plaintext;
 
     // decode decrypted_a
     float y;
@@ -100,7 +100,7 @@ void test_encryption_decryption_float(float x) {
         djcs_t_share_decrypt(pk, au[j], dec[j], encrypted_a->value);
     }
     djcs_t_share_combine(pk, decrypted_a->value, dec);
-    decrypted_a->is_encrypted = false;
+    decrypted_a->type = Plaintext;
 
     // decode decrypted_a
     float y;
@@ -146,7 +146,7 @@ void test_ee_add() {
         djcs_t_share_decrypt(pk, au[j], dec[j], res->value);
     }
     djcs_t_share_combine(pk, decryption->value, dec);
-    decryption->is_encrypted = false;
+    decryption->type = Plaintext;
 
     // decode decrypted_a
     float y;
@@ -190,7 +190,7 @@ void test_ep_mul() {
         djcs_t_share_decrypt(pk, au[j], dec[j], res->value);
     }
     djcs_t_share_combine(pk, decryption->value, dec);
-    decryption->is_encrypted = false;
+    decryption->type = Plaintext;
 
     // decode decrypted_a
     float y;
@@ -244,7 +244,7 @@ void test_inner_product_int() {
     }
 
     djcs_t_share_combine(pk, decryption->value, dec);
-    decryption->is_encrypted = false;
+    decryption->type = Plaintext;
 
     // decode decrypted_a
     float y;
@@ -304,7 +304,7 @@ void test_inner_product_float() {
     }
 
     djcs_t_share_combine(pk, decryption->value, dec);
-    decryption->is_encrypted = false;
+    decryption->type = Plaintext;
 
     // decode decrypted_a
     float y = 0.1;

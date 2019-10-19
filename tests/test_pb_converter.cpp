@@ -18,7 +18,7 @@ extern int total_cases_num, passed_cases_num;
 void test_pb_encode_number() {
     EncodedNumber number;
     number.set_float(n, 0.123456);
-    number.is_encrypted = false;
+    number.type = Plaintext;
 
     std::string s;
     serialize_encoded_number(number, s);
@@ -26,7 +26,7 @@ void test_pb_encode_number() {
     deserialize_number_from_string(deserialized_number, s);
 
     // test equals
-    if (number.exponent == deserialized_number.exponent && number.is_encrypted == deserialized_number.is_encrypted
+    if (number.exponent == deserialized_number.exponent && number.type == deserialized_number.type
             && mpz_cmp(number.n, deserialized_number.n) == 0 && mpz_cmp(number.value, deserialized_number.value) == 0) {
         total_cases_num += 1;
         passed_cases_num += 1;
@@ -69,26 +69,26 @@ void test_pb_batch_ids() {
 }
 
 
-void test_pb_partial_sums() {
+void test_pb_batch_sums() {
 
-    EncodedNumber *partial_sums = new EncodedNumber[2];
-    partial_sums[0].set_float(n, 0.123456);
-    partial_sums[0].is_encrypted = false;
-    partial_sums[1].set_float(n, 0.654321);
-    partial_sums[1].is_encrypted = true;
+    EncodedNumber *batch_sums = new EncodedNumber[2];
+    batch_sums[0].set_float(n, 0.123456);
+    batch_sums[0].type = Plaintext;
+    batch_sums[1].set_float(n, 0.654321);
+    batch_sums[1].type = Ciphertext;
 
     std::string s;
-    serialize_partial_sums(partial_sums, 2, s);
+    serialize_batch_sums(batch_sums, 2, s);
     EncodedNumber *deserialized_partial_sums = new EncodedNumber[2];
     deserialize_sums_from_string(deserialized_partial_sums, s);
 
     // test equals
     bool is_success = true;
     for (int i = 0; i < 2; i++) {
-        if (partial_sums[i].exponent == deserialized_partial_sums[i].exponent
-            && partial_sums[i].is_encrypted == deserialized_partial_sums[i].is_encrypted
-            && mpz_cmp(partial_sums[i].n, deserialized_partial_sums[i].n) == 0
-            && mpz_cmp(partial_sums[i].value, deserialized_partial_sums[i].value) == 0) {
+        if (batch_sums[i].exponent == deserialized_partial_sums[i].exponent
+            && batch_sums[i].type == deserialized_partial_sums[i].type
+            && mpz_cmp(batch_sums[i].n, deserialized_partial_sums[i].n) == 0
+            && mpz_cmp(batch_sums[i].value, deserialized_partial_sums[i].value) == 0) {
             continue;
         } else {
             is_success = false;
@@ -109,9 +109,9 @@ void test_pb_partial_sums() {
 void test_pb_batch_losses() {
     EncodedNumber *batch_losses = new EncodedNumber[2];
     batch_losses[0].set_float(n, 0.123456);
-    batch_losses[0].is_encrypted = false;
+    batch_losses[0].type = Plaintext;
     batch_losses[1].set_float(n, 0.654321);
-    batch_losses[1].is_encrypted = true;
+    batch_losses[1].type = Ciphertext;
 
     std::string s;
     serialize_batch_losses(batch_losses, 2, s);
@@ -122,7 +122,7 @@ void test_pb_batch_losses() {
     bool is_success = true;
     for (int i = 0; i < 2; i++) {
         if (batch_losses[i].exponent == deserialized_batch_losses[i].exponent
-            && batch_losses[i].is_encrypted == deserialized_batch_losses[i].is_encrypted
+            && batch_losses[i].type == deserialized_batch_losses[i].type
             && mpz_cmp(batch_losses[i].n, deserialized_batch_losses[i].n) == 0
             && mpz_cmp(batch_losses[i].value, deserialized_batch_losses[i].value) == 0) {
             continue;
@@ -151,7 +151,7 @@ int test_pb() {
 
     test_pb_encode_number();
     test_pb_batch_ids();
-    test_pb_partial_sums();
+    test_pb_batch_sums();
     test_pb_batch_losses();
 
     logger(stdout, "****** total_cases_num = %d, passed_cases_num = %d ******\n",

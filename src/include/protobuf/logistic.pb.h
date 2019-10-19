@@ -41,7 +41,7 @@ void protobuf_ShutdownFile_logistic_2eproto();
 
 class PB_BatchIds;
 class PB_BatchLosses;
-class PB_BatchPartialSums;
+class PB_BatchSums;
 
 // ===================================================================
 
@@ -134,32 +134,32 @@ class PB_BatchIds : public ::google::protobuf::Message /* @@protoc_insertion_poi
 };
 // -------------------------------------------------------------------
 
-class PB_BatchPartialSums : public ::google::protobuf::Message /* @@protoc_insertion_point(class_definition:com.collaborative.ml.PB_BatchPartialSums) */ {
+class PB_BatchSums : public ::google::protobuf::Message /* @@protoc_insertion_point(class_definition:com.collaborative.ml.PB_BatchSums) */ {
  public:
-  PB_BatchPartialSums();
-  virtual ~PB_BatchPartialSums();
+  PB_BatchSums();
+  virtual ~PB_BatchSums();
 
-  PB_BatchPartialSums(const PB_BatchPartialSums& from);
+  PB_BatchSums(const PB_BatchSums& from);
 
-  inline PB_BatchPartialSums& operator=(const PB_BatchPartialSums& from) {
+  inline PB_BatchSums& operator=(const PB_BatchSums& from) {
     CopyFrom(from);
     return *this;
   }
 
   static const ::google::protobuf::Descriptor* descriptor();
-  static const PB_BatchPartialSums& default_instance();
+  static const PB_BatchSums& default_instance();
 
-  void Swap(PB_BatchPartialSums* other);
+  void Swap(PB_BatchSums* other);
 
   // implements Message ----------------------------------------------
 
-  inline PB_BatchPartialSums* New() const { return New(NULL); }
+  inline PB_BatchSums* New() const { return New(NULL); }
 
-  PB_BatchPartialSums* New(::google::protobuf::Arena* arena) const;
+  PB_BatchSums* New(::google::protobuf::Arena* arena) const;
   void CopyFrom(const ::google::protobuf::Message& from);
   void MergeFrom(const ::google::protobuf::Message& from);
-  void CopyFrom(const PB_BatchPartialSums& from);
-  void MergeFrom(const PB_BatchPartialSums& from);
+  void CopyFrom(const PB_BatchSums& from);
+  void MergeFrom(const PB_BatchSums& from);
   void Clear();
   bool IsInitialized() const;
 
@@ -178,7 +178,7 @@ class PB_BatchPartialSums : public ::google::protobuf::Message /* @@protoc_inser
   void SharedCtor();
   void SharedDtor();
   void SetCachedSize(int size) const;
-  void InternalSwap(PB_BatchPartialSums* other);
+  void InternalSwap(PB_BatchSums* other);
   private:
   inline ::google::protobuf::Arena* GetArenaNoVirtual() const {
     return _internal_metadata_.arena();
@@ -194,31 +194,31 @@ class PB_BatchPartialSums : public ::google::protobuf::Message /* @@protoc_inser
 
   // accessors -------------------------------------------------------
 
-  // repeated .com.collaborative.ml.PB_EncodedNumber partial_sum = 1;
-  int partial_sum_size() const;
-  void clear_partial_sum();
-  static const int kPartialSumFieldNumber = 1;
-  const ::com::collaborative::ml::PB_EncodedNumber& partial_sum(int index) const;
-  ::com::collaborative::ml::PB_EncodedNumber* mutable_partial_sum(int index);
-  ::com::collaborative::ml::PB_EncodedNumber* add_partial_sum();
+  // repeated .com.collaborative.ml.PB_EncodedNumber batch_sum = 1;
+  int batch_sum_size() const;
+  void clear_batch_sum();
+  static const int kBatchSumFieldNumber = 1;
+  const ::com::collaborative::ml::PB_EncodedNumber& batch_sum(int index) const;
+  ::com::collaborative::ml::PB_EncodedNumber* mutable_batch_sum(int index);
+  ::com::collaborative::ml::PB_EncodedNumber* add_batch_sum();
   ::google::protobuf::RepeatedPtrField< ::com::collaborative::ml::PB_EncodedNumber >*
-      mutable_partial_sum();
+      mutable_batch_sum();
   const ::google::protobuf::RepeatedPtrField< ::com::collaborative::ml::PB_EncodedNumber >&
-      partial_sum() const;
+      batch_sum() const;
 
-  // @@protoc_insertion_point(class_scope:com.collaborative.ml.PB_BatchPartialSums)
+  // @@protoc_insertion_point(class_scope:com.collaborative.ml.PB_BatchSums)
  private:
 
   ::google::protobuf::internal::InternalMetadataWithArena _internal_metadata_;
   bool _is_default_instance_;
-  ::google::protobuf::RepeatedPtrField< ::com::collaborative::ml::PB_EncodedNumber > partial_sum_;
+  ::google::protobuf::RepeatedPtrField< ::com::collaborative::ml::PB_EncodedNumber > batch_sum_;
   mutable int _cached_size_;
   friend void  protobuf_AddDesc_logistic_2eproto();
   friend void protobuf_AssignDesc_logistic_2eproto();
   friend void protobuf_ShutdownFile_logistic_2eproto();
 
   void InitAsDefaultInstance();
-  static PB_BatchPartialSums* default_instance_;
+  static PB_BatchSums* default_instance_;
 };
 // -------------------------------------------------------------------
 
@@ -348,36 +348,36 @@ PB_BatchIds::mutable_batch_id() {
 
 // -------------------------------------------------------------------
 
-// PB_BatchPartialSums
+// PB_BatchSums
 
-// repeated .com.collaborative.ml.PB_EncodedNumber partial_sum = 1;
-inline int PB_BatchPartialSums::partial_sum_size() const {
-  return partial_sum_.size();
+// repeated .com.collaborative.ml.PB_EncodedNumber batch_sum = 1;
+inline int PB_BatchSums::batch_sum_size() const {
+  return batch_sum_.size();
 }
-inline void PB_BatchPartialSums::clear_partial_sum() {
-  partial_sum_.Clear();
+inline void PB_BatchSums::clear_batch_sum() {
+  batch_sum_.Clear();
 }
-inline const ::com::collaborative::ml::PB_EncodedNumber& PB_BatchPartialSums::partial_sum(int index) const {
-  // @@protoc_insertion_point(field_get:com.collaborative.ml.PB_BatchPartialSums.partial_sum)
-  return partial_sum_.Get(index);
+inline const ::com::collaborative::ml::PB_EncodedNumber& PB_BatchSums::batch_sum(int index) const {
+  // @@protoc_insertion_point(field_get:com.collaborative.ml.PB_BatchSums.batch_sum)
+  return batch_sum_.Get(index);
 }
-inline ::com::collaborative::ml::PB_EncodedNumber* PB_BatchPartialSums::mutable_partial_sum(int index) {
-  // @@protoc_insertion_point(field_mutable:com.collaborative.ml.PB_BatchPartialSums.partial_sum)
-  return partial_sum_.Mutable(index);
+inline ::com::collaborative::ml::PB_EncodedNumber* PB_BatchSums::mutable_batch_sum(int index) {
+  // @@protoc_insertion_point(field_mutable:com.collaborative.ml.PB_BatchSums.batch_sum)
+  return batch_sum_.Mutable(index);
 }
-inline ::com::collaborative::ml::PB_EncodedNumber* PB_BatchPartialSums::add_partial_sum() {
-  // @@protoc_insertion_point(field_add:com.collaborative.ml.PB_BatchPartialSums.partial_sum)
-  return partial_sum_.Add();
+inline ::com::collaborative::ml::PB_EncodedNumber* PB_BatchSums::add_batch_sum() {
+  // @@protoc_insertion_point(field_add:com.collaborative.ml.PB_BatchSums.batch_sum)
+  return batch_sum_.Add();
 }
 inline ::google::protobuf::RepeatedPtrField< ::com::collaborative::ml::PB_EncodedNumber >*
-PB_BatchPartialSums::mutable_partial_sum() {
-  // @@protoc_insertion_point(field_mutable_list:com.collaborative.ml.PB_BatchPartialSums.partial_sum)
-  return &partial_sum_;
+PB_BatchSums::mutable_batch_sum() {
+  // @@protoc_insertion_point(field_mutable_list:com.collaborative.ml.PB_BatchSums.batch_sum)
+  return &batch_sum_;
 }
 inline const ::google::protobuf::RepeatedPtrField< ::com::collaborative::ml::PB_EncodedNumber >&
-PB_BatchPartialSums::partial_sum() const {
-  // @@protoc_insertion_point(field_list:com.collaborative.ml.PB_BatchPartialSums.partial_sum)
-  return partial_sum_;
+PB_BatchSums::batch_sum() const {
+  // @@protoc_insertion_point(field_list:com.collaborative.ml.PB_BatchSums.batch_sum)
+  return batch_sum_;
 }
 
 // -------------------------------------------------------------------

@@ -9,7 +9,7 @@
 
 void djcs_t_aux_encrypt(djcs_t_public_key* pk, hcs_random* hr, EncodedNumber & res, EncodedNumber plain) {
 
-    if (plain.is_encrypted) {
+    if (plain.type != Plaintext) {
         logger(stdout, "the plain should not be encrypted\n");
         return;
     }
@@ -23,7 +23,7 @@ void djcs_t_aux_encrypt(djcs_t_public_key* pk, hcs_random* hr, EncodedNumber & r
     mpz_set(res.n, plain.n);
     mpz_set(res.value, t2);
     res.exponent = plain.exponent;
-    res.is_encrypted = true;
+    res.type = Ciphertext;
 
     mpz_clear(t1);
     mpz_clear(t2);
@@ -32,7 +32,7 @@ void djcs_t_aux_encrypt(djcs_t_public_key* pk, hcs_random* hr, EncodedNumber & r
 
 void djcs_t_aux_partial_decrypt(djcs_t_public_key* pk, djcs_t_auth_server* au, EncodedNumber res, EncodedNumber cipher) {
 
-    if (!cipher.is_encrypted) {
+    if (cipher.type != Ciphertext) {
         logger(stdout, "the cipher should be encrypted\n");
         return;
     }
@@ -40,19 +40,19 @@ void djcs_t_aux_partial_decrypt(djcs_t_public_key* pk, djcs_t_auth_server* au, E
     mpz_set(res.n, cipher.n);
     res.exponent = cipher.exponent;
     djcs_t_share_decrypt(pk, au, res.value, cipher.value);
-    res.is_encrypted = false;
+    res.type = Plaintext;
 }
 
 
 void djcs_t_aux_share_combine(djcs_t_public_key* pk, EncodedNumber res, mpz_t* shares) {
     djcs_t_share_combine(pk, res.value, shares);
-    res.is_encrypted = false;
+    res.type = Plaintext;
 }
 
 
 void djcs_t_aux_ee_add(djcs_t_public_key* pk, EncodedNumber & res, EncodedNumber cipher1, EncodedNumber cipher2) {
 
-    if (!cipher1.is_encrypted || !cipher2.is_encrypted) {
+    if (cipher1.type != Ciphertext || cipher2.type != Ciphertext) {
         logger(stdout, "the two inputs should be ciphertexts\n");
         return;
     }
@@ -73,7 +73,7 @@ void djcs_t_aux_ee_add(djcs_t_public_key* pk, EncodedNumber & res, EncodedNumber
     djcs_t_ee_add(pk, t, cipher1.value, cipher2.value);
     mpz_set(res.value, t);
     mpz_set(res.n, cipher1.n);
-    res.is_encrypted = true;
+    res.type = Ciphertext;
     res.exponent = cipher1.exponent;
 
     mpz_clear(t);
@@ -82,7 +82,7 @@ void djcs_t_aux_ee_add(djcs_t_public_key* pk, EncodedNumber & res, EncodedNumber
 
 void djcs_t_aux_ep_mul(djcs_t_public_key* pk, EncodedNumber & res, EncodedNumber cipher, EncodedNumber plain) {
 
-    if (!cipher.is_encrypted || plain.is_encrypted) {
+    if (cipher.type != Ciphertext || plain.type != Plaintext) {
         logger(stdout, "the cipher should be encrypted or the plain should not be encrypted\n");
         return;
     }
@@ -94,7 +94,7 @@ void djcs_t_aux_ep_mul(djcs_t_public_key* pk, EncodedNumber & res, EncodedNumber
     mpz_set(res.n, cipher.n);
     res.exponent = cipher.exponent + plain.exponent;
     djcs_t_ep_mul(pk, res.value, cipher.value, plain.value);
-    res.is_encrypted = true;
+    res.type = Ciphertext;
 }
 
 

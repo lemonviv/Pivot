@@ -26,9 +26,9 @@ namespace {
 const ::google::protobuf::Descriptor* PB_BatchIds_descriptor_ = NULL;
 const ::google::protobuf::internal::GeneratedMessageReflection*
   PB_BatchIds_reflection_ = NULL;
-const ::google::protobuf::Descriptor* PB_BatchPartialSums_descriptor_ = NULL;
+const ::google::protobuf::Descriptor* PB_BatchSums_descriptor_ = NULL;
 const ::google::protobuf::internal::GeneratedMessageReflection*
-  PB_BatchPartialSums_reflection_ = NULL;
+  PB_BatchSums_reflection_ = NULL;
 const ::google::protobuf::Descriptor* PB_BatchLosses_descriptor_ = NULL;
 const ::google::protobuf::internal::GeneratedMessageReflection*
   PB_BatchLosses_reflection_ = NULL;
@@ -58,21 +58,21 @@ void protobuf_AssignDesc_logistic_2eproto() {
       sizeof(PB_BatchIds),
       GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(PB_BatchIds, _internal_metadata_),
       GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(PB_BatchIds, _is_default_instance_));
-  PB_BatchPartialSums_descriptor_ = file->message_type(1);
-  static const int PB_BatchPartialSums_offsets_[1] = {
-    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(PB_BatchPartialSums, partial_sum_),
+  PB_BatchSums_descriptor_ = file->message_type(1);
+  static const int PB_BatchSums_offsets_[1] = {
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(PB_BatchSums, batch_sum_),
   };
-  PB_BatchPartialSums_reflection_ =
+  PB_BatchSums_reflection_ =
     ::google::protobuf::internal::GeneratedMessageReflection::NewGeneratedMessageReflection(
-      PB_BatchPartialSums_descriptor_,
-      PB_BatchPartialSums::default_instance_,
-      PB_BatchPartialSums_offsets_,
+      PB_BatchSums_descriptor_,
+      PB_BatchSums::default_instance_,
+      PB_BatchSums_offsets_,
       -1,
       -1,
       -1,
-      sizeof(PB_BatchPartialSums),
-      GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(PB_BatchPartialSums, _internal_metadata_),
-      GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(PB_BatchPartialSums, _is_default_instance_));
+      sizeof(PB_BatchSums),
+      GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(PB_BatchSums, _internal_metadata_),
+      GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(PB_BatchSums, _is_default_instance_));
   PB_BatchLosses_descriptor_ = file->message_type(2);
   static const int PB_BatchLosses_offsets_[1] = {
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(PB_BatchLosses, batch_loss_),
@@ -104,7 +104,7 @@ void protobuf_RegisterTypes(const ::std::string&) {
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedMessage(
       PB_BatchIds_descriptor_, &PB_BatchIds::default_instance());
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedMessage(
-      PB_BatchPartialSums_descriptor_, &PB_BatchPartialSums::default_instance());
+      PB_BatchSums_descriptor_, &PB_BatchSums::default_instance());
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedMessage(
       PB_BatchLosses_descriptor_, &PB_BatchLosses::default_instance());
 }
@@ -114,8 +114,8 @@ void protobuf_RegisterTypes(const ::std::string&) {
 void protobuf_ShutdownFile_logistic_2eproto() {
   delete PB_BatchIds::default_instance_;
   delete PB_BatchIds_reflection_;
-  delete PB_BatchPartialSums::default_instance_;
-  delete PB_BatchPartialSums_reflection_;
+  delete PB_BatchSums::default_instance_;
+  delete PB_BatchSums_reflection_;
   delete PB_BatchLosses::default_instance_;
   delete PB_BatchLosses_reflection_;
 }
@@ -131,18 +131,18 @@ void protobuf_AddDesc_logistic_2eproto() {
   ::google::protobuf::DescriptorPool::InternalAddGeneratedFile(
     "\n\016logistic.proto\022\024com.collaborative.ml\032\014"
     "common.proto\"\037\n\013PB_BatchIds\022\020\n\010batch_id\030"
-    "\001 \003(\005\"R\n\023PB_BatchPartialSums\022;\n\013partial_"
-    "sum\030\001 \003(\0132&.com.collaborative.ml.PB_Enco"
-    "dedNumber\"L\n\016PB_BatchLosses\022:\n\nbatch_los"
-    "s\030\001 \003(\0132&.com.collaborative.ml.PB_Encode"
-    "dNumberb\006proto3", 255);
+    "\001 \003(\005\"I\n\014PB_BatchSums\0229\n\tbatch_sum\030\001 \003(\013"
+    "2&.com.collaborative.ml.PB_EncodedNumber"
+    "\"L\n\016PB_BatchLosses\022:\n\nbatch_loss\030\001 \003(\0132&"
+    ".com.collaborative.ml.PB_EncodedNumberb\006"
+    "proto3", 246);
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedFile(
     "logistic.proto", &protobuf_RegisterTypes);
   PB_BatchIds::default_instance_ = new PB_BatchIds();
-  PB_BatchPartialSums::default_instance_ = new PB_BatchPartialSums();
+  PB_BatchSums::default_instance_ = new PB_BatchSums();
   PB_BatchLosses::default_instance_ = new PB_BatchLosses();
   PB_BatchIds::default_instance_->InitAsDefaultInstance();
-  PB_BatchPartialSums::default_instance_->InitAsDefaultInstance();
+  PB_BatchSums::default_instance_->InitAsDefaultInstance();
   PB_BatchLosses::default_instance_->InitAsDefaultInstance();
   ::google::protobuf::internal::OnShutdown(&protobuf_ShutdownFile_logistic_2eproto);
 }
@@ -435,93 +435,93 @@ PB_BatchIds::mutable_batch_id() {
 // ===================================================================
 
 #if !defined(_MSC_VER) || _MSC_VER >= 1900
-const int PB_BatchPartialSums::kPartialSumFieldNumber;
+const int PB_BatchSums::kBatchSumFieldNumber;
 #endif  // !defined(_MSC_VER) || _MSC_VER >= 1900
 
-PB_BatchPartialSums::PB_BatchPartialSums()
+PB_BatchSums::PB_BatchSums()
   : ::google::protobuf::Message(), _internal_metadata_(NULL) {
   SharedCtor();
-  // @@protoc_insertion_point(constructor:com.collaborative.ml.PB_BatchPartialSums)
+  // @@protoc_insertion_point(constructor:com.collaborative.ml.PB_BatchSums)
 }
 
-void PB_BatchPartialSums::InitAsDefaultInstance() {
+void PB_BatchSums::InitAsDefaultInstance() {
   _is_default_instance_ = true;
 }
 
-PB_BatchPartialSums::PB_BatchPartialSums(const PB_BatchPartialSums& from)
+PB_BatchSums::PB_BatchSums(const PB_BatchSums& from)
   : ::google::protobuf::Message(),
     _internal_metadata_(NULL) {
   SharedCtor();
   MergeFrom(from);
-  // @@protoc_insertion_point(copy_constructor:com.collaborative.ml.PB_BatchPartialSums)
+  // @@protoc_insertion_point(copy_constructor:com.collaborative.ml.PB_BatchSums)
 }
 
-void PB_BatchPartialSums::SharedCtor() {
+void PB_BatchSums::SharedCtor() {
     _is_default_instance_ = false;
   _cached_size_ = 0;
 }
 
-PB_BatchPartialSums::~PB_BatchPartialSums() {
-  // @@protoc_insertion_point(destructor:com.collaborative.ml.PB_BatchPartialSums)
+PB_BatchSums::~PB_BatchSums() {
+  // @@protoc_insertion_point(destructor:com.collaborative.ml.PB_BatchSums)
   SharedDtor();
 }
 
-void PB_BatchPartialSums::SharedDtor() {
+void PB_BatchSums::SharedDtor() {
   if (this != default_instance_) {
   }
 }
 
-void PB_BatchPartialSums::SetCachedSize(int size) const {
+void PB_BatchSums::SetCachedSize(int size) const {
   GOOGLE_SAFE_CONCURRENT_WRITES_BEGIN();
   _cached_size_ = size;
   GOOGLE_SAFE_CONCURRENT_WRITES_END();
 }
-const ::google::protobuf::Descriptor* PB_BatchPartialSums::descriptor() {
+const ::google::protobuf::Descriptor* PB_BatchSums::descriptor() {
   protobuf_AssignDescriptorsOnce();
-  return PB_BatchPartialSums_descriptor_;
+  return PB_BatchSums_descriptor_;
 }
 
-const PB_BatchPartialSums& PB_BatchPartialSums::default_instance() {
+const PB_BatchSums& PB_BatchSums::default_instance() {
   if (default_instance_ == NULL) protobuf_AddDesc_logistic_2eproto();
   return *default_instance_;
 }
 
-PB_BatchPartialSums* PB_BatchPartialSums::default_instance_ = NULL;
+PB_BatchSums* PB_BatchSums::default_instance_ = NULL;
 
-PB_BatchPartialSums* PB_BatchPartialSums::New(::google::protobuf::Arena* arena) const {
-  PB_BatchPartialSums* n = new PB_BatchPartialSums;
+PB_BatchSums* PB_BatchSums::New(::google::protobuf::Arena* arena) const {
+  PB_BatchSums* n = new PB_BatchSums;
   if (arena != NULL) {
     arena->Own(n);
   }
   return n;
 }
 
-void PB_BatchPartialSums::Clear() {
-// @@protoc_insertion_point(message_clear_start:com.collaborative.ml.PB_BatchPartialSums)
-  partial_sum_.Clear();
+void PB_BatchSums::Clear() {
+// @@protoc_insertion_point(message_clear_start:com.collaborative.ml.PB_BatchSums)
+  batch_sum_.Clear();
 }
 
-bool PB_BatchPartialSums::MergePartialFromCodedStream(
+bool PB_BatchSums::MergePartialFromCodedStream(
     ::google::protobuf::io::CodedInputStream* input) {
 #define DO_(EXPRESSION) if (!GOOGLE_PREDICT_TRUE(EXPRESSION)) goto failure
   ::google::protobuf::uint32 tag;
-  // @@protoc_insertion_point(parse_start:com.collaborative.ml.PB_BatchPartialSums)
+  // @@protoc_insertion_point(parse_start:com.collaborative.ml.PB_BatchSums)
   for (;;) {
     ::std::pair< ::google::protobuf::uint32, bool> p = input->ReadTagWithCutoff(127);
     tag = p.first;
     if (!p.second) goto handle_unusual;
     switch (::google::protobuf::internal::WireFormatLite::GetTagFieldNumber(tag)) {
-      // repeated .com.collaborative.ml.PB_EncodedNumber partial_sum = 1;
+      // repeated .com.collaborative.ml.PB_EncodedNumber batch_sum = 1;
       case 1: {
         if (tag == 10) {
           DO_(input->IncrementRecursionDepth());
-         parse_loop_partial_sum:
+         parse_loop_batch_sum:
           DO_(::google::protobuf::internal::WireFormatLite::ReadMessageNoVirtualNoRecursionDepth(
-                input, add_partial_sum()));
+                input, add_batch_sum()));
         } else {
           goto handle_unusual;
         }
-        if (input->ExpectTag(10)) goto parse_loop_partial_sum;
+        if (input->ExpectTag(10)) goto parse_loop_batch_sum;
         input->UnsafeDecrementRecursionDepth();
         if (input->ExpectAtEnd()) goto success;
         break;
@@ -540,50 +540,50 @@ bool PB_BatchPartialSums::MergePartialFromCodedStream(
     }
   }
 success:
-  // @@protoc_insertion_point(parse_success:com.collaborative.ml.PB_BatchPartialSums)
+  // @@protoc_insertion_point(parse_success:com.collaborative.ml.PB_BatchSums)
   return true;
 failure:
-  // @@protoc_insertion_point(parse_failure:com.collaborative.ml.PB_BatchPartialSums)
+  // @@protoc_insertion_point(parse_failure:com.collaborative.ml.PB_BatchSums)
   return false;
 #undef DO_
 }
 
-void PB_BatchPartialSums::SerializeWithCachedSizes(
+void PB_BatchSums::SerializeWithCachedSizes(
     ::google::protobuf::io::CodedOutputStream* output) const {
-  // @@protoc_insertion_point(serialize_start:com.collaborative.ml.PB_BatchPartialSums)
-  // repeated .com.collaborative.ml.PB_EncodedNumber partial_sum = 1;
-  for (unsigned int i = 0, n = this->partial_sum_size(); i < n; i++) {
+  // @@protoc_insertion_point(serialize_start:com.collaborative.ml.PB_BatchSums)
+  // repeated .com.collaborative.ml.PB_EncodedNumber batch_sum = 1;
+  for (unsigned int i = 0, n = this->batch_sum_size(); i < n; i++) {
     ::google::protobuf::internal::WireFormatLite::WriteMessageMaybeToArray(
-      1, this->partial_sum(i), output);
+      1, this->batch_sum(i), output);
   }
 
-  // @@protoc_insertion_point(serialize_end:com.collaborative.ml.PB_BatchPartialSums)
+  // @@protoc_insertion_point(serialize_end:com.collaborative.ml.PB_BatchSums)
 }
 
-::google::protobuf::uint8* PB_BatchPartialSums::InternalSerializeWithCachedSizesToArray(
+::google::protobuf::uint8* PB_BatchSums::InternalSerializeWithCachedSizesToArray(
     bool deterministic, ::google::protobuf::uint8* target) const {
-  // @@protoc_insertion_point(serialize_to_array_start:com.collaborative.ml.PB_BatchPartialSums)
-  // repeated .com.collaborative.ml.PB_EncodedNumber partial_sum = 1;
-  for (unsigned int i = 0, n = this->partial_sum_size(); i < n; i++) {
+  // @@protoc_insertion_point(serialize_to_array_start:com.collaborative.ml.PB_BatchSums)
+  // repeated .com.collaborative.ml.PB_EncodedNumber batch_sum = 1;
+  for (unsigned int i = 0, n = this->batch_sum_size(); i < n; i++) {
     target = ::google::protobuf::internal::WireFormatLite::
       InternalWriteMessageNoVirtualToArray(
-        1, this->partial_sum(i), false, target);
+        1, this->batch_sum(i), false, target);
   }
 
-  // @@protoc_insertion_point(serialize_to_array_end:com.collaborative.ml.PB_BatchPartialSums)
+  // @@protoc_insertion_point(serialize_to_array_end:com.collaborative.ml.PB_BatchSums)
   return target;
 }
 
-int PB_BatchPartialSums::ByteSize() const {
-// @@protoc_insertion_point(message_byte_size_start:com.collaborative.ml.PB_BatchPartialSums)
+int PB_BatchSums::ByteSize() const {
+// @@protoc_insertion_point(message_byte_size_start:com.collaborative.ml.PB_BatchSums)
   int total_size = 0;
 
-  // repeated .com.collaborative.ml.PB_EncodedNumber partial_sum = 1;
-  total_size += 1 * this->partial_sum_size();
-  for (int i = 0; i < this->partial_sum_size(); i++) {
+  // repeated .com.collaborative.ml.PB_EncodedNumber batch_sum = 1;
+  total_size += 1 * this->batch_sum_size();
+  for (int i = 0; i < this->batch_sum_size(); i++) {
     total_size +=
       ::google::protobuf::internal::WireFormatLite::MessageSizeNoVirtual(
-        this->partial_sum(i));
+        this->batch_sum(i));
   }
 
   GOOGLE_SAFE_CONCURRENT_WRITES_BEGIN();
@@ -592,99 +592,99 @@ int PB_BatchPartialSums::ByteSize() const {
   return total_size;
 }
 
-void PB_BatchPartialSums::MergeFrom(const ::google::protobuf::Message& from) {
-// @@protoc_insertion_point(generalized_merge_from_start:com.collaborative.ml.PB_BatchPartialSums)
+void PB_BatchSums::MergeFrom(const ::google::protobuf::Message& from) {
+// @@protoc_insertion_point(generalized_merge_from_start:com.collaborative.ml.PB_BatchSums)
   if (GOOGLE_PREDICT_FALSE(&from == this)) {
     ::google::protobuf::internal::MergeFromFail(__FILE__, __LINE__);
   }
-  const PB_BatchPartialSums* source = 
-      ::google::protobuf::internal::DynamicCastToGenerated<const PB_BatchPartialSums>(
+  const PB_BatchSums* source = 
+      ::google::protobuf::internal::DynamicCastToGenerated<const PB_BatchSums>(
           &from);
   if (source == NULL) {
-  // @@protoc_insertion_point(generalized_merge_from_cast_fail:com.collaborative.ml.PB_BatchPartialSums)
+  // @@protoc_insertion_point(generalized_merge_from_cast_fail:com.collaborative.ml.PB_BatchSums)
     ::google::protobuf::internal::ReflectionOps::Merge(from, this);
   } else {
-  // @@protoc_insertion_point(generalized_merge_from_cast_success:com.collaborative.ml.PB_BatchPartialSums)
+  // @@protoc_insertion_point(generalized_merge_from_cast_success:com.collaborative.ml.PB_BatchSums)
     MergeFrom(*source);
   }
 }
 
-void PB_BatchPartialSums::MergeFrom(const PB_BatchPartialSums& from) {
-// @@protoc_insertion_point(class_specific_merge_from_start:com.collaborative.ml.PB_BatchPartialSums)
+void PB_BatchSums::MergeFrom(const PB_BatchSums& from) {
+// @@protoc_insertion_point(class_specific_merge_from_start:com.collaborative.ml.PB_BatchSums)
   if (GOOGLE_PREDICT_FALSE(&from == this)) {
     ::google::protobuf::internal::MergeFromFail(__FILE__, __LINE__);
   }
-  partial_sum_.MergeFrom(from.partial_sum_);
+  batch_sum_.MergeFrom(from.batch_sum_);
 }
 
-void PB_BatchPartialSums::CopyFrom(const ::google::protobuf::Message& from) {
-// @@protoc_insertion_point(generalized_copy_from_start:com.collaborative.ml.PB_BatchPartialSums)
+void PB_BatchSums::CopyFrom(const ::google::protobuf::Message& from) {
+// @@protoc_insertion_point(generalized_copy_from_start:com.collaborative.ml.PB_BatchSums)
   if (&from == this) return;
   Clear();
   MergeFrom(from);
 }
 
-void PB_BatchPartialSums::CopyFrom(const PB_BatchPartialSums& from) {
-// @@protoc_insertion_point(class_specific_copy_from_start:com.collaborative.ml.PB_BatchPartialSums)
+void PB_BatchSums::CopyFrom(const PB_BatchSums& from) {
+// @@protoc_insertion_point(class_specific_copy_from_start:com.collaborative.ml.PB_BatchSums)
   if (&from == this) return;
   Clear();
   MergeFrom(from);
 }
 
-bool PB_BatchPartialSums::IsInitialized() const {
+bool PB_BatchSums::IsInitialized() const {
 
   return true;
 }
 
-void PB_BatchPartialSums::Swap(PB_BatchPartialSums* other) {
+void PB_BatchSums::Swap(PB_BatchSums* other) {
   if (other == this) return;
   InternalSwap(other);
 }
-void PB_BatchPartialSums::InternalSwap(PB_BatchPartialSums* other) {
-  partial_sum_.UnsafeArenaSwap(&other->partial_sum_);
+void PB_BatchSums::InternalSwap(PB_BatchSums* other) {
+  batch_sum_.UnsafeArenaSwap(&other->batch_sum_);
   _internal_metadata_.Swap(&other->_internal_metadata_);
   std::swap(_cached_size_, other->_cached_size_);
 }
 
-::google::protobuf::Metadata PB_BatchPartialSums::GetMetadata() const {
+::google::protobuf::Metadata PB_BatchSums::GetMetadata() const {
   protobuf_AssignDescriptorsOnce();
   ::google::protobuf::Metadata metadata;
-  metadata.descriptor = PB_BatchPartialSums_descriptor_;
-  metadata.reflection = PB_BatchPartialSums_reflection_;
+  metadata.descriptor = PB_BatchSums_descriptor_;
+  metadata.reflection = PB_BatchSums_reflection_;
   return metadata;
 }
 
 #if PROTOBUF_INLINE_NOT_IN_HEADERS
-// PB_BatchPartialSums
+// PB_BatchSums
 
-// repeated .com.collaborative.ml.PB_EncodedNumber partial_sum = 1;
-int PB_BatchPartialSums::partial_sum_size() const {
-  return partial_sum_.size();
+// repeated .com.collaborative.ml.PB_EncodedNumber batch_sum = 1;
+int PB_BatchSums::batch_sum_size() const {
+  return batch_sum_.size();
 }
-void PB_BatchPartialSums::clear_partial_sum() {
-  partial_sum_.Clear();
+void PB_BatchSums::clear_batch_sum() {
+  batch_sum_.Clear();
 }
-const ::com::collaborative::ml::PB_EncodedNumber& PB_BatchPartialSums::partial_sum(int index) const {
-  // @@protoc_insertion_point(field_get:com.collaborative.ml.PB_BatchPartialSums.partial_sum)
-  return partial_sum_.Get(index);
+const ::com::collaborative::ml::PB_EncodedNumber& PB_BatchSums::batch_sum(int index) const {
+  // @@protoc_insertion_point(field_get:com.collaborative.ml.PB_BatchSums.batch_sum)
+  return batch_sum_.Get(index);
 }
-::com::collaborative::ml::PB_EncodedNumber* PB_BatchPartialSums::mutable_partial_sum(int index) {
-  // @@protoc_insertion_point(field_mutable:com.collaborative.ml.PB_BatchPartialSums.partial_sum)
-  return partial_sum_.Mutable(index);
+::com::collaborative::ml::PB_EncodedNumber* PB_BatchSums::mutable_batch_sum(int index) {
+  // @@protoc_insertion_point(field_mutable:com.collaborative.ml.PB_BatchSums.batch_sum)
+  return batch_sum_.Mutable(index);
 }
-::com::collaborative::ml::PB_EncodedNumber* PB_BatchPartialSums::add_partial_sum() {
-  // @@protoc_insertion_point(field_add:com.collaborative.ml.PB_BatchPartialSums.partial_sum)
-  return partial_sum_.Add();
+::com::collaborative::ml::PB_EncodedNumber* PB_BatchSums::add_batch_sum() {
+  // @@protoc_insertion_point(field_add:com.collaborative.ml.PB_BatchSums.batch_sum)
+  return batch_sum_.Add();
 }
 ::google::protobuf::RepeatedPtrField< ::com::collaborative::ml::PB_EncodedNumber >*
-PB_BatchPartialSums::mutable_partial_sum() {
-  // @@protoc_insertion_point(field_mutable_list:com.collaborative.ml.PB_BatchPartialSums.partial_sum)
-  return &partial_sum_;
+PB_BatchSums::mutable_batch_sum() {
+  // @@protoc_insertion_point(field_mutable_list:com.collaborative.ml.PB_BatchSums.batch_sum)
+  return &batch_sum_;
 }
 const ::google::protobuf::RepeatedPtrField< ::com::collaborative::ml::PB_EncodedNumber >&
-PB_BatchPartialSums::partial_sum() const {
-  // @@protoc_insertion_point(field_list:com.collaborative.ml.PB_BatchPartialSums.partial_sum)
-  return partial_sum_;
+PB_BatchSums::batch_sum() const {
+  // @@protoc_insertion_point(field_list:com.collaborative.ml.PB_BatchSums.batch_sum)
+  return batch_sum_;
 }
 
 #endif  // PROTOBUF_INLINE_NOT_IN_HEADERS

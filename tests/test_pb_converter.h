@@ -11,7 +11,7 @@
 
 void test_pb_encode_number();
 void test_pb_batch_ids();
-void test_pb_partial_sums();
+void test_pb_batch_sums();
 void test_pb_batch_losses();
 int test_pb();
 

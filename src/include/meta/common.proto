@@ -6,5 +6,5 @@ message PB_EncodedNumber{
     string n = 1;
     string value = 2;
     int32 exponent = 3;
-    bool is_encrypted = 4;
+    int32 type = 4;
 }

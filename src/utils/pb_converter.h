@@ -41,21 +41,21 @@ void serialize_encoded_number(EncodedNumber number, std::string & output_str);
 void deserialize_number_from_string(EncodedNumber & number, std::string input_str);
 
 /**
- * pb serialize partial sums
+ * pb serialize batch sums
  *
- * @param partial_sums
+ * @param batch_sums
  * @param size
  * @param output_str
  */
-void serialize_partial_sums(EncodedNumber *partial_sums, int size, std::string & output_str);
+void serialize_batch_sums(EncodedNumber *batch_sums, int size, std::string & output_str);
 
 /**
- * pb deserialize partial sums
+ * pb deserialize batch sums
  *
- * @param partial_sums
+ * @param batch_sums
  * @param input_str
  */
-void deserialize_sums_from_string(EncodedNumber *& partial_sums, std::string input_str);
+void deserialize_sums_from_string(EncodedNumber *& batch_sums, std::string input_str);
 
 /**
  * pb serialize batch losses

@@ -42,7 +42,7 @@ void protobuf_AssignDesc_common_2eproto() {
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(PB_EncodedNumber, n_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(PB_EncodedNumber, value_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(PB_EncodedNumber, exponent_),
-    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(PB_EncodedNumber, is_encrypted_),
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(PB_EncodedNumber, type_),
   };
   PB_EncodedNumber_reflection_ =
     ::google::protobuf::internal::GeneratedMessageReflection::NewGeneratedMessageReflection(
@@ -87,10 +87,10 @@ void protobuf_AddDesc_common_2eproto() {
   GOOGLE_PROTOBUF_VERIFY_VERSION;
 
   ::google::protobuf::DescriptorPool::InternalAddGeneratedFile(
-    "\n\014common.proto\022\024com.collaborative.ml\"T\n\020"
+    "\n\014common.proto\022\024com.collaborative.ml\"L\n\020"
     "PB_EncodedNumber\022\t\n\001n\030\001 \001(\t\022\r\n\005value\030\002 \001"
-    "(\t\022\020\n\010exponent\030\003 \001(\005\022\024\n\014is_encrypted\030\004 \001"
-    "(\010b\006proto3", 130);
+    "(\t\022\020\n\010exponent\030\003 \001(\005\022\014\n\004type\030\004 \001(\005b\006prot"
+    "o3", 122);
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedFile(
     "common.proto", &protobuf_RegisterTypes);
   PB_EncodedNumber::default_instance_ = new PB_EncodedNumber();
@@ -111,7 +111,7 @@ struct StaticDescriptorInitializer_common_2eproto {
 const int PB_EncodedNumber::kNFieldNumber;
 const int PB_EncodedNumber::kValueFieldNumber;
 const int PB_EncodedNumber::kExponentFieldNumber;
-const int PB_EncodedNumber::kIsEncryptedFieldNumber;
+const int PB_EncodedNumber::kTypeFieldNumber;
 #endif  // !defined(_MSC_VER) || _MSC_VER >= 1900
 
 PB_EncodedNumber::PB_EncodedNumber()
@@ -139,7 +139,7 @@ void PB_EncodedNumber::SharedCtor() {
   n_.UnsafeSetDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
   value_.UnsafeSetDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
   exponent_ = 0;
-  is_encrypted_ = false;
+  type_ = 0;
 }
 
 PB_EncodedNumber::~PB_EncodedNumber() {
@@ -197,7 +197,7 @@ void PB_EncodedNumber::Clear() {
            ZR_HELPER_(last) - ZR_HELPER_(first) + sizeof(last));\
 } while (0)
 
-  ZR_(exponent_, is_encrypted_);
+  ZR_(exponent_, type_);
   n_.ClearToEmptyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
   value_.ClearToEmptyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
 
@@ -260,17 +260,17 @@ bool PB_EncodedNumber::MergePartialFromCodedStream(
         } else {
           goto handle_unusual;
         }
-        if (input->ExpectTag(32)) goto parse_is_encrypted;
+        if (input->ExpectTag(32)) goto parse_type;
         break;
       }
 
-      // optional bool is_encrypted = 4;
+      // optional int32 type = 4;
       case 4: {
         if (tag == 32) {
-         parse_is_encrypted:
+         parse_type:
           DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
-                   bool, ::google::protobuf::internal::WireFormatLite::TYPE_BOOL>(
-                 input, &is_encrypted_)));
+                   ::google::protobuf::int32, ::google::protobuf::internal::WireFormatLite::TYPE_INT32>(
+                 input, &type_)));
 
         } else {
           goto handle_unusual;
@@ -328,9 +328,9 @@ void PB_EncodedNumber::SerializeWithCachedSizes(
     ::google::protobuf::internal::WireFormatLite::WriteInt32(3, this->exponent(), output);
   }
 
-  // optional bool is_encrypted = 4;
-  if (this->is_encrypted() != 0) {
-    ::google::protobuf::internal::WireFormatLite::WriteBool(4, this->is_encrypted(), output);
+  // optional int32 type = 4;
+  if (this->type() != 0) {
+    ::google::protobuf::internal::WireFormatLite::WriteInt32(4, this->type(), output);
   }
 
   // @@protoc_insertion_point(serialize_end:com.collaborative.ml.PB_EncodedNumber)
@@ -366,9 +366,9 @@ void PB_EncodedNumber::SerializeWithCachedSizes(
     target = ::google::protobuf::internal::WireFormatLite::WriteInt32ToArray(3, this->exponent(), target);
   }
 
-  // optional bool is_encrypted = 4;
-  if (this->is_encrypted() != 0) {
-    target = ::google::protobuf::internal::WireFormatLite::WriteBoolToArray(4, this->is_encrypted(), target);
+  // optional int32 type = 4;
+  if (this->type() != 0) {
+    target = ::google::protobuf::internal::WireFormatLite::WriteInt32ToArray(4, this->type(), target);
   }
 
   // @@protoc_insertion_point(serialize_to_array_end:com.collaborative.ml.PB_EncodedNumber)
@@ -400,9 +400,11 @@ int PB_EncodedNumber::ByteSize() const {
         this->exponent());
   }
 
-  // optional bool is_encrypted = 4;
-  if (this->is_encrypted() != 0) {
-    total_size += 1 + 1;
+  // optional int32 type = 4;
+  if (this->type() != 0) {
+    total_size += 1 +
+      ::google::protobuf::internal::WireFormatLite::Int32Size(
+        this->type());
   }
 
   GOOGLE_SAFE_CONCURRENT_WRITES_BEGIN();
@@ -444,8 +446,8 @@ void PB_EncodedNumber::MergeFrom(const PB_EncodedNumber& from) {
   if (from.exponent() != 0) {
     set_exponent(from.exponent());
   }
-  if (from.is_encrypted() != 0) {
-    set_is_encrypted(from.is_encrypted());
+  if (from.type() != 0) {
+    set_type(from.type());
   }
 }
 
@@ -476,7 +478,7 @@ void PB_EncodedNumber::InternalSwap(PB_EncodedNumber* other) {
   n_.Swap(&other->n_);
   value_.Swap(&other->value_);
   std::swap(exponent_, other->exponent_);
-  std::swap(is_encrypted_, other->is_encrypted_);
+  std::swap(type_, other->type_);
   _internal_metadata_.Swap(&other->_internal_metadata_);
   std::swap(_cached_size_, other->_cached_size_);
 }
@@ -594,18 +596,18 @@ void PB_EncodedNumber::clear_exponent() {
   // @@protoc_insertion_point(field_set:com.collaborative.ml.PB_EncodedNumber.exponent)
 }
 
-// optional bool is_encrypted = 4;
-void PB_EncodedNumber::clear_is_encrypted() {
-  is_encrypted_ = false;
+// optional int32 type = 4;
+void PB_EncodedNumber::clear_type() {
+  type_ = 0;
 }
- bool PB_EncodedNumber::is_encrypted() const {
-  // @@protoc_insertion_point(field_get:com.collaborative.ml.PB_EncodedNumber.is_encrypted)
-  return is_encrypted_;
+ ::google::protobuf::int32 PB_EncodedNumber::type() const {
+  // @@protoc_insertion_point(field_get:com.collaborative.ml.PB_EncodedNumber.type)
+  return type_;
 }
- void PB_EncodedNumber::set_is_encrypted(bool value) {
+ void PB_EncodedNumber::set_type(::google::protobuf::int32 value) {
   
-  is_encrypted_ = value;
-  // @@protoc_insertion_point(field_set:com.collaborative.ml.PB_EncodedNumber.is_encrypted)
+  type_ = value;
+  // @@protoc_insertion_point(field_set:com.collaborative.ml.PB_EncodedNumber.type)
 }
 
 #endif  // PROTOBUF_INLINE_NOT_IN_HEADERS

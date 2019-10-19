@@ -25,6 +25,7 @@ void system_setup() {
     vk = djcs_t_init_private_key();
 
     djcs_t_generate_key_pair(pk, vk, hr, 1, 1024, TOTAL_CLIENT_NUM, TOTAL_CLIENT_NUM);
+    hr = hcs_init_random();
     mpz_t *coeff = djcs_t_init_polynomial(vk, hr);
 
     for (int i = 0; i < TOTAL_CLIENT_NUM; i++) {
@@ -60,12 +61,10 @@ void system_free() {
 
 int main(int argc, char *argv[]) {
 
-    system_setup();
-
-    test_encoder();
-    test_djcs_t_aux();
-    test_lr();
-    test_pb();
+//    test_encoder();
+//    test_djcs_t_aux();
+//    test_lr();
+//    test_pb();
 
     int client_num = TOTAL_CLIENT_NUM;
     int client_id = atoi(argv[1]);
@@ -75,6 +74,21 @@ int main(int argc, char *argv[]) {
     std::string s2 = std::to_string(client_id);
     std::string data_file = s1 + "client_" + s2 + ".txt";
 
+    if (client_id == 0) {
+        system_setup();
+//        gmp_printf("pk->g = %Zd\n", pk->g);
+//        gmp_printf("pk->delta = %Zd\n", pk->delta);
+//
+//        for (int i = 0; i < pk->s + 1; i++) {
+//            gmp_printf("pk->n[i] = %Zd, i = %d\n", pk->n[i], i);
+//        }
+//
+//        for (int i = 0; i < client_num; i++) {
+//            gmp_printf("si = %Zd, i = %d\n", au[i]->si, au[i]->i);
+//        }
+    }
+
+
     Client client(client_id, client_num, has_label, network_file, data_file);
     //client.set_keys(pk, hr, si[client_id], (unsigned long) client_id);
 
@@ -82,48 +96,117 @@ int main(int argc, char *argv[]) {
     // client.print_local_data();
     // client.print_labels();
 
-    for (int i = 0; i < client.client_num; i++) {
-        if (i != client_id){
-            std::string send_message = "Hello world from client " + std::to_string(client_id);
-            int size = send_message.size();
-            std::string recv_message;
-            byte buffer[100];
-            client.send_messages(client.channels[i].get(), send_message);
-            client.recv_messages(client.channels[i].get(), recv_message, buffer, size);
-
-            string longMessage = "Hi, this is a long message to test the writeWithSize approach";
-            client.channels[i].get()->writeWithSize(longMessage);
-
-            vector<byte> resMsg;
-            client.channels[i].get()->readWithSizeIntoVector(resMsg);
-            const byte * uc = &(resMsg[0]);
-            string resMsgStr(reinterpret_cast<char const*>(uc), resMsg.size());
-            string eq = (resMsgStr == longMessage)? "yes" : "no";
-            cout << "Got long message: " << resMsgStr << ".\nequal? " << eq << "!" << endl;
-        }
-    }
-
-//    if (client_id == 0) {
-//        // client with label
-//        mpz_t x;
-//        mpz_init(x);
-//        mpz_set_si(x, 9);
-//        char *t = mpz_get_str(NULL, 10, x);
-//        std::string s = t;
-//        djcs_t_encrypt(pk, hr, x, x);
-//        for (int i = 0; i < client_num; i++) {
-//
-//            int size = s.size();
+//    for (int i = 0; i < client.client_num; i++) {
+//        if (i != client_id){
+//            std::string send_message = "Hello world from client " + std::to_string(client_id);
+//            int size = send_message.size();
 //            std::string recv_message;
 //            byte buffer[100];
-//            client.send_messages(client.channels[i].get(), s);
+//            client.send_messages(client.channels[i].get(), send_message);
 //            client.recv_messages(client.channels[i].get(), recv_message, buffer, size);
+//
+//            string longMessage = "Hi, this is a long message to test the writeWithSize approach";
+//            client.channels[i].get()->writeWithSize(longMessage);
+//
+//            vector<byte> resMsg;
+//            client.channels[i].get()->readWithSizeIntoVector(resMsg);
+//            const byte * uc = &(resMsg[0]);
+//            string resMsgStr(reinterpret_cast<char const*>(uc), resMsg.size());
+//            string eq = (resMsgStr == longMessage)? "yes" : "no";
+//            cout << "Got long message: " << resMsgStr << ".\nequal? " << eq << "!" << endl;
 //        }
 //    }
 
+    if (client_id == 0) {
+        // client with label
+        EncodedNumber a;
+        a.set_float(n, 0.123456);
+        //djcs_t_aux_encrypt(pk, hr, a, a);
+        a.print_encoded_number();
+
+        for (int i = 1; i < client_num; i++) {
+            std::string s;
+            serialize_encoded_number(a, s);
+            //std::string s1 = "hello world" + std::to_string(i);
+            client.channels[i].get()->writeWithSize(s);
+            //client.send_messages(client.channels[i].get(), s);
+            //logger(stdout, "send message: %s\n", s.c_str());
+        }
+    } else {
+        vector<byte> resMsg;
+        client.channels[0].get()->readWithSizeIntoVector(resMsg);
+        const byte * uc = &(resMsg[0]);
+        std::string s(reinterpret_cast<char const*>(uc), resMsg.size());
+        EncodedNumber t, tt;
+        deserialize_number_from_string(t, s);
+        t.print_encoded_number();
+        //client.recv_messages(client.channels[0].get(), s, buffer, 999);
+        //logger(stdout, "receive message: %s\n", s.c_str());
+    }
 
 
-    system_free();
+    // test share decrypt
+    if (client_id == 0) {
+
+        client.set_keys(pk, hr, si[client_id], client_id);
+
+        // send keys
+        for (int i = 0; i < client_num; i++) {
+            if (i != client_id) {
+               std::string keys_i;
+               client.serialize_send_keys(keys_i, pk, si[i], i);
+               client.send_long_messages(client.channels[i].get(), keys_i);
+            }
+        }
+    } else {
+
+        // receive keys from client 0
+        std::string recv_keys;
+        client.recv_long_messages(client.channels[0].get(), recv_keys);
+        client.recv_set_keys(recv_keys);
+    }
+
+
+    if (client_id == 0) {
+
+        EncodedNumber *ciphers = new EncodedNumber[2];
+        ciphers[0].set_float(n, 0.123456);
+        ciphers[1].set_float(n, 0.654321);
+
+        djcs_t_aux_encrypt(client.m_pk, client.m_hr, ciphers[0], ciphers[0]);
+        djcs_t_aux_encrypt(client.m_pk, client.m_hr, ciphers[1], ciphers[1]);
+
+        ciphers[0].print_encoded_number();
+
+        // decrypt using global key
+        EncodedNumber dec_t0, dec_t1;
+        decrypt_temp(pk, au, TOTAL_CLIENT_NUM, dec_t0, ciphers[0]);
+        decrypt_temp(pk, au, TOTAL_CLIENT_NUM, dec_t1, ciphers[1]);
+        float x0, x1;
+        dec_t0.decode(x0);
+        dec_t1.decode(x1);
+        logger(stdout, "The decrypted value of ciphers[0] using global keys = %f\n", x0);
+        logger(stdout, "The decrypted value of ciphers[1] using global keys = %f\n", x1);
+
+        EncodedNumber *share_decrypted_res = new EncodedNumber[2];
+        client.share_batch_decrypt(ciphers, share_decrypted_res, 2);
+
+        float share_x0, share_x1;
+        share_decrypted_res[0].decode(share_x0);
+        share_decrypted_res[1].decode(share_x1);
+        logger(stdout, "The decrypted value of ciphers[0] using share decryption = %f\n", share_x0);
+        logger(stdout, "The decrypted value of ciphers[1] using share decryption = %f\n", share_x1);
+    } else {
+
+        std::string s, response_s;
+        client.recv_long_messages(client.channels[0].get(), s);
+        client.decrypt_batch_piece(s, response_s, 0, 2);
+    }
+
+
+    if (client_id == 0) {
+        system_free();
+    }
 
     return 0;
 }

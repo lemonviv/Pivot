@@ -21,12 +21,23 @@
 enum EncodedNumberState {Invalid, Positive, Negative, Overflow};
 
 
+/**
+ * describe the type of the EncodedNumber, three types
+ *
+ * Plaintext: the original value or revealed secret shared value
+ * Ciphertext: the encrypted value by threshold Damgard Jurik cryptosystem
+ * SecretShare: the secret shared value in SCALE-MAMBA
+ */
+enum EncodedNumberType {Plaintext, Ciphertext, SecretShare};
+
+
 class EncodedNumber {
 public:
     mpz_t            n;               // max value in public key for encoding
     mpz_t            value;           // the value in mpz_t form
     int              exponent;        // fixed pointed integer representation, 0 for integer, negative for float
-    bool             is_encrypted;    // default is false, a plaintext value; after encryption, set true
+    int              type;            // the encoded number type
+    //bool             is_encrypted;    // default is false, a plaintext value; after encryption, set true
 public:
     /**
      * default constructor
@@ -146,6 +157,11 @@ public:
      * @param max_int
      */
     void compute_decode_threshold(mpz_t max_int);
+
+    /**
+     * print
+     */
+    void print_encoded_number();
 };
 
 
@@ -210,6 +226,15 @@ void fixed_pointed_decode(float & value, mpz_t res, int exponent);
 void fixed_pointed_decode_truncated(float & value, mpz_t res, int exponent, int truncated_exponent);
 
 
+/**
+ * temporary decrypt for debugging, should remove in practical use
+ *
+ * @param pk
+ * @param au
+ * @param required_client_num
+ * @param rop
+ * @param v
+ */
 void decrypt_temp(djcs_t_public_key *pk, djcs_t_auth_server **au, int required_client_num, EncodedNumber & rop, EncodedNumber v);
 
 #endif //COLLABORATIVEML_ENCODER_H

@@ -7,17 +7,7 @@
 #include "../include/protobuf/common.pb.h"
 #include "../include/protobuf/logistic.pb.h"
 
-void print_encoded_number(EncodedNumber number) {
-    logger(stdout, "****** Print encoded number ******\n");
-    std::string n_str, value_str;
-    n_str = mpz_get_str(NULL, 10, number.n);
-    value_str = mpz_get_str(NULL, 10, number.value);
-    logger(stdout, "n = %s\n", n_str.c_str());
-    logger(stdout, "value = %s\n", value_str.c_str());
-    logger(stdout, "exponent = %d\n", number.exponent);
-    logger(stdout, "is_encrypted = %d\n", number.is_encrypted);
-    logger(stdout, "****** End print encoded number ******\n");
-}
+
 
 void serialize_encoded_number(EncodedNumber number, std::string & output_str) {
 
@@ -30,7 +20,7 @@ void serialize_encoded_number(EncodedNumber number, std::string & output_str) {
     pb_number.set_n(n_str);
     pb_number.set_value(value_str);
     pb_number.set_exponent(number.exponent);
-    pb_number.set_is_encrypted(number.is_encrypted);
+    pb_number.set_type(number.type);
 
     pb_number.SerializeToString(& output_str);
 }
@@ -47,7 +37,7 @@ void deserialize_number_from_string(EncodedNumber & number, std::string input_st
     mpz_set_str(number.n, deserialized_pb_number.n().c_str(), 10);
     mpz_set_str(number.value, deserialized_pb_number.value().c_str(), 10);
     number.exponent = deserialized_pb_number.exponent();
-    number.is_encrypted = deserialized_pb_number.is_encrypted();
+    number.type = deserialized_pb_number.type();
 }
 
 
@@ -74,43 +64,43 @@ void deserialize_ids_from_string(int *& batch_ids, std::string input_str) {
 }
 
 
-void serialize_partial_sums(EncodedNumber *partial_sums, int size, std::string & output_str) {
+void serialize_batch_sums(EncodedNumber *batch_sums, int size, std::string & output_str) {
 
-    com::collaborative::ml::PB_BatchPartialSums pb_batch_partial_sums;
+    com::collaborative::ml::PB_BatchSums pb_batch_sums;
 
     for (int i = 0; i < size; i++) {
 
-        com::collaborative::ml::PB_EncodedNumber *pb_number = pb_batch_partial_sums.add_partial_sum();
+        com::collaborative::ml::PB_EncodedNumber *pb_number = pb_batch_sums.add_batch_sum();
 
         std::string n_str, value_str;
-        n_str = mpz_get_str(NULL, 10, partial_sums[i].n);
-        value_str = mpz_get_str(NULL, 10, partial_sums[i].value);
+        n_str = mpz_get_str(NULL, 10, batch_sums[i].n);
+        value_str = mpz_get_str(NULL, 10, batch_sums[i].value);
         pb_number->set_n(n_str);
         pb_number->set_value(value_str);
-        pb_number->set_exponent(partial_sums[i].exponent);
-        pb_number->set_is_encrypted(partial_sums[i].is_encrypted);
+        pb_number->set_exponent(batch_sums[i].exponent);
+        pb_number->set_type(batch_sums[i].type);
     }
 
-    pb_batch_partial_sums.SerializeToString(&output_str);
+    pb_batch_sums.SerializeToString(&output_str);
 }
 
 
 void deserialize_sums_from_string(EncodedNumber *& partial_sums, std::string input_str) {
 
-    com::collaborative::ml::PB_BatchPartialSums deserialized_batch_partial_sums;
+    com::collaborative::ml::PB_BatchSums deserialized_batch_partial_sums;
     if (!deserialized_batch_partial_sums.ParseFromString(input_str)) {
         logger(stdout, "Failed to parse PB_BatchPartialSums from string\n");
         return;
     }
 
-    for (int i = 0; i < deserialized_batch_partial_sums.partial_sum_size(); i++) {
+    for (int i = 0; i < deserialized_batch_partial_sums.batch_sum_size(); i++) {
 
-        com::collaborative::ml::PB_EncodedNumber pb_number = deserialized_batch_partial_sums.partial_sum(i);
+        com::collaborative::ml::PB_EncodedNumber pb_number = deserialized_batch_partial_sums.batch_sum(i);
 
         mpz_set_str(partial_sums[i].n, pb_number.n().c_str(), 10);
         mpz_set_str(partial_sums[i].value, pb_number.value().c_str(), 10);
         partial_sums[i].exponent = pb_number.exponent();
-        partial_sums[i].is_encrypted = pb_number.is_encrypted();
+        partial_sums[i].type = pb_number.type();
     }
 }
 
@@ -129,7 +119,7 @@ void serialize_batch_losses(EncodedNumber *batch_losses, int size, std::string &
         pb_number->set_n(n_str);
         pb_number->set_value(value_str);
         pb_number->set_exponent(batch_losses[i].exponent);
-        pb_number->set_is_encrypted(batch_losses[i].is_encrypted);
+        pb_number->set_type(batch_losses[i].type);
     }
 
     pb_batch_losses.SerializeToString(&output_str);
@@ -151,6 +141,6 @@ void deserialize_losses_from_string(EncodedNumber *& batch_losses, std::string i
         mpz_set_str(batch_losses[i].n, pb_number.n().c_str(), 10);
         mpz_set_str(batch_losses[i].value, pb_number.value().c_str(), 10);
         batch_losses[i].exponent = pb_number.exponent();
-        batch_losses[i].is_encrypted = pb_number.is_encrypted();
+        batch_losses[i].type = pb_number.type();
     }
 }

@@ -13,7 +13,7 @@ EncodedNumber::EncodedNumber()
 {
     mpz_init(n);
     mpz_init(value);
-    is_encrypted = false;
+    type = Plaintext;
 }
 
 
@@ -24,7 +24,7 @@ EncodedNumber::EncodedNumber(const EncodedNumber &number)
     mpz_set(n, number.n);
     mpz_set(value, number.value);
     exponent = number.exponent;
-    is_encrypted = number.is_encrypted;
+    type = number.type;
 }
 
 EncodedNumber& EncodedNumber::operator=(const EncodedNumber &number) {
@@ -33,7 +33,7 @@ EncodedNumber& EncodedNumber::operator=(const EncodedNumber &number) {
     mpz_set(n, number.n);
     mpz_set(value, number.value);
     exponent = number.exponent;
-    is_encrypted = number.is_encrypted;
+    type = number.type;
 }
 
 
@@ -350,7 +350,7 @@ void decrypt_temp(djcs_t_public_key *pk, djcs_t_auth_server **au, int required_c
     mpz_init(t);
 
     rop.exponent = v.exponent;
-    rop.is_encrypted = false;
+    rop.type = Plaintext;
     mpz_set(rop.n, v.n);
 
     auto *dec = (mpz_t *) malloc (required_client_num * sizeof(mpz_t));
@@ -366,4 +366,17 @@ void decrypt_temp(djcs_t_public_key *pk, djcs_t_auth_server **au, int required_c
     mpz_set(rop.value, t);
 
     mpz_clear(t);
+}
+
+
+void EncodedNumber::print_encoded_number() {
+    logger(stdout, "****** Print encoded number ******\n");
+    std::string n_str, value_str;
+    n_str = mpz_get_str(NULL, 10, n);
+    value_str = mpz_get_str(NULL, 10, value);
+    logger(stdout, "n = %s\n", n_str.c_str());
+    logger(stdout, "value = %s\n", value_str.c_str());
+    logger(stdout, "exponent = %d\n", exponent);
+    logger(stdout, "type = %d\n", type);
+    logger(stdout, "****** End print encoded number ******\n");
 }

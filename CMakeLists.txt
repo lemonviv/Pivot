@@ -24,7 +24,8 @@ set(SOURCE_FILES main.cpp
         src/include/protobuf/common.pb.h
         src/include/protobuf/common.pb.cc
         src/include/protobuf/logistic.pb.h
-        src/include/protobuf/logistic.pb.cc tests/test_pb_converter.h tests/test_pb_converter.cpp)
+        src/include/protobuf/logistic.pb.cc tests/test_pb_converter.h tests/test_pb_converter.cpp
+        src/include/protobuf/keys.pb.h src/include/protobuf/keys.pb.cc)
 
 include(FindProtobuf)
 find_package(Protobuf REQUIRED)

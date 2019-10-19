@@ -125,7 +125,7 @@ void LogisticRegression::aggregate_partial_sum_instance(
 //    logger(stdout, "decoded value before non-linear function = %f\n", x);
     x = 1.0 / (1 + exp(0 - x));
     aggregated_sum.set_float(aggregated_sum.n, x, desired_precision);
-    aggregated_sum.is_encrypted = false;
+    aggregated_sum.type = Plaintext;
     djcs_t_aux_encrypt(pk, hr, aggregated_sum, aggregated_sum);
 
 //    decrypt_temp(pk, au, TOTAL_CLIENT_NUM, t, aggregated_sum);
@@ -201,8 +201,7 @@ void LogisticRegression::update_local_weights(
 }
 
 
-LogisticRegression::~LogisticRegression()
-{
+LogisticRegression::~LogisticRegression() {
     // free local weights
     delete [] local_weights;
 }
