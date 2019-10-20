@@ -316,7 +316,9 @@ void Client::share_batch_decrypt(EncodedNumber *ciphers, EncodedNumber *& decryp
 
             // receive the response messages and deserialize to decrypted shares
             recv_long_messages(channels[j].get(), recv_message_i);
-            deserialize_sums_from_string(recv_share_i, recv_message_i);
+
+            int x;
+            deserialize_sums_from_string(recv_share_i, x, recv_message_i);
             for (int i = 0; i < size; i++) {
                 mpz_set(dec[i][j], recv_share_i[i].value);
             }
@@ -334,13 +336,12 @@ void Client::share_batch_decrypt(EncodedNumber *ciphers, EncodedNumber *& decryp
 }
 
 
-void Client::decrypt_batch_piece(std::string s, std::string & response_s, int src_client_id, int size) {
+void Client::decrypt_batch_piece(std::string s, std::string & response_s, int src_client_id) {
 
     // deserialization
-    auto *ciphers = new EncodedNumber[size];
-    deserialize_sums_from_string(ciphers, s);
-
-    ciphers[0].print_encoded_number();
+    EncodedNumber *ciphers;
+    int size;
+    deserialize_sums_from_string(ciphers, size, s);
 
     // share decrypt
     for (int i = 0; i < size; i++) {

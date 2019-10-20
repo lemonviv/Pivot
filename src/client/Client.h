@@ -120,9 +120,8 @@ public:
      * @param s
      * @param response_s
      * @param src_client_id
-     * @param size
      */
-    void decrypt_batch_piece(std::string s, std::string & response_s, int src_client_id, int size = 1);
+    void decrypt_batch_piece(std::string s, std::string & response_s, int src_client_id);
 
 
     /**

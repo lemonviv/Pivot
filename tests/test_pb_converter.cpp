@@ -80,7 +80,8 @@ void test_pb_batch_sums() {
     std::string s;
     serialize_batch_sums(batch_sums, 2, s);
     EncodedNumber *deserialized_partial_sums = new EncodedNumber[2];
-    deserialize_sums_from_string(deserialized_partial_sums, s);
+    int x;
+    deserialize_sums_from_string(deserialized_partial_sums, x, s);
 
     // test equals
     bool is_success = true;

@@ -119,6 +119,7 @@ void djcs_t_aux_inner_product(djcs_t_public_key* pk, hcs_random* hr, EncodedNumb
 
     mpz_set(res.n, ciphers[0].n);
     res.exponent = ciphers[0].exponent + plains[0].exponent;
+    res.type = Ciphertext;
 
 //    mpz_t *mpz_ciphers = (mpz_t *) malloc (feature_num * sizeof(mpz_t));
 //    mpz_t *mpz_plains = (mpz_t *) malloc (feature_num * sizeof(mpz_t));

@@ -53,9 +53,10 @@ void serialize_batch_sums(EncodedNumber *batch_sums, int size, std::string & out
  * pb deserialize batch sums
  *
  * @param batch_sums
+ * @param size
  * @param input_str
  */
-void deserialize_sums_from_string(EncodedNumber *& batch_sums, std::string input_str);
+void deserialize_sums_from_string(EncodedNumber *& batch_sums, int & size, std::string input_str);
 
 /**
  * pb serialize batch losses

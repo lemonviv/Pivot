@@ -85,13 +85,16 @@ void serialize_batch_sums(EncodedNumber *batch_sums, int size, std::string & out
 }
 
 
-void deserialize_sums_from_string(EncodedNumber *& partial_sums, std::string input_str) {
+void deserialize_sums_from_string(EncodedNumber *& partial_sums, int & size, std::string input_str) {
 
     com::collaborative::ml::PB_BatchSums deserialized_batch_partial_sums;
     if (!deserialized_batch_partial_sums.ParseFromString(input_str)) {
         logger(stdout, "Failed to parse PB_BatchPartialSums from string\n");
         return;
     }
+
+    size = deserialized_batch_partial_sums.batch_sum_size();
+    partial_sums = new EncodedNumber[size];
 
     for (int i = 0; i < deserialized_batch_partial_sums.batch_sum_size(); i++) {
 

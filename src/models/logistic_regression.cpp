@@ -105,7 +105,7 @@ void LogisticRegression::aggregate_partial_sum_instance(
         int client_num,
         int desired_precision) {
 
-    aggregated_sum.set_float(partial_sum[0].n, 0.0);
+    aggregated_sum.set_float(partial_sum[0].n, 0.0, 0 - partial_sum[0].exponent);
     djcs_t_aux_encrypt(pk, hr, aggregated_sum, aggregated_sum);
     for (int i = 0; i < client_num; ++i) {
         djcs_t_aux_ee_add(pk, aggregated_sum, aggregated_sum, partial_sum[i]);
@@ -116,17 +116,17 @@ void LogisticRegression::aggregate_partial_sum_instance(
     // will truncate in mpc when SCALE-MAMBA is applied
     // TODO: using mpc for non-linear function computation and truncation
 
-    EncodedNumber t;
-    decrypt_temp(pk, au, TOTAL_CLIENT_NUM, t, aggregated_sum);
+//    EncodedNumber t;
+//    decrypt_temp(pk, au, TOTAL_CLIENT_NUM, t, aggregated_sum);
 
     // compute the logistic function of aggregated sum \frac{1}{1 + e^{-t.value}}
-    float x;
-    t.decode(x);
+//    float x;
+//    t.decode(x);
 //    logger(stdout, "decoded value before non-linear function = %f\n", x);
-    x = 1.0 / (1 + exp(0 - x));
-    aggregated_sum.set_float(aggregated_sum.n, x, desired_precision);
-    aggregated_sum.type = Plaintext;
-    djcs_t_aux_encrypt(pk, hr, aggregated_sum, aggregated_sum);
+//    x = 1.0 / (1 + exp(0 - x));
+//    aggregated_sum.set_float(aggregated_sum.n, x, desired_precision);
+//    aggregated_sum.type = Plaintext;
+//    djcs_t_aux_encrypt(pk, hr, aggregated_sum, aggregated_sum);
 
 //    decrypt_temp(pk, au, TOTAL_CLIENT_NUM, t, aggregated_sum);
 //    t.decode(x);
@@ -203,5 +203,5 @@ void LogisticRegression::update_local_weights(
 
 LogisticRegression::~LogisticRegression() {
     // free local weights
-    delete [] local_weights;
+    // delete [] local_weights;
 }
