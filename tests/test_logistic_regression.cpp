@@ -15,7 +15,7 @@ extern djcs_t_auth_server **au;
 extern mpz_t *si;
 extern mpz_t n, positive_threshold, negative_threshold;
 extern int total_cases_num, passed_cases_num;
-LogisticRegression lr_model(2, 10, PRECISION_THRESHOLD, 3);
+LogisticRegression lr_model(2, 10, PRECISION_THRESHOLD, ALPHA, 3);
 
 
 

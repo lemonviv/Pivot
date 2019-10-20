@@ -15,13 +15,14 @@
 #define BATCH_SIZE 10
 #define MAX_ITERATION 10
 #define CONVERGENCE_THRESHOLD 1e-6
-
+#define ALPHA 0.5
 
 class LogisticRegression {
 public:
     int batch_size;                                    // batch size in stochastic gradient descent
     int max_iteration;                                 // maximum number of iteration for training
     float converge_threshold;                          // threshold of model accuracy convergence
+    float alpha;                                       // learning rate
     float model_accuracy;                              // accuracy of the model
     int feature_num;                                   // feature number of a client
     //std::vector<EncodedNumber> local_weights;        // local weights of features
@@ -38,20 +39,31 @@ public:
      * @param param_batch_size
      * @param param_max_iteration
      * @param param_converge_threshold
+     * @param alpha
      * @param param_feature_num
      */
     LogisticRegression(
             int param_batch_size,
             int param_max_iteration,
             float param_converge_threshold,
+            float alpha,
             int param_feature_num);
     /**
-     * (client who owns label is responsible for training)
-     * train a lr model using local_data
+     * distributed train a lr model using local_data
      *
-     * @param super_client
+     * @param client
      */
-    void train(Client super_client);
+    void train(Client client);
+
+    /**
+     * test the model accuracy
+     *
+     * @param client
+     * @param test_sample_ids
+     * @param size
+     * @param accuracy
+     */
+    void test(Client client, int *test_sample_ids, int size, float & accuracy);
 
     /**
      * given an instance with features, compute the result using local_weights
