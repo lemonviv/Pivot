@@ -1,0 +1,119 @@
+from Compiler import mpc_math, floatingpoint
+
+ARRAY_SIZE = 10
+CLIENT_NUM = 3
+NULL = -2147483648
+
+# Length of mantissa in bits
+sfloat.vlen = 15
+# Length of exponent in bits
+sfloat.plen = 10
+# Statistical security parameter for floats
+sfloat.kappa = 4
+
+fixed_f = 20
+fixed_k = 41
+sfix.set_precision(fixed_f, fixed_k)
+cfix.set_precision(fixed_f, fixed_k)
+
+def func(array0, array1, array2):
+    res = sfix.Array(ARRAY_SIZE)
+    j = MemValue(cint(0))
+    exp = sfix(2.7818)
+    c = sfix(1.0)
+    z = sfix(0.0)
+
+    @for_range(ARRAY_SIZE)
+    def _(i):
+        print_ln("j = %s", j)
+        j.write(j + 1)
+        print_ln("The array0 i is %s", array0[i].reveal())
+        print_ln("The array1 i is %s", array1[i].reveal())
+        print_ln("The array2 i is %s", array2[i].reveal())
+        sum_i = array0[i] + array1[i] + array2[i]
+        print_ln("The sum_i is %s", sum_i.reveal())
+        #print_ln("The pow is %s", mpc_math.pow_fx(exp, sum_i).reveal())
+        sum_i = c / (c + mpc_math.pow_fx(exp, z - sum_i))
+        print_ln("The sum_i after logistic function is %s", sum_i.reveal())
+        res[i] = sum_i
+
+    return res
+
+
+def get_input_from_file(array, channel, player):
+    """
+        Function to read input from file. Change in some of the
+        original src/Input_Output/-Files of SCALE_MAMBA required.
+    """
+    open_channel(channel)
+    print_ln("channel no: %s", channel)
+    i = MemValue(cint(0))
+    condition = MemValue(cint(1))
+    #fix_float_array = sint.Array(2)
+
+    @do_while
+    def _():
+        input = sfix(0)
+        input.v = sint.get_private_input_from(player, channel)
+        input.f = fixed_f
+
+        if_then((input.v != NULL).reveal())
+
+        print_ln("i = %s", i)
+        array[i] = input
+        #Program.prog.curr_tape.start_new_basicblock()
+        print_ln("input.reveal() = %s", input.reveal())
+        #print_ln("array[i].reveal() = %s", array[i].reveal())
+        i.write(i + 1)
+
+        else_then()
+        condition.write(0)
+        end_if()
+        return condition > 0
+
+    print_ln("end read input from file")
+    close_channel(channel)
+
+
+def output_res_to_file(array, channel, player):
+    """
+        Function to output result to file. Change in some of the
+        original src/Input_Output/-Files of SCALE_MAMBA required.
+    """
+    open_channel(channel)
+    print_ln("channel no: %s", channel)
+
+    @for_range(ARRAY_SIZE)
+    def _(i):
+        print_ln("output value i = %s", array[i].reveal())
+        print_ln("output array[i].v = %s", array[i].v.reveal())
+        #print_ln("output array[i].f = %s", array[i].f)
+
+        if_then((array[i].v < 0).reveal())
+        array[i].v.reveal_to(player, channel + 1)
+        else_then()
+        array[i].v.reveal_to(player, channel)
+        end_if()
+
+    print_ln("end output to file")
+    close_channel(channel)
+
+
+def main():
+    array0 = sfix.Array(ARRAY_SIZE)
+    array1 = sfix.Array(ARRAY_SIZE)
+    array2 = sfix.Array(ARRAY_SIZE)
+
+    get_input_from_file(array0, 5, 0)
+    get_input_from_file(array1, 15, 1)
+    get_input_from_file(array2, 25, 2)
+
+    res = sfix.Array(ARRAY_SIZE)
+    res = func(array0, array1, array2)
+
+    # output_share to the 3 players
+    output_res_to_file(res, 35, 0)
+    output_res_to_file(res, 45, 1)
+    output_res_to_file(res, 55, 2)
+
+main()

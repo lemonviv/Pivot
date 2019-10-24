@@ -1,0 +1,19 @@
+To communicate with the mpc programs, the following steps should be done beforehand:
+1. Move the Input_Output_File_Sfix.cpp and Input_Output_File_Sfix.h files to the SCALE-MAMBA/src/Input_Output/ folders;
+   *** Notice that the file path in the .cpp file should be revised ***
+2. Revise the IO.h file, change '#include "Input_Output_Simple.h"' to '#include "Input_Output_File_Sfix.h"';
+3. Revise the src/Player.cpp file:
+    Change
+
+    unique_ptr<Input_Output_Simple> io(new Input_Output_Simple);
+    io->init(cin, cout, true);
+
+    TO
+
+    unique_ptr<Input_Output_File_Sfix> io(new Input_Output_File_Sfix);
+    ifstream input;
+    ofstream output;
+    io->init(input, output, false);
+4. Build SCALE-MAMBA library;
+5. Compile the batch_sfix/ folder to byte-code;
+6. Then call the player by ./Player id ${PATH}/batch_sfix/.
