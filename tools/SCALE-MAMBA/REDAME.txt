@@ -14,6 +14,12 @@ To communicate with the mpc programs, the following steps should be done beforeh
     ifstream input;
     ofstream output;
     io->init(input, output, false);
-4. Build SCALE-MAMBA library;
-5. Compile the batch_sfix/ folder to byte-code, should revise the ARRAY_SIZE to the batch_size;
-6. Then call the player by ./Player id ${PATH}/batch_sfix/.
+4. Replace the Player.cpp file with the Player folder in SCALE-MAMBA/src/;
+5. Revise the src/Makefile file, change three targets to only one: libmpc.a
+6. Configure the SCALE-MAMBA path in the CMakeLists.txt:
+    set(MPC_HOME "/path/to/SCALE-MAMBA/src/")
+7. Build SCALE-MAMBA library;
+8. Compile the batch_sfix/ folder to byte-code, should revise the ARRAY_SIZE to the batch_size;
+9. Then call the player by ./Player id ${PATH}/batch_sfix/.
+10. Copy the Data, Cert-Store, Circuits, and Programs folders to the same path of the CollaborativeML executable file.
+11. Run CollaborativeML: ./CollaborativeML <number> <program_path>

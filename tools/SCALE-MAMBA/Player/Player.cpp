@@ -32,7 +32,7 @@ void Usage(ezOptionParser &opt)
   cout << usage;
 }
 
-int main(int argc, const char *argv[])
+int run_player(int argc, const char *argv[])
 {
   ezOptionParser opt;
 
