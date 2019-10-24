@@ -15,5 +15,5 @@ To communicate with the mpc programs, the following steps should be done beforeh
     ofstream output;
     io->init(input, output, false);
 4. Build SCALE-MAMBA library;
-5. Compile the batch_sfix/ folder to byte-code;
+5. Compile the batch_sfix/ folder to byte-code, should revise the ARRAY_SIZE to the batch_size;
 6. Then call the player by ./Player id ${PATH}/batch_sfix/.

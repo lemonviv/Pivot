@@ -127,26 +127,54 @@ public:
     /**
      * conversion from homomorphic encryption to secret shares
      * for input to SCALE-MAMBA library, Robin circle computation
-     * when size = 1, is a prediction request
+     * or directly send encrypted random numbers to the super client,
+     * super client call the decryption to get the final random piece.
+     * When size = 1, is a prediction request
      *
+     * @param path
      * @param src_ciphers
-     * @param des_shares
+     * @param dest_shares
      * @param size
      */
-    void djcs_t_2_secret_shares_batch(EncodedNumber *src_ciphers, EncodedNumber *& des_shares, int size = 1);
+    void djcs_t_2_secret_shares_batch(std::string path,
+            EncodedNumber *src_ciphers, EncodedNumber *& dest_shares, int size = 1);
 
 
     /**
+     * After the mpc program is finished, call this function.
      * conversion from secret shares to homomorphic encryption
-     * for local computations
-     * when size = 1, is a prediction request
+     * for local computations.
+     * When size = 1, is a prediction request
      *
+     * @param path
      * @param src_shares
-     * @param des_ciphers
+     * @param dest_ciphers
      * @param size
      */
-    void secret_shares_2_djcs_t_batch(EncodedNumber *src_shares, EncodedNumber *& des_ciphers, int size = 1);
+    void secret_shares_2_djcs_t_batch(std::string path,
+            EncodedNumber *src_shares, EncodedNumber *& dest_ciphers, int size = 1);
 
+
+    /**
+     * Before sending the partial sums to the super client, add random shares
+     * to each element in the batch, and write these shares to designated file
+     *
+     * @param shares
+     * @param path
+     */
+    void write_random_shares(std::vector<float> shares, std::string path);
+
+
+    /**
+     * After mpc computation, read shares from designated file, and later
+     * encrypted before sending to the super client for aggregation
+     *
+     * @param size
+     * @param path
+     *
+     * @return shares
+     */
+    std::vector<float> read_random_shares(int size, std::string path);
 
     /**
      * send message via channel commParty

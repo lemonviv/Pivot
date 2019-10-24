@@ -1,7 +1,10 @@
 from Compiler import mpc_math, floatingpoint
+from random import seed, randrange
+from Compiler.program import Program
 
 ARRAY_SIZE = 10
 CLIENT_NUM = 3
+MAX_NBITS = 14
 NULL = -2147483648
 
 # Length of mantissa in bits
@@ -111,9 +114,45 @@ def main():
     res = sfix.Array(ARRAY_SIZE)
     res = func(array0, array1, array2)
 
+    #random split res into CLIENT_NUM arrays
+    #and return to different clients, should use output_share in the future
+    res0 = sfix.Array(ARRAY_SIZE)
+    res1 = sfix.Array(ARRAY_SIZE)
+    res2 = sfix.Array(ARRAY_SIZE)
+
+    @for_range(ARRAY_SIZE)
+    def _(i):
+        a0 = sint.get_random_int(MAX_NBITS)
+        a1 = sint.get_random_int(MAX_NBITS)
+        f0 = sfix()
+        f1 = sfix()
+        f0.load_int(a0)
+        f1.load_int(a1)
+        res0[i] = f0 / f1
+
+        b0 = sint.get_random_int(MAX_NBITS)
+        b1 = sint.get_random_int(MAX_NBITS)
+        g0 = sfix()
+        g1 = sfix()
+        g0.load_int(b0)
+        g1.load_int(b1)
+        res1[i] = g0 / g1
+
+        Program.prog.curr_tape.start_new_basicblock()
+        x0 = sfix()
+        x1 = sfix()
+        x0 = res[i] - res0[i]
+        x1 = x0 - res1[i]
+        res2[i] = x1
+        #print_ln("res i = %s", res[i].reveal())
+        #print_ln("res0 i = %s", res0[i].reveal())
+        #print_ln("res1 i = %s", res1[i].reveal())
+        #Program.prog.curr_tape.start_new_basicblock()
+        #print_ln("res2 i = %s", res2[i].reveal())
+
     # output_share to the 3 players
-    output_res_to_file(res, 35, 0)
-    output_res_to_file(res, 45, 1)
-    output_res_to_file(res, 55, 2)
+    output_res_to_file(res0, 35, 0)
+    output_res_to_file(res1, 45, 1)
+    output_res_to_file(res2, 55, 2)
 
 main()

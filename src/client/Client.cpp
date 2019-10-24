@@ -6,6 +6,7 @@
 #include <fstream>
 #include <sstream>
 #include <string>
+#include <fstream>
 #include <infra/ConfigFile.hpp>
 #include "libhcs.h"
 #include "gmp.h"
@@ -357,6 +358,60 @@ void Client::decrypt_batch_piece(std::string s, std::string & response_s, int sr
     serialize_batch_sums(ciphers, size, response_s);
 
     send_long_messages(channels[src_client_id].get(), response_s);
+}
+
+
+void Client::write_random_shares(std::vector<float> shares, std::string path) {
+
+    ofstream write_file;
+    std::string file_name = path + "player" + std::to_string(client_id) + ".txt";
+    write_file.open(file_name);
+
+    if (!write_file.is_open()) {
+        logger(stdout, "open file %s failed\n", file_name.c_str());
+        return;
+    }
+
+    std::string str;
+    for (int i = 0; i < shares.size(); i++) {
+        std::ostringstream ss;
+        ss << shares[i];
+        string str(ss.str());
+        if (i != shares.size() - 1) {
+            write_file << str << "\n";
+        } else {
+            write_file << str;
+        }
+    }
+    write_file.close();
+}
+
+
+std::vector<float> Client::read_random_shares(int size, std::string path) {
+
+    ifstream read_file;
+    std::string file_name = path + "output" + std::to_string(client_id) + ".txt";
+    read_file;
+
+    if (!read_file.is_open()) {
+        logger(stdout, "open file %s failed\n", file_name.c_str());
+        exit(1);
+    }
+
+    std::string line;
+    std::vector<float> shares;
+    while (getline(read_file, line)) {
+        if (line != "") {
+            float x = ::atof(line.c_str());
+            shares.push_back(x);
+        }
+    }
+
+    if (shares.size() != size) {
+        logger(stdout, "Read share number is not equal to batch size\n");
+        exit(1);
+    }
+    return shares;
 }
 
 
