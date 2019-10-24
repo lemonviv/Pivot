@@ -27,7 +27,7 @@ set(SOURCE_FILES main.cpp
         src/include/protobuf/logistic.pb.cc tests/test_pb_converter.h tests/test_pb_converter.cpp
         src/include/protobuf/keys.pb.h src/include/protobuf/keys.pb.cc)
 
-set(MPC_HOME "${PROJECT_SOURCE_DIR}/src/mpc")
+set(MPC_HOME "/path/to/SCALE-MAMBA/src")
 
 include(FindProtobuf)
 find_package(Protobuf REQUIRED)
@@ -43,8 +43,8 @@ target_link_libraries(CollaborativeML
         /usr/lib/x86_64-linux-gnu/libgmpxx.so
         $ENV{HOME}/Documents/projects/libhcs/lib/libhcs.so
         $ENV{HOME}/libscapi/libscapi.a
-        libboost_thread.a libboost_system.a pthread crypto ssl mpirxx mpir cryptopp
         ${MPC_HOME}/libmpc.a
+        libboost_thread.a libboost_system.a pthread crypto ssl mpirxx mpir cryptopp
         ${PROTOBUF_LIBRARY})
 
 #set(TEST_DIR "tests/")

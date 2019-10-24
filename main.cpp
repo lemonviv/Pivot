@@ -165,7 +165,7 @@ int main(int argc, char *argv[]) {
     std::string s2 = std::to_string(client_id);
     std::string data_file = s1 + "client_" + s2 + ".txt";
 
-    const char *args[3] = {"dummy", argv[1], "/home/sunxutao/projects/SCALE-MAMBA/Programs/tutorial"};
+    const char *args[3] = {"dummy", argv[1], argv[2]};
     run_player(3, args);
 
     if (client_id == 0) {
