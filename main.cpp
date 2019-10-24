@@ -13,6 +13,8 @@
 #include "tests/test_logistic_regression.h"
 #include "tests/test_pb_converter.h"
 
+#include "src/mpc/src/Player/Player.h"
+
 hcs_random *hr;
 djcs_t_public_key *pk;
 djcs_t_private_key *vk;
@@ -162,6 +164,9 @@ int main(int argc, char *argv[]) {
     std::string s1("/home/wuyuncheng/Documents/projects/CollaborativeML/data/datasets/");
     std::string s2 = std::to_string(client_id);
     std::string data_file = s1 + "client_" + s2 + ".txt";
+
+    const char *args[3] = {"dummy", argv[1], "/home/sunxutao/projects/SCALE-MAMBA/Programs/tutorial"};
+    run_player(3, args);
 
     if (client_id == 0) {
         system_setup();
