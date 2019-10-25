@@ -165,8 +165,8 @@ int main(int argc, char *argv[]) {
     std::string s2 = std::to_string(client_id);
     std::string data_file = s1 + "client_" + s2 + ".txt";
 
-    const char *args[3] = {"dummy", argv[1], argv[2]};
-    run_player(3, args);
+    //const char *args[3] = {"dummy", argv[1], argv[2]};
+    //run_player(3, args);
 
     if (client_id == 0) {
         system_setup();
@@ -174,6 +174,8 @@ int main(int argc, char *argv[]) {
 
     Client client(client_id, client_num, has_label, network_file, data_file);
     LogisticRegression model(BATCH_SIZE, MAX_ITERATION, CONVERGENCE_THRESHOLD, ALPHA, client.feature_num);
+
+    logger(stdout, "init finished\n");
 
     // set up keys
     if (client.client_id == 0) {
@@ -198,6 +200,17 @@ int main(int argc, char *argv[]) {
         compute_thresholds(client.m_pk, n, positive_threshold, negative_threshold);
     }
 
+    float split = 0.8;
+    if (client.client_id == 0) {
+        model.init_datasets(client, split);
+    } else {
+        int *new_indexes = new int[client.sample_num];
+        std::string recv_s;
+        client.recv_long_messages(client.channels[0].get(), recv_s);
+        deserialize_ids_from_string(new_indexes, recv_s);
+        model.init_datasets_with_indexes(client, new_indexes, split);
+    }
+
     model.train(client);
 
     int test_size = client.sample_num * 0.2;
@@ -206,6 +219,9 @@ int main(int argc, char *argv[]) {
         sample_ids[i] = client.sample_num - test_size + i;
     }
 
+    float accuracy = 0.0;
+    model.test(client, 1, accuracy);
+    logger(stdout, "Testing accuracy: \n");
 
 //    test_share_decrypt(client);
 

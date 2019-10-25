@@ -116,6 +116,8 @@ Client::Client(int param_client_id, int param_client_num, int param_has_label,
             channels.push_back(channel);
         }
     }
+
+    data_infile.close();
 }
 
 
@@ -383,6 +385,7 @@ void Client::write_random_shares(std::vector<float> shares, std::string path) {
             write_file << str;
         }
     }
+
     write_file.close();
 }
 
@@ -391,12 +394,14 @@ std::vector<float> Client::read_random_shares(int size, std::string path) {
 
     ifstream read_file;
     std::string file_name = path + "output" + std::to_string(client_id) + ".txt";
-    read_file;
+    read_file.open(file_name);
 
     if (!read_file.is_open()) {
         logger(stdout, "open file %s failed\n", file_name.c_str());
         exit(1);
     }
+
+    logger(stdout, "Starting read file\n");
 
     std::string line;
     std::vector<float> shares;
@@ -411,6 +416,9 @@ std::vector<float> Client::read_random_shares(int size, std::string path) {
         logger(stdout, "Read share number is not equal to batch size\n");
         exit(1);
     }
+
+    read_file.close();
+
     return shares;
 }
 

@@ -2,7 +2,7 @@ from Compiler import mpc_math, floatingpoint
 from random import seed, randrange
 from Compiler.program import Program
 
-ARRAY_SIZE = 10
+ARRAY_SIZE = 20
 CLIENT_NUM = 3
 MAX_NBITS = 14
 NULL = -2147483648
@@ -28,13 +28,13 @@ def func(array0, array1, array2):
 
     @for_range(ARRAY_SIZE)
     def _(i):
-        print_ln("j = %s", j)
+        #print_ln("j = %s", j)
         j.write(j + 1)
-        print_ln("The array0 i is %s", array0[i].reveal())
-        print_ln("The array1 i is %s", array1[i].reveal())
-        print_ln("The array2 i is %s", array2[i].reveal())
+        #print_ln("The array0 i is %s", array0[i].reveal())
+        #print_ln("The array1 i is %s", array1[i].reveal())
+        #print_ln("The array2 i is %s", array2[i].reveal())
         sum_i = array0[i] + array1[i] + array2[i]
-        print_ln("The sum_i is %s", sum_i.reveal())
+        #print_ln("The sum_i is %s", sum_i.reveal())
         #print_ln("The pow is %s", mpc_math.pow_fx(exp, sum_i).reveal())
         sum_i = c / (c + mpc_math.pow_fx(exp, z - sum_i))
         print_ln("The sum_i after logistic function is %s", sum_i.reveal())
@@ -62,10 +62,10 @@ def get_input_from_file(array, channel, player):
 
         if_then((input.v != NULL).reveal())
 
-        print_ln("i = %s", i)
+        #print_ln("i = %s", i)
         array[i] = input
         #Program.prog.curr_tape.start_new_basicblock()
-        print_ln("input.reveal() = %s", input.reveal())
+        #print_ln("input.reveal() = %s", input.reveal())
         #print_ln("array[i].reveal() = %s", array[i].reveal())
         i.write(i + 1)
 
@@ -88,8 +88,8 @@ def output_res_to_file(array, channel, player):
 
     @for_range(ARRAY_SIZE)
     def _(i):
-        print_ln("output value i = %s", array[i].reveal())
-        print_ln("output array[i].v = %s", array[i].v.reveal())
+        #print_ln("output value i = %s", array[i].reveal())
+        #print_ln("output array[i].v = %s", array[i].v.reveal())
         #print_ln("output array[i].f = %s", array[i].f)
 
         if_then((array[i].v < 0).reveal())

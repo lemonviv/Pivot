@@ -12,8 +12,8 @@
 #include "../utils/encoder.h"
 
 #define MAX_FEATURE_NUM 100
-#define BATCH_SIZE 351
-#define MAX_ITERATION 10
+#define BATCH_SIZE 20
+#define MAX_ITERATION 1
 #define CONVERGENCE_THRESHOLD 1e-6
 #define ALPHA 0.2
 
@@ -27,6 +27,10 @@ public:
     int feature_num;                                   // feature number of a client
     //std::vector<EncodedNumber> local_weights;        // local weights of features
     EncodedNumber *local_weights;                      // local weights of features
+    std::vector< std::vector<float> > training_data;   // training dataset
+    std::vector< std::vector<float> > testing_data;    // training dataset
+    std::vector<int> training_data_labels;             // labels of training dataset
+    std::vector<int> testingg_data_labels;             // labels of testing dataset
 public:
     /**
      * default constructor
@@ -55,15 +59,35 @@ public:
      */
     void train(Client client);
 
+
+    /**
+     * init training data and test data according to split fraction
+     * call by client 0
+     *
+     * @param client
+     * @param split
+     */
+    void init_datasets(Client client, float split);
+
+
+    /**
+     * init training data and test data according to new indexes received
+     *
+     * @param client
+     * @param new_indexes
+     * @param split
+     */
+    void init_datasets_with_indexes(Client client, int new_indexes[], float split);
+
+
     /**
      * test the model accuracy
      *
      * @param client
-     * @param test_sample_ids
-     * @param size
+     * @param type: 0 train data, 1 test data
      * @param accuracy
      */
-    void test(Client client, int *test_sample_ids, int size, float & accuracy);
+    void test(Client client, int type, float & accuracy);
 
     /**
      * given an instance with features, compute the result using local_weights
