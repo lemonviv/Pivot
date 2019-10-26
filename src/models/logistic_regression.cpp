@@ -13,11 +13,66 @@
 #include <random>
 #include <Player/Player.h>
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <errno.h>
+#include <sys/types.h>
+#include <sys/inotify.h>
+
+#define EVENT_SIZE  ( sizeof (struct inotify_event) )
+#define BUF_LEN     ( 1024 * ( EVENT_SIZE + 16 ) )
+
+
 extern djcs_t_auth_server **au;
 
-std::string path = "Programs/MAMBA-implementations/batch/input/";
+std::string path = "Programs/batch_sfix/files/";
 
 LogisticRegression::LogisticRegression(){}
+
+bool update_detection() {
+
+    bool updated = false;
+
+    int length, i = 0;
+    int fd;
+    int wd;
+    char buffer[BUF_LEN];
+
+    fd = inotify_init();
+
+    if ( fd < 0 ) {
+        perror( "inotify_init" );
+    }
+
+    wd = inotify_add_watch( fd, "Programs/batch_sfix/files/output/", IN_MODIFY);
+    length = read( fd, buffer, BUF_LEN );
+
+    if ( length < 0 ) {
+        perror( "read" );
+    }
+
+    while ( i < length ) {
+        struct inotify_event *event = ( struct inotify_event *) &buffer[ i ];
+        if ( event->len ) {
+            if ( event->mask & IN_MODIFY ) {
+                if ( event->mask & IN_ISDIR ) {
+                    printf( "The directory %s was modified.\n", event->name );
+                }
+                else {
+                    printf( "The file %s was modified.\n", event->name );
+                }
+                updated = true;
+                break;
+            }
+        }
+        i += (EVENT_SIZE + event->len);
+    }
+
+    ( void ) inotify_rm_watch( fd, wd );
+    ( void ) close( fd );
+
+    return updated;
+}
 
 
 LogisticRegression::LogisticRegression(
@@ -41,6 +96,8 @@ LogisticRegression::LogisticRegression(
 void LogisticRegression::train(Client client) {
 
     logger(stdout, "****** Training begin ******\n");
+
+    bool mpc_running = false;
 
     // compute n using client->m_pk
     mpz_t n, positive_threshold, negative_threshold;
@@ -182,16 +239,33 @@ void LogisticRegression::train(Client client) {
             }
             client.write_random_shares(shares, path);
 
-            const char *args[3] = {"dummy", std::to_string(client.client_id).c_str(), "Programs/batch_sfix/"};
-            run_player(3, args);
+            if (!mpc_running) {
+                const char *args[3] = {"dummy", std::to_string(client.client_id).c_str(), "Programs/batch_sfix/"};
+                run_player(3, args);
+                mpc_running = true;
+            } else {
+                // monitor file update and do the following
+                if (update_detection()) {
+                    sleep(3); // wait for the write finish
+                }
+            }
 
         } else {
             std::string s, response_s;
             client.recv_long_messages(client.channels[0].get(), s);
             client.decrypt_batch_piece(s, response_s, 0);
 
-            const char *args[3] = {"dummy", std::to_string(client.client_id).c_str(), "Programs/batch_sfix/"};
-            run_player(3, args);
+            if (!mpc_running) {
+                const char *args[3] = {"dummy", std::to_string(client.client_id).c_str(), "Programs/batch_sfix/"};
+                run_player(3, args);
+                mpc_running = true;
+            } else {
+                // monitor file update and do the following
+                if (update_detection()) {
+                    sleep(3); // wait for the write finish
+                }
+            }
+
         }
 
         //logger(stdout, "step 3 computed succeed\n");

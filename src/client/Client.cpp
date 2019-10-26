@@ -366,7 +366,7 @@ void Client::decrypt_batch_piece(std::string s, std::string & response_s, int sr
 void Client::write_random_shares(std::vector<float> shares, std::string path) {
 
     ofstream write_file;
-    std::string file_name = path + "player" + std::to_string(client_id) + ".txt";
+    std::string file_name = path + "input/player" + std::to_string(client_id) + ".txt";
     write_file.open(file_name);
 
     if (!write_file.is_open()) {
@@ -393,7 +393,7 @@ void Client::write_random_shares(std::vector<float> shares, std::string path) {
 std::vector<float> Client::read_random_shares(int size, std::string path) {
 
     ifstream read_file;
-    std::string file_name = path + "output" + std::to_string(client_id) + ".txt";
+    std::string file_name = path + "output/output" + std::to_string(client_id) + ".txt";
     read_file.open(file_name);
 
     if (!read_file.is_open()) {

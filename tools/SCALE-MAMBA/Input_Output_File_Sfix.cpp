@@ -11,6 +11,61 @@
 #include <string>
 #include "math.h"
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <errno.h>
+#include <sys/types.h>
+#include <sys/inotify.h>
+
+#define EVENT_SIZE  ( sizeof (struct inotify_event) )
+#define BUF_LEN     ( 1024 * ( EVENT_SIZE + 16 ) )
+
+
+bool update_detection() {
+
+    bool updated = false;
+
+    int length, i = 0;
+    int fd;
+    int wd;
+    char buffer[BUF_LEN];
+
+    fd = inotify_init();
+
+    if ( fd < 0 ) {
+        perror( "inotify_init" );
+    }
+
+    wd = inotify_add_watch( fd, "Programs/batch_sfix/files/input/", IN_MODIFY);
+    length = read( fd, buffer, BUF_LEN );
+
+    if ( length < 0 ) {
+        perror( "read" );
+    }
+
+    while ( i < length ) {
+        struct inotify_event *event = ( struct inotify_event *) &buffer[ i ];
+        if ( event->len ) {
+            if ( event->mask & IN_MODIFY ) {
+                if ( event->mask & IN_ISDIR ) {
+                    printf( "The directory %s was modified.\n", event->name );
+                }
+                else {
+                    printf( "The file %s was modified.\n", event->name );
+                }
+                updated = true;
+                break;
+            }
+        }
+        i += (EVENT_SIZE + event->len);
+    }
+
+    ( void ) inotify_rm_watch( fd, wd );
+    ( void ) close( fd );
+
+    return updated;
+}
+
 
 long Input_Output_File_Sfix::open_channel(unsigned int channel)
 {
@@ -20,22 +75,22 @@ long Input_Output_File_Sfix::open_channel(unsigned int channel)
     if (channel == 0) {
         cout << "Reserved in channel 0" << endl;
     } else if (channel > 0 && channel <= 10) {
-        filename = "~/Documents/projects/CollaborativeML/tools/SCALE-MAMBA/batch_sfix/mpc_files/player0.txt";
+        filename = "Programs/batch_sfix/files/input/player0.txt";
         inpf->open(filename);
     } else if (channel > 10 && channel <= 20){
-        filename = "~/Documents/projects/CollaborativeML/tools/SCALE-MAMBA/batch_sfix/mpc_files/player1.txt";
+        filename = "Programs/batch_sfix/files/input/player1.txt";
         inpf->open(filename);
     } else if (channel > 20 && channel <= 30) {
-        filename = "~/Documents/projects/CollaborativeML/tools/SCALE-MAMBA/batch_sfix/mpc_files/player2.txt";
+        filename = "Programs/batch_sfix/files/input/player2.txt";
         inpf->open(filename);
     } else if (channel > 30 && channel <= 40) {
-        filename = "~/Documents/projects/CollaborativeML/tools/SCALE-MAMBA/batch_sfix/mpc_files/output0.txt";
+        filename = "Programs/batch_sfix/files/output/output0.txt";
         outf->open(filename);
     } else if (channel > 40 && channel <= 50) {
-        filename = "~/Documents/projects/CollaborativeML/tools/SCALE-MAMBA/batch_sfix/mpc_files/output1.txt";
+        filename = "Programs/batch_sfix/files/output/output1.txt";
         outf->open(filename);
     } else if (channel > 50 && channel <= 60) {
-        filename = "~/Documents/projects/CollaborativeML/tools/SCALE-MAMBA/batch_sfix/mpc_files/output2.txt";
+        filename = "Programs/batch_sfix/files/output/output2.txt";
         outf->open(filename);
     } else {
         cout << "Channel is not used " << endl;
@@ -126,7 +181,7 @@ void Input_Output_File_Sfix::private_output_gfp(const gfp &output, unsigned int 
     fix_float_v = t;
     float x = 0.0;
     x = fix_float_v * pow(2, 0 - FIXED_PRECISION);
-    cout<< "res = " << x << endl;
+    //cout<< "res = " << x << endl;
     std::ostringstream ss;
     ss << x;
     string str(ss.str());
@@ -190,19 +245,23 @@ Share Input_Output_File_Sfix::input_share(unsigned int channel)
 void Input_Output_File_Sfix::trigger(Schedule &schedule)
 {
     printf("Restart requested: Enter a number to proceed\n");
-    int i;
-    cin >> i;
 
-    // Load new schedule file program streams, using the original
-    // program name
-    //
-    // Here you could define programatically what the new
-    // programs you want to run are, by directly editing the
-    // public variables in the schedule object.
-    unsigned int nthreads= schedule.Load_Programs();
-    if (schedule.max_n_threads() < nthreads)
-    {
-        throw Processor_Error("Restart requires more threads, cannot do this");
+    if (update_detection()) {
+
+        printf("Trigger activated: files are updated\n");
+        sleep(3); // wait for write finished, should be careful
+
+        // Load new schedule file program streams, using the original
+        // program name
+        //
+        // Here you could define programatically what the new
+        // programs you want to run are, by directly editing the
+        // public variables in the schedule object.
+        unsigned int nthreads= schedule.Load_Programs();
+        if (schedule.max_n_threads() < nthreads)
+        {
+            throw Processor_Error("Restart requires more threads, cannot do this");
+        }
     }
 }
 

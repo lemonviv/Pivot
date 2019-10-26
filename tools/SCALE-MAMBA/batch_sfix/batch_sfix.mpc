@@ -156,3 +156,5 @@ def main():
     output_res_to_file(res2, 55, 2)
 
 main()
+
+restart()
