@@ -11,6 +11,7 @@
 #include <cstring>
 #include <iomanip>
 #include <random>
+#include <thread>
 #include <Player/Player.h>
 
 #include <stdio.h>
@@ -29,7 +30,7 @@ std::string path = "Programs/batch_sfix/files/";
 
 LogisticRegression::LogisticRegression(){}
 
-bool update_detection() {
+static bool update_detection() {
 
     bool updated = false;
 
@@ -116,10 +117,10 @@ void LogisticRegression::train(Client client) {
             data_indexes.push_back(i);
         }
     }
-
+    std::thread thread_obj;
     // training
     for (int iter = 0; iter < MAX_ITERATION; iter++) {
-
+        logger(stdout, "****** Iteration %d ******\n", iter);
         // step 1: random select a batch with batch size and encode the batch samples
         int *batch_ids = new int[batch_size];
         if (client.client_id == 0) {
@@ -217,6 +218,7 @@ void LogisticRegression::train(Client client) {
         //logger(stdout, "step 2 computed succeed\n");
 
         // step 3: client 0 aggregate the sums and call share decrypt (call mpc when mpc is ready)
+        std::cout << "Step 3: Aggregation" << std::endl;
         EncodedNumber *batch_aggregated_sums = new EncodedNumber[batch_size];
         EncodedNumber *decrypted_batch_aggregated_sums = new EncodedNumber[batch_size];
         if (client.client_id == 0) {
@@ -239,15 +241,22 @@ void LogisticRegression::train(Client client) {
             }
             client.write_random_shares(shares, path);
 
+            logger(stdout, "client 0 write finished\n");
+
             if (!mpc_running) {
                 const char *args[3] = {"dummy", std::to_string(client.client_id).c_str(), "Programs/batch_sfix/"};
-                run_player(3, args);
+                std::cout << "Player[" << client.client_id << "] launch thread for MPC" << std::endl;
+                thread_obj = std::thread(run_player, 3, args);
+                thread_obj.detach();
                 mpc_running = true;
+                std::cout << "MPC thread is running" << std::endl;
             } else {
                 // monitor file update and do the following
-                if (update_detection()) {
-                    sleep(3); // wait for the write finish
-                }
+                // logger(stdout, "mpc is running, check file udpate\n");
+                // if (update_detection()) {
+                //     sleep(3); // wait for the write finish
+                // }
+                // logger(stdout, "finish udpate\n");
             }
 
         } else {
@@ -257,18 +266,32 @@ void LogisticRegression::train(Client client) {
 
             if (!mpc_running) {
                 const char *args[3] = {"dummy", std::to_string(client.client_id).c_str(), "Programs/batch_sfix/"};
-                run_player(3, args);
+                std::cout << "Player[" << client.client_id << "] launch thread for MPC" << std::endl;
+                thread_obj = std::thread(run_player, 3, args);
+                thread_obj.detach();
                 mpc_running = true;
+                std::cout << "MPC thread is running" << std::endl;
             } else {
                 // monitor file update and do the following
-                if (update_detection()) {
-                    sleep(3); // wait for the write finish
-                }
+                // logger(stdout, "mpc is running, check file udpate\n");
+                // if (update_detection()) {
+                //     sleep(3); // wait for the write finish
+                // }
+                // logger(stdout, "finish udpate\n");
             }
 
         }
 
-        //logger(stdout, "step 3 computed succeed\n");
+        logger(stdout, "mpc is running, check file udpate\n");
+
+        if (update_detection())
+        {
+            /* code */
+            sleep(3);
+        }
+        
+
+        logger(stdout, "step 3 computed succeed\n");
 
         // step 4: every client read mpc results from the output files, and aggregated together
         //std::string file = path + "output" + std::to_string(client.client_id) + ".txt";
@@ -324,7 +347,7 @@ void LogisticRegression::train(Client client) {
 
         // add temporary code for viewing the training accuracy, now is full training dataset sgd
         logger(stdout, "Iteration %d accuracy = %f\n", iter, (float) batch_size / (float) client.sample_num);
-        //logger(stdout, "step 4 computed succeed\n");
+        logger(stdout, "step 4 computed succeed\n");
 
         // step 5: client 0 compute the losses of the batch, and send to every other client
         EncodedNumber *encrypted_losses = new EncodedNumber[batch_size];
@@ -356,7 +379,7 @@ void LogisticRegression::train(Client client) {
             delete [] recv_encrypted_losses;
         }
 
-        //logger(stdout, "step 5 and step 6 computed succeed\n");
+        logger(stdout, "step 5 and step 6 computed succeed\n");
 
         // free temporary memories
         delete [] batch_ids;
@@ -396,6 +419,8 @@ void LogisticRegression::train(Client client) {
     mpz_clear(n);
     mpz_clear(positive_threshold);
     mpz_clear(negative_threshold);
+
+
 
     logger(stdout, "****** Training end ******\n");
 }
@@ -515,6 +540,8 @@ void LogisticRegression::test(Client client, int type, float & accuracy) {
         }
     }
 
+    logger(stdout, "step 1 succeed\n");
+
     // step 2: every client compute partial sums and send back to super client
     EncodedNumber *partial_sums = new EncodedNumber[size];
     for (int i = 0; i < size; i++) {
@@ -551,6 +578,9 @@ void LogisticRegression::test(Client client, int type, float & accuracy) {
         client.send_long_messages(client.channels[0].get(), s);
     }
 
+
+    logger(stdout, "step 2 succeed\n");
+
     // step 3: super client aggregate the partial sums and call the share decrypt (now without mpc)
     EncodedNumber *aggregated_sums = new EncodedNumber[size];
     EncodedNumber *decrypted_aggregated_sums = new EncodedNumber[size];
@@ -568,6 +598,8 @@ void LogisticRegression::test(Client client, int type, float & accuracy) {
         client.recv_long_messages(client.channels[0].get(), s);
         client.decrypt_batch_piece(s, response_s, 0);
     }
+
+    logger(stdout, "step 3 succeed\n");
 
     // step 4: super client compute the logistic function and compare to the labels, returning accuracy
     int correct_num = 0;
