@@ -221,7 +221,7 @@ int main(int argc, char *argv[]) {
 
     float accuracy = 0.0;
     model.test(client, 1, accuracy);
-    logger(stdout, "Testing accuracy: \n");
+    logger(stdout, "Testing accuracy = %f \n", accuracy);
 
 //    test_share_decrypt(client);
 
@@ -240,6 +240,9 @@ int main(int argc, char *argv[]) {
         mpz_clear(positive_threshold);
         mpz_clear(negative_threshold);
     }
+
+    logger(stdout, "Correct here\n");
+    sleep(3); // wait for all the clients finish testing
 
     return 0;
 }

@@ -218,7 +218,6 @@ void LogisticRegression::train(Client client) {
         //logger(stdout, "step 2 computed succeed\n");
 
         // step 3: client 0 aggregate the sums and call share decrypt (call mpc when mpc is ready)
-        std::cout << "Step 3: Aggregation" << std::endl;
         EncodedNumber *batch_aggregated_sums = new EncodedNumber[batch_size];
         EncodedNumber *decrypted_batch_aggregated_sums = new EncodedNumber[batch_size];
         if (client.client_id == 0) {
@@ -244,7 +243,7 @@ void LogisticRegression::train(Client client) {
             logger(stdout, "client 0 write finished\n");
 
             if (!mpc_running) {
-                const char *args[3] = {"dummy", std::to_string(client.client_id).c_str(), "Programs/batch_sfix/"};
+                const char *args[3] = {"-max 500000,500000,500000", std::to_string(client.client_id).c_str(), "Programs/batch_sfix/"};
                 std::cout << "Player[" << client.client_id << "] launch thread for MPC" << std::endl;
                 thread_obj = std::thread(run_player, 3, args);
                 thread_obj.detach();
@@ -265,7 +264,8 @@ void LogisticRegression::train(Client client) {
             client.decrypt_batch_piece(s, response_s, 0);
 
             if (!mpc_running) {
-                const char *args[3] = {"dummy", std::to_string(client.client_id).c_str(), "Programs/batch_sfix/"};
+                const char *args[3] = {"-max 500000,500000,500000",
+                                       std::to_string(client.client_id).c_str(), "Programs/batch_sfix/"};
                 std::cout << "Player[" << client.client_id << "] launch thread for MPC" << std::endl;
                 thread_obj = std::thread(run_player, 3, args);
                 thread_obj.detach();
@@ -286,7 +286,6 @@ void LogisticRegression::train(Client client) {
 
         if (update_detection())
         {
-            /* code */
             sleep(3);
         }
         
@@ -346,7 +345,6 @@ void LogisticRegression::train(Client client) {
 //        }
 
         // add temporary code for viewing the training accuracy, now is full training dataset sgd
-        logger(stdout, "Iteration %d accuracy = %f\n", iter, (float) batch_size / (float) client.sample_num);
         logger(stdout, "step 4 computed succeed\n");
 
         // step 5: client 0 compute the losses of the batch, and send to every other client
@@ -380,6 +378,12 @@ void LogisticRegression::train(Client client) {
         }
 
         logger(stdout, "step 5 and step 6 computed succeed\n");
+
+        float accuracy = 0.0;
+        if (iter == 1) {
+            test(client, 0, accuracy);
+            logger(stdout, "Accuracy in iter %d = %f\n", iter, accuracy);
+        }
 
         // free temporary memories
         delete [] batch_ids;
@@ -520,6 +524,8 @@ void LogisticRegression::test(Client client, int type, float & accuracy) {
     // test process is similar to the train process in one iteration
     int size = type == 0 ? training_data.size() : testing_data.size();
 
+    logger(stdout, "test data size = %d\n", size);
+
     EncodedNumber **test_data = new EncodedNumber*[size];
     for (int i = 0; i < size; i++) {
         test_data[i] = new EncodedNumber[feature_num];
@@ -603,7 +609,6 @@ void LogisticRegression::test(Client client, int type, float & accuracy) {
 
     // step 4: super client compute the logistic function and compare to the labels, returning accuracy
     int correct_num = 0;
-    EncodedNumber *reencrypted_sums = new EncodedNumber[size];
     if (client.client_id == 0) {
         for (int i = 0; i < size; i++) {
             float t;
@@ -618,6 +623,7 @@ void LogisticRegression::test(Client client, int type, float & accuracy) {
         }
     }
 
+    logger(stdout, "correct num = %d\n", correct_num);
     accuracy = (float) correct_num / size;
     logger(stdout, "The model accuracy is %f\n", accuracy);
 
@@ -625,7 +631,6 @@ void LogisticRegression::test(Client client, int type, float & accuracy) {
     delete [] partial_sums;
     delete [] aggregated_sums;
     delete [] decrypted_aggregated_sums;
-    delete [] reencrypted_sums;
     for (int i = 0; i < size; i++) {
         delete [] test_data[i];
         delete [] partial_sums_array[i];

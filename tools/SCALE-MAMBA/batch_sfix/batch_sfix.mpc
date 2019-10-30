@@ -21,24 +21,27 @@ cfix.set_precision(fixed_f, fixed_k)
 
 def func(array0, array1, array2):
     res = sfix.Array(ARRAY_SIZE)
-    j = MemValue(cint(0))
     exp = sfix(2.7818)
     c = sfix(1.0)
     z = sfix(0.0)
+    xx = sfix(5.0)
+    yy = sfix(-5.0)
 
     @for_range(ARRAY_SIZE)
     def _(i):
-        #print_ln("j = %s", j)
-        j.write(j + 1)
-        #print_ln("The array0 i is %s", array0[i].reveal())
-        #print_ln("The array1 i is %s", array1[i].reveal())
-        #print_ln("The array2 i is %s", array2[i].reveal())
         sum_i = array0[i] + array1[i] + array2[i]
-        #print_ln("The sum_i is %s", sum_i.reveal())
-        #print_ln("The pow is %s", mpc_math.pow_fx(exp, sum_i).reveal())
-        sum_i = c / (c + mpc_math.pow_fx(exp, z - sum_i))
-        print_ln("The sum_i after logistic function is %s", sum_i.reveal())
-        res[i] = sum_i
+        print_ln("The sum_i is %s", sum_i.reveal())
+        Program.prog.curr_tape.start_new_basicblock()
+        if_then((sum_i > xx).reveal())
+        res[i] = sfix(1.0)
+        else_then()
+        if_then((sum_i < yy).reveal())
+        res[i] = sfix(0.005)
+        else_then()
+        res[i] = c / (c + mpc_math.pow_fx(exp, z - sum_i))
+        end_if()
+        end_if()
+        print_ln("The res[i] after logistic function is %s", res[i].reveal())
 
     return res
 
@@ -155,6 +158,10 @@ def main():
     output_res_to_file(res1, 45, 1)
     output_res_to_file(res2, 55, 2)
 
-main()
+#main()
+
+t = MPCThread(main, 't1')
+t.start()
+t.join()
 
 restart()
