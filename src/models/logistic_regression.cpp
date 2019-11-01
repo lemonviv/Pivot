@@ -118,6 +118,7 @@ void LogisticRegression::train(Client client) {
         }
     }
     std::thread thread_obj;
+    int n_iterations = MAX_ITERATION;
     // training
     for (int iter = 0; iter < MAX_ITERATION; iter++) {
         logger(stdout, "****** Iteration %d ******\n", iter);
@@ -245,17 +246,9 @@ void LogisticRegression::train(Client client) {
             if (!mpc_running) {
                 const char *args[3] = {"-max 500000,500000,500000", std::to_string(client.client_id).c_str(), "Programs/batch_sfix/"};
                 std::cout << "Player[" << client.client_id << "] launch thread for MPC" << std::endl;
-                thread_obj = std::thread(run_player, 3, args);
-                thread_obj.detach();
+                thread_obj = std::thread(run_player, 2 * n_iterations - 1, 3, args);
                 mpc_running = true;
                 std::cout << "MPC thread is running" << std::endl;
-            } else {
-                // monitor file update and do the following
-                // logger(stdout, "mpc is running, check file udpate\n");
-                // if (update_detection()) {
-                //     sleep(3); // wait for the write finish
-                // }
-                // logger(stdout, "finish udpate\n");
             }
 
         } else {
@@ -267,19 +260,10 @@ void LogisticRegression::train(Client client) {
                 const char *args[3] = {"-max 500000,500000,500000",
                                        std::to_string(client.client_id).c_str(), "Programs/batch_sfix/"};
                 std::cout << "Player[" << client.client_id << "] launch thread for MPC" << std::endl;
-                thread_obj = std::thread(run_player, 3, args);
-                thread_obj.detach();
+                thread_obj = std::thread(run_player, 2 * n_iterations - 1, 3, args);
                 mpc_running = true;
                 std::cout << "MPC thread is running" << std::endl;
-            } else {
-                // monitor file update and do the following
-                // logger(stdout, "mpc is running, check file udpate\n");
-                // if (update_detection()) {
-                //     sleep(3); // wait for the write finish
-                // }
-                // logger(stdout, "finish udpate\n");
             }
-
         }
 
         logger(stdout, "mpc is running, check file udpate\n");
@@ -381,7 +365,7 @@ void LogisticRegression::train(Client client) {
 
         float accuracy = 0.0;
         if (iter == 1) {
-            test(client, 0, accuracy);
+            //test(client, 0, accuracy);
             logger(stdout, "Accuracy in iter %d = %f\n", iter, accuracy);
         }
 
@@ -400,6 +384,11 @@ void LogisticRegression::train(Client client) {
         delete [] batch_data;
         delete [] batch_partial_sums_array;
     }
+
+    // stop player thread
+    logger(stdout, "wait player thread to finish\n");
+    thread_obj.join();
+    logger(stdout, "player thread finished\n");
 
     // share decrypt the local weights
     EncodedNumber *decrypted_weights = new EncodedNumber[feature_num];

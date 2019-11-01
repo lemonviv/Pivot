@@ -6,6 +6,7 @@ All rights reserved
 */
 
 #include <algorithm>
+#include <atomic>
 #include <fstream>
 #include <iomanip>
 #include <iostream>
@@ -22,6 +23,8 @@ using namespace std;
 #include "System/RunTime.h"
 #include "config.h"
 
+#include "Player/Player.h"
+
 #include "Tools/ezOptionParser.h"
 using namespace ez;
 
@@ -32,7 +35,7 @@ void Usage(ezOptionParser &opt)
   cout << usage;
 }
 
-int run_player(int argc, const char *argv[])
+int run_player(int n_iterations, int argc, const char *argv[])
 {
   ezOptionParser opt;
 
@@ -387,7 +390,7 @@ int run_player(int argc, const char *argv[])
             ctx, portnum,
             SD, machine, OCD,
             number_FHE_threads,
-            verbose);
+            verbose, n_iterations);
 
   machine.Dump_Memory(my_number);
 

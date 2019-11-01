@@ -2,6 +2,8 @@ To communicate with the mpc programs, the following steps should be done beforeh
 1. Move the Input_Output_File_Sfix.cpp and Input_Output_File_Sfix.h files to the SCALE-MAMBA/src/Input_Output/ folders;
    *** Notice that the file path in the .cpp file should be revised ***
 2. Revise the IO.h file, change '#include "Input_Output_Simple.h"' to '#include "Input_Output_File_Sfix.h"';
+3. Move the Online.cpp and Online.h to the SCALE-MAMBA/src/Online folder;
+4. Move the RunTime.cpp and RunTime.h to the SCALE-MAMBA/src/System folder;
 3. Revise the src/Player.cpp file:
     Change
 
