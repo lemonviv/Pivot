@@ -12,13 +12,26 @@
 #include <iomanip>
 #include <random>
 #include <thread>
-#include <Player/Player.h>
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
 #include <sys/types.h>
 #include <sys/inotify.h>
+
+// header files from MP-SPDZ
+
+#include "Math/gfp.h"
+#include "Math/gf2n.h"
+#include "Networking/sockets.h"
+#include "Tools/int.h"
+#include "Math/Setup.h"
+#include "Protocols/fake-stuff.h"
+
+#include <sodium.h>
+#include <iostream>
+#include <sstream>
+#include <fstream>
 
 #define EVENT_SIZE  ( sizeof (struct inotify_event) )
 #define BUF_LEN     ( 1024 * ( EVENT_SIZE + 16 ) )
@@ -120,6 +133,7 @@ void LogisticRegression::train(Client client) {
     std::thread thread_obj;
     int n_iterations = MAX_ITERATION;
     // training
+    const clock_t begin_time = clock();
     for (int iter = 0; iter < MAX_ITERATION; iter++) {
         logger(stdout, "****** Iteration %d ******\n", iter);
         // step 1: random select a batch with batch size and encode the batch samples
@@ -243,36 +257,11 @@ void LogisticRegression::train(Client client) {
 
             logger(stdout, "client 0 write finished\n");
 
-            if (!mpc_running) {
-                const char *args[3] = {"-max 500000,500000,500000", std::to_string(client.client_id).c_str(), "Programs/batch_sfix/"};
-                std::cout << "Player[" << client.client_id << "] launch thread for MPC" << std::endl;
-                thread_obj = std::thread(run_player, 2 * n_iterations - 1, 3, args);
-                mpc_running = true;
-                std::cout << "MPC thread is running" << std::endl;
-            }
-
         } else {
             std::string s, response_s;
             client.recv_long_messages(client.channels[0].get(), s);
             client.decrypt_batch_piece(s, response_s, 0);
-
-            if (!mpc_running) {
-                const char *args[3] = {"-max 500000,500000,500000",
-                                       std::to_string(client.client_id).c_str(), "Programs/batch_sfix/"};
-                std::cout << "Player[" << client.client_id << "] launch thread for MPC" << std::endl;
-                thread_obj = std::thread(run_player, 2 * n_iterations - 1, 3, args);
-                mpc_running = true;
-                std::cout << "MPC thread is running" << std::endl;
-            }
         }
-
-        logger(stdout, "mpc is running, check file udpate\n");
-
-        if (update_detection())
-        {
-            sleep(3);
-        }
-        
 
         logger(stdout, "step 3 computed succeed\n");
 
@@ -363,11 +352,11 @@ void LogisticRegression::train(Client client) {
 
         logger(stdout, "step 5 and step 6 computed succeed\n");
 
-        float accuracy = 0.0;
-        if (iter == 1) {
-            //test(client, 0, accuracy);
-            logger(stdout, "Accuracy in iter %d = %f\n", iter, accuracy);
-        }
+//        float accuracy = 0.0;
+//        if (iter == 1) {
+//            //test(client, 0, accuracy);
+//            logger(stdout, "Accuracy in iter %d = %f\n", iter, accuracy);
+//        }
 
         // free temporary memories
         delete [] batch_ids;
@@ -384,6 +373,8 @@ void LogisticRegression::train(Client client) {
         delete [] batch_data;
         delete [] batch_partial_sums_array;
     }
+    const clock_t end_time = clock();
+    std::cout << "time difference = " << float( end_time - begin_time ) /  CLOCKS_PER_SEC;
 
     // stop player thread
     logger(stdout, "wait player thread to finish\n");

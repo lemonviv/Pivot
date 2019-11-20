@@ -13,8 +13,6 @@
 #include "tests/test_logistic_regression.h"
 #include "tests/test_pb_converter.h"
 
-#include "Player/Player.h"
-
 hcs_random *hr;
 djcs_t_public_key *pk;
 djcs_t_private_key *vk;
