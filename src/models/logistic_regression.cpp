@@ -19,20 +19,6 @@
 #include <sys/types.h>
 #include <sys/inotify.h>
 
-// header files from MP-SPDZ
-
-#include "Math/gfp.h"
-#include "Math/gf2n.h"
-#include "Networking/sockets.h"
-#include "Tools/int.h"
-#include "Math/Setup.h"
-#include "Protocols/fake-stuff.h"
-
-#include <sodium.h>
-#include <iostream>
-#include <sstream>
-#include <fstream>
-
 #define EVENT_SIZE  ( sizeof (struct inotify_event) )
 #define BUF_LEN     ( 1024 * ( EVENT_SIZE + 16 ) )
 
@@ -87,7 +73,6 @@ static bool update_detection() {
 
     return updated;
 }
-
 
 LogisticRegression::LogisticRegression(
         int param_batch_size,

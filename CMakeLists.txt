@@ -25,7 +25,8 @@ set(SOURCE_FILES main.cpp
         src/include/protobuf/common.pb.cc
         src/include/protobuf/logistic.pb.h
         src/include/protobuf/logistic.pb.cc tests/test_pb_converter.h tests/test_pb_converter.cpp
-        src/include/protobuf/keys.pb.h src/include/protobuf/keys.pb.cc)
+        src/include/protobuf/keys.pb.h src/include/protobuf/keys.pb.cc
+        src/utils/spdz/spdz_util.h src/utils/spdz/spdz_util.cpp)
 
 set(SPDZ_HOME "/home/wuyuncheng/Documents/projects/MP-SPDZ/")
 
@@ -44,7 +45,7 @@ target_link_libraries(CollaborativeML
         $ENV{HOME}/Documents/projects/libhcs/lib/libhcs.so
         $ENV{HOME}/libscapi/libscapi.a
         ${SPDZ_HOME}/libSPDZ.a
-        libboost_thread.a libboost_system.a pthread crypto ssl mpirxx mpir cryptopp
+        libboost_thread.a libboost_system.a pthread crypto ssl mpirxx mpir cryptopp sodium
         ${PROTOBUF_LIBRARY})
 
 #set(TEST_DIR "tests/")
