@@ -239,8 +239,5 @@ int main(int argc, char *argv[]) {
         mpz_clear(negative_threshold);
     }
 
-    logger(stdout, "Correct here\n");
-    sleep(3); // wait for all the clients finish testing
-
     return 0;
 }

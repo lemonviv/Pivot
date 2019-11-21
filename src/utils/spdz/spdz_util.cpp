@@ -4,6 +4,7 @@
 
 #include "spdz_util.h"
 #include "math.h"
+#include "../util.h"
 
 #define SPDZ_FIXED_PRECISION 16
 
@@ -37,7 +38,7 @@ std::vector<int> setup_sockets(int n_parties, const std::string host_name, int p
     for (int i = 0; i < n_parties; i++)
     {
         set_up_client_socket(sockets[i], host_name.c_str(), port_base + i);
-        cout << "set up for " << i << "-th party succeed" << endl;
+        cout << "set up for " << i << "-th party succeed" << ", sockets = " << sockets[i] << endl;
     }
     cout << "Finish setup socket connections to SPDZ engines." << endl;
     return sockets;
@@ -50,6 +51,8 @@ void send_private_inputs(std::vector<gfp>& values, std::vector<int>& sockets, in
     octetStream os;
     std::vector< std::vector<gfp> > triples(num_inputs, vector<gfp>(3));
     std::vector<gfp> triple_shares(3);
+
+    logger(stdout, "ready for receiving inputs from spdz\n");
 
     // Receive num_inputs triples from SPDZ
     for (int j = 0; j < n_parties; j++)
@@ -66,6 +69,8 @@ void send_private_inputs(std::vector<gfp>& values, std::vector<int>& sockets, in
             }
         }
     }
+
+    logger(stdout, "Finish preparing values \n");
 
     // Check triple relations (is a party cheating?)
     for (int i = 0; i < num_inputs; i++)
@@ -95,7 +100,9 @@ void initialise_fields(const string& dir_prefix)
     int lg2;
     bigint p;
 
-    string filename = dir_prefix + "Params-Data";
+    string filename = "/home/wuyuncheng/Documents/projects/MP-SPDZ/Player-Data/3-128-128/Params-Data";
+
+    //string filename = dir_prefix + "Params-Data";
     cout << "loading params from: " << filename << endl;
 
     ifstream inpf(filename.c_str());
@@ -106,7 +113,7 @@ void initialise_fields(const string& dir_prefix)
     inpf.close();
 
     gfp::init_field(p);
-    gf2n::init_field(lg2);
+    //gf2n::init_field(lg2);
 }
 
 

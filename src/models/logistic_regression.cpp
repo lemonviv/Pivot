@@ -11,7 +11,6 @@
 #include <cstring>
 #include <iomanip>
 #include <random>
-#include <thread>
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -96,8 +95,6 @@ void LogisticRegression::train(Client client) {
 
     logger(stdout, "****** Training begin ******\n");
 
-    bool mpc_running = false;
-
     // compute n using client->m_pk
     mpz_t n, positive_threshold, negative_threshold;
     mpz_init(n);
@@ -115,7 +112,6 @@ void LogisticRegression::train(Client client) {
             data_indexes.push_back(i);
         }
     }
-    std::thread thread_obj;
 
     // training
     const clock_t begin_time = clock();
@@ -170,10 +166,18 @@ void LogisticRegression::train(Client client) {
         /*** send private batch shares ***/
         // init static gfp
         string prep_data_prefix = get_prep_dir(NUM_SPDZ_PARTIES, 128, gf2n::default_degree());
+        logger(stdout, "prep_data_prefix = %s \n", prep_data_prefix.c_str());
         initialise_fields(prep_data_prefix);
         bigint::init_thread();
         // setup sockets
         std::vector<int> sockets = setup_sockets(NUM_SPDZ_PARTIES, "localhost", SPDZ_PORT_BASE);
+
+        for (int i = 0; i < NUM_SPDZ_PARTIES; i++) {
+            logger(stdout, "socket %d = %d\n", i, sockets[i]);
+        }
+
+        // add a random float number and write to the file for mpc computation
+        std::vector<float> shares;
 
         EncodedNumber *batch_partial_sums = new EncodedNumber[batch_size];
         for (int i = 0; i < batch_size; i++) {
@@ -206,9 +210,6 @@ void LogisticRegression::train(Client client) {
 
         } else {
 
-            // add a random float number and write to the file for mpc computation
-            std::vector<float> shares;
-
             for (int i = 0; i < batch_size; i++) {
                 float r = static_cast<float> (rand()) / static_cast<float> (RAND_MAX);
                 shares.push_back(0 - r);
@@ -223,12 +224,12 @@ void LogisticRegression::train(Client client) {
             client.send_long_messages(client.channels[0].get(), s);
 
             // send private values
-            send_private_batch_shares(shares, sockets, NUM_SPDZ_PARTIES);
+            // send_private_batch_shares(shares, sockets, NUM_SPDZ_PARTIES);
         }
 
-        //logger(stdout, "step 2 computed succeed\n");
+        logger(stdout, "step 2 computed succeed\n");
 
-        // step 3: client 0 aggregate the sums and call share decrypt (call mpc when mpc is ready)
+        // step 3: client 0 aggregate the sums and call share decrypt
         EncodedNumber *batch_aggregated_sums = new EncodedNumber[batch_size];
         EncodedNumber *decrypted_batch_aggregated_sums = new EncodedNumber[batch_size];
         if (client.client_id == 0) {
@@ -241,15 +242,13 @@ void LogisticRegression::train(Client client) {
             client.share_batch_decrypt(batch_aggregated_sums, decrypted_batch_aggregated_sums, batch_size);
 
             // reconstruct the values to float
-            std::vector<float> shares;
             for (int i = 0; i < batch_size; i++) {
                 float x;
                 decrypted_batch_aggregated_sums[i].decode(x);
                 shares.push_back(x);
             }
-
             // send private values
-            send_private_batch_shares(shares, sockets, NUM_SPDZ_PARTIES);
+            // send_private_batch_shares(shares, sockets, NUM_SPDZ_PARTIES);
 
         } else {
             std::string s, response_s;
@@ -257,10 +256,14 @@ void LogisticRegression::train(Client client) {
             client.decrypt_batch_piece(s, response_s, 0);
         }
 
-        //logger(stdout, "step 3 computed succeed\n");
+        logger(stdout, "step 3 computed succeed\n");
+
+        // send private shares and receive shares
+        send_private_batch_shares(shares, sockets, NUM_SPDZ_PARTIES);
+
+        std::vector<float> mpc_res_shares = receive_result(sockets, NUM_SPDZ_PARTIES, BATCH_SIZE);
 
         // step 4: every client read mpc results from the output files, and aggregated together
-        std::vector<float> mpc_res_shares = receive_result(sockets, NUM_SPDZ_PARTIES, BATCH_SIZE);
         EncodedNumber *encrypted_mpc_shares = new EncodedNumber[batch_size];
         for (int i = 0; i < batch_size; i++) {
             encrypted_mpc_shares[i].set_float(n, mpc_res_shares[i], FLOAT_PRECISION);
@@ -350,7 +353,11 @@ void LogisticRegression::train(Client client) {
 //            logger(stdout, "Accuracy in iter %d = %f\n", iter, accuracy);
 //        }
 
+        for (unsigned int i = 0; i < sockets.size(); i++)
+            close_client_socket(sockets[i]);
+
         // free temporary memories
+        //delete [] sockets;
         delete [] batch_ids;
         delete [] batch_partial_sums;
         delete [] batch_aggregated_sums;
@@ -366,12 +373,7 @@ void LogisticRegression::train(Client client) {
         delete [] batch_partial_sums_array;
     }
     const clock_t end_time = clock();
-    std::cout << "time difference = " << float( end_time - begin_time ) /  CLOCKS_PER_SEC;
-
-    // stop player thread
-    logger(stdout, "wait player thread to finish\n");
-    thread_obj.join();
-    logger(stdout, "player thread finished\n");
+    std::cout << "time difference = " << float( end_time - begin_time ) /  CLOCKS_PER_SEC << std::endl;
 
     // share decrypt the local weights
     EncodedNumber *decrypted_weights = new EncodedNumber[feature_num];
@@ -582,6 +584,9 @@ void LogisticRegression::test(Client client, int type, float & accuracy) {
             decrypted_aggregated_sums[i].decode(t);
             t = 1.0 / (1 + exp(0 - t));
             int predict_label = t >= 0.5 ? 1 : 0;
+            //logger(stdout, "t = %f\n", t);
+            //logger(stdout, "predict_label = %d\n", predict_label);
+            //logger(stdout, "training_data_label = %d\n", training_data_labels[i]);
             if (type == 0) {
                 if (predict_label == training_data_labels[i]) correct_num += 1;
             } else {
