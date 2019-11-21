@@ -10,7 +10,7 @@
 void send_private_batch_shares(std::vector<float> shares, std::vector<int>& sockets, int n_parties) {
 
     int number_inputs = shares.size();
-    std::vector<long> long_shares;
+    std::vector<long> long_shares(number_inputs);
 
     // step 1: convert to int or long according to the fixed precision
     for (int i = 0; i < number_inputs; ++i) {
@@ -30,13 +30,14 @@ void send_private_batch_shares(std::vector<float> shares, std::vector<int>& sock
 }
 
 
-std::vector<int> setup_sockets(int n_parties, std::string host_name, int port_base) {
+std::vector<int> setup_sockets(int n_parties, const std::string host_name, int port_base) {
 
     // Setup connections from this client to each party socket
     std::vector<int> sockets(n_parties);
     for (int i = 0; i < n_parties; i++)
     {
         set_up_client_socket(sockets[i], host_name.c_str(), port_base + i);
+        cout << "set up for " << i << "-th party succeed" << endl;
     }
     cout << "Finish setup socket connections to SPDZ engines." << endl;
     return sockets;
@@ -109,17 +110,15 @@ void initialise_fields(const string& dir_prefix)
 }
 
 
-// Receive shares of the result and sum together.
-// Also receive authenticating values.
-gfp receive_result(std::vector<int>& sockets, int n_parties)
+std::vector<float> receive_result(std::vector<int>& sockets, int n_parties, int size)
 {
-    std::vector<gfp> output_values(3);
+    std::vector<gfp> output_values(size);
     octetStream os;
     for (int i = 0; i < n_parties; i++)
     {
         os.reset_write_head();
         os.Receive(sockets[i]);
-        for (unsigned int j = 0; j < 3; j++)
+        for (int j = 0; j < size; j++)
         {
             gfp value;
             value.unpack(os);
@@ -127,10 +126,16 @@ gfp receive_result(std::vector<int>& sockets, int n_parties)
         }
     }
 
-    if (output_values[0] * output_values[1] != output_values[2])
-    {
-        cerr << "Unable to authenticate output value as correct, aborting." << endl;
-        exit(1);
+    std::vector<float> res_shares(size);
+
+    for (int i = 0; i < size; i++) {
+        gfp val = output_values[i];
+        bigint aa;
+        to_signed_bigint(aa, val);
+        long t = aa.get_si();
+        //cout<< "i = " << i << ", t = " << t <<endl;
+        res_shares[i] = static_cast<float>(t * pow(2, -SPDZ_FIXED_PRECISION));
     }
-    return output_values[0];
+
+    return res_shares;
 }

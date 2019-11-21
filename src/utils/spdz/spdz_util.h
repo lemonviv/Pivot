@@ -39,7 +39,7 @@ void send_private_batch_shares(std::vector<float> shares, std::vector<int>& sock
  * @param port_base
  * @return
  */
-std::vector<int> setup_sockets(int n_parties, std::string host_name, int port_base);
+std::vector<int> setup_sockets(int n_parties, const std::string host_name, int port_base);
 
 
 /**
@@ -65,8 +65,9 @@ void initialise_fields(const string& dir_prefix);
  *
  * @param sockets the sockets of the spdz parties
  * @param nparties the number of parties
+ * @param size
  */
-gfp receive_result(std::vector<int>& sockets, int n_parties);
+std::vector<float> receive_result(std::vector<int>& sockets, int n_parties, int size);
 
 
 

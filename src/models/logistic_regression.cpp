@@ -19,13 +19,13 @@
 #include <sys/types.h>
 #include <sys/inotify.h>
 
+#include "../utils/spdz/spdz_util.h"
+
 #define EVENT_SIZE  ( sizeof (struct inotify_event) )
 #define BUF_LEN     ( 1024 * ( EVENT_SIZE + 16 ) )
 
 
 extern djcs_t_auth_server **au;
-
-std::string path = "Programs/batch_sfix/files/";
 
 LogisticRegression::LogisticRegression(){}
 
@@ -116,11 +116,13 @@ void LogisticRegression::train(Client client) {
         }
     }
     std::thread thread_obj;
-    int n_iterations = MAX_ITERATION;
+
     // training
     const clock_t begin_time = clock();
     for (int iter = 0; iter < MAX_ITERATION; iter++) {
+
         logger(stdout, "****** Iteration %d ******\n", iter);
+
         // step 1: random select a batch with batch size and encode the batch samples
         int *batch_ids = new int[batch_size];
         if (client.client_id == 0) {
@@ -164,6 +166,15 @@ void LogisticRegression::train(Client client) {
         //logger(stdout, "step 1 computed succeed\n");
 
         // step 2: every client locally compute partial sum and send to client 0
+
+        /*** send private batch shares ***/
+        // init static gfp
+        string prep_data_prefix = get_prep_dir(NUM_SPDZ_PARTIES, 128, gf2n::default_degree());
+        initialise_fields(prep_data_prefix);
+        bigint::init_thread();
+        // setup sockets
+        std::vector<int> sockets = setup_sockets(NUM_SPDZ_PARTIES, "localhost", SPDZ_PORT_BASE);
+
         EncodedNumber *batch_partial_sums = new EncodedNumber[batch_size];
         for (int i = 0; i < batch_size; i++) {
             instance_partial_sum(client.m_pk, client.m_hr, batch_data[i], batch_partial_sums[i]);
@@ -197,8 +208,6 @@ void LogisticRegression::train(Client client) {
 
             // add a random float number and write to the file for mpc computation
             std::vector<float> shares;
-            //std::string file1 = path + "player" + std::to_string(client.client_id) + ".txt";
-            //logger(stdout, "file1 = %s\n", file1.c_str());
 
             for (int i = 0; i < batch_size; i++) {
                 float r = static_cast<float> (rand()) / static_cast<float> (RAND_MAX);
@@ -208,11 +217,13 @@ void LogisticRegression::train(Client client) {
                 djcs_t_aux_encrypt(client.m_pk, client.m_hr, a, a);
                 djcs_t_aux_ee_add(client.m_pk, batch_partial_sums[i], batch_partial_sums[i], a);
             }
-            client.write_random_shares(shares, path);
 
             std::string s;
             serialize_batch_sums(batch_partial_sums, batch_size, s);
             client.send_long_messages(client.channels[0].get(), s);
+
+            // send private values
+            send_private_batch_shares(shares, sockets, NUM_SPDZ_PARTIES);
         }
 
         //logger(stdout, "step 2 computed succeed\n");
@@ -229,18 +240,16 @@ void LogisticRegression::train(Client client) {
             // call share decrypt
             client.share_batch_decrypt(batch_aggregated_sums, decrypted_batch_aggregated_sums, batch_size);
 
-            // write the decrypted share into the file for computing mpc
+            // reconstruct the values to float
             std::vector<float> shares;
-            //std::string file2 = path + "player" + std::to_string(client.client_id) + ".txt";
-            //logger(stdout, "file2 = %s\n", file2.c_str());
             for (int i = 0; i < batch_size; i++) {
                 float x;
                 decrypted_batch_aggregated_sums[i].decode(x);
                 shares.push_back(x);
             }
-            client.write_random_shares(shares, path);
 
-            logger(stdout, "client 0 write finished\n");
+            // send private values
+            send_private_batch_shares(shares, sockets, NUM_SPDZ_PARTIES);
 
         } else {
             std::string s, response_s;
@@ -248,12 +257,10 @@ void LogisticRegression::train(Client client) {
             client.decrypt_batch_piece(s, response_s, 0);
         }
 
-        logger(stdout, "step 3 computed succeed\n");
+        //logger(stdout, "step 3 computed succeed\n");
 
         // step 4: every client read mpc results from the output files, and aggregated together
-        //std::string file = path + "output" + std::to_string(client.client_id) + ".txt";
-        //logger(stdout, "file = %s\n", file.c_str());
-        std::vector<float> mpc_res_shares = client.read_random_shares(batch_size, path);
+        std::vector<float> mpc_res_shares = receive_result(sockets, NUM_SPDZ_PARTIES, BATCH_SIZE);
         EncodedNumber *encrypted_mpc_shares = new EncodedNumber[batch_size];
         for (int i = 0; i < batch_size; i++) {
             encrypted_mpc_shares[i].set_float(n, mpc_res_shares[i], FLOAT_PRECISION);
@@ -390,7 +397,6 @@ void LogisticRegression::train(Client client) {
     mpz_clear(negative_threshold);
 
 
-
     logger(stdout, "****** Training end ******\n");
 }
 
@@ -445,7 +451,6 @@ void LogisticRegression::init_datasets(Client client, float split) {
     logger(stdout, "End initing datasets\n");
 }
 
-
 void LogisticRegression::init_datasets_with_indexes(Client client, int *new_indexes, float split) {
 
     logger(stdout, "Begin initing datasets with indexes\n");
@@ -472,8 +477,6 @@ void LogisticRegression::init_datasets_with_indexes(Client client, int *new_inde
 
     logger(stdout, "End initing datasets with indexes\n");
 }
-
-
 
 void LogisticRegression::test(Client client, int type, float & accuracy) {
 
@@ -549,7 +552,6 @@ void LogisticRegression::test(Client client, int type, float & accuracy) {
         client.send_long_messages(client.channels[0].get(), s);
     }
 
-
     logger(stdout, "step 2 succeed\n");
 
     // step 3: super client aggregate the partial sums and call the share decrypt (now without mpc)
@@ -610,7 +612,6 @@ void LogisticRegression::test(Client client, int type, float & accuracy) {
     logger(stdout, "****** End test process ******\n");
 }
 
-
 void LogisticRegression::init_encrypted_local_weights(djcs_t_public_key *pk, hcs_random* hr, int precision)
 {
     srand(static_cast<unsigned> (time(0)));
@@ -643,8 +644,7 @@ void LogisticRegression::partial_predict(
         djcs_t_public_key *pk,
         hcs_random *hr,
         EncodedNumber instance[],
-        EncodedNumber & res)
-{
+        EncodedNumber & res){
     instance_partial_sum(pk, hr, instance, res);
 }
 
@@ -653,8 +653,7 @@ void LogisticRegression::instance_partial_sum(
         djcs_t_public_key* pk,
         hcs_random* hr,
         EncodedNumber instance[],
-        EncodedNumber & res)
-{
+        EncodedNumber & res){
     // homomorphic dot product computation
     djcs_t_aux_inner_product(pk, hr, res, local_weights, instance, feature_num);
 }
@@ -665,8 +664,7 @@ void LogisticRegression::compute_batch_loss(
         hcs_random* hr,
         EncodedNumber aggregated_res[],
         EncodedNumber labels[],
-        EncodedNumber *& losses)
-{
+        EncodedNumber *& losses){
     // homomorphic addition
     for (int i = 0; i < batch_size; ++i) {
         // TODO: assume labels are already negative

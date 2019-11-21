@@ -12,10 +12,12 @@
 #include "../utils/encoder.h"
 
 #define MAX_FEATURE_NUM 100
-#define BATCH_SIZE 20
+#define BATCH_SIZE 50
 #define MAX_ITERATION 3
 #define CONVERGENCE_THRESHOLD 1e-6
 #define ALPHA 0.2
+#define NUM_SPDZ_PARTIES 3
+#define SPDZ_PORT_BASE 14000
 
 class LogisticRegression {
 public:
