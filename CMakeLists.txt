@@ -34,9 +34,9 @@ include(FindProtobuf)
 find_package(Protobuf REQUIRED)
 
 include_directories($ENV{HOME}/libscapi/include $ENV{HOME}/Documents/projects/boost_1_64_0/stage/lib
-        ${PROTOBUF_INCLUDE_DIR} ${SPDZ_HOME})
+        ${PROTOBUF_INCLUDE_DIR} ${SPDZ_HOME} ${SPDZ_HOME}/local/include)
 
-link_directories(/usr/ssl/lib $ENV{HOME}/libscapi/install/lib)
+link_directories(/usr/ssl/lib $ENV{HOME}/libscapi/install/lib ${SPDZ_HOME}/local/lib)
 
 add_executable(CollaborativeML ${SOURCE_FILES})
 target_link_libraries(CollaborativeML
