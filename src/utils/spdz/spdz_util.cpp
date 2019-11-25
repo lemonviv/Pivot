@@ -104,7 +104,7 @@ void initialise_fields(const string& dir_prefix)
     int lg2;
     bigint p;
 
-    string filename = "/home/wuyuncheng/Documents/projects/MP-SPDZ/Player-Data/3-128-128/Params-Data";
+    string filename = "/home/wuyuncheng/Documents/projects/VFL-SPDZ/Player-Data/3-128-128/Params-Data";
 
     //string filename = dir_prefix + "Params-Data";
     cout << "loading params from: " << filename << endl;

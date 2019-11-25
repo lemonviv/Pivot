@@ -1,5 +1,6 @@
 ### Guidelines
 To communicate with MP-SPDZ programs, the following steps should be done.
+0. Go to MP-SPDZ directory, make sure that "MY_CFLAGS = -DINSECURE" is in the CONFIG.mine file;
 1. Go to MP-SPDZ directory, bash fast-make.sh to generate pre-requisite programs and parameters;
 2. Go to MP-SPDZ directory, make mpir to generate required mpir lib for using together with CollaborativeML;
 3. Go to MP-SPDZ directory, ./compile.py Programs/Source/vfl_logistic_func.mpc, to compile the mpc program;

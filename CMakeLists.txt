@@ -28,7 +28,7 @@ set(SOURCE_FILES main.cpp
         src/include/protobuf/keys.pb.h src/include/protobuf/keys.pb.cc
         src/utils/spdz/spdz_util.h src/utils/spdz/spdz_util.cpp)
 
-set(SPDZ_HOME "/home/wuyuncheng/Documents/projects/MP-SPDZ/")
+set(SPDZ_HOME "/home/wuyuncheng/Documents/projects/VFL-SPDZ/")
 
 include(FindProtobuf)
 find_package(Protobuf REQUIRED)
