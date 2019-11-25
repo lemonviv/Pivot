@@ -113,6 +113,13 @@ void LogisticRegression::train(Client client) {
         }
     }
 
+    /*** send private batch shares ***/
+    // init static gfp
+    string prep_data_prefix = get_prep_dir(NUM_SPDZ_PARTIES, 128, gf2n::default_degree());
+    logger(stdout, "prep_data_prefix = %s \n", prep_data_prefix.c_str());
+    initialise_fields(prep_data_prefix);
+    bigint::init_thread();
+
     // training
     const clock_t begin_time = clock();
     for (int iter = 0; iter < MAX_ITERATION; iter++) {
@@ -162,16 +169,8 @@ void LogisticRegression::train(Client client) {
         //logger(stdout, "step 1 computed succeed\n");
 
         // step 2: every client locally compute partial sum and send to client 0
-
-        /*** send private batch shares ***/
-        // init static gfp
-        string prep_data_prefix = get_prep_dir(NUM_SPDZ_PARTIES, 128, gf2n::default_degree());
-        logger(stdout, "prep_data_prefix = %s \n", prep_data_prefix.c_str());
-        initialise_fields(prep_data_prefix);
-        bigint::init_thread();
         // setup sockets
-        std::vector<int> sockets = setup_sockets(NUM_SPDZ_PARTIES, "localhost", SPDZ_PORT_BASE);
-
+        std::vector<int> sockets = setup_sockets(NUM_SPDZ_PARTIES, client.client_id, "localhost", SPDZ_PORT_BASE);
         for (int i = 0; i < NUM_SPDZ_PARTIES; i++) {
             logger(stdout, "socket %d = %d\n", i, sockets[i]);
         }
@@ -354,7 +353,9 @@ void LogisticRegression::train(Client client) {
 //        }
 
         for (unsigned int i = 0; i < sockets.size(); i++)
+        {
             close_client_socket(sockets[i]);
+        }
 
         // free temporary memories
         //delete [] sockets;
@@ -372,6 +373,7 @@ void LogisticRegression::train(Client client) {
         delete [] batch_data;
         delete [] batch_partial_sums_array;
     }
+
     const clock_t end_time = clock();
     std::cout << "time difference = " << float( end_time - begin_time ) /  CLOCKS_PER_SEC << std::endl;
 

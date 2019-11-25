@@ -35,11 +35,12 @@ void send_private_batch_shares(std::vector<float> shares, std::vector<int>& sock
  * setup sockets to communicate with spdz parties
  *
  * @param n_parties
+ * @param my_client_id
  * @param host_name
  * @param port_base
  * @return
  */
-std::vector<int> setup_sockets(int n_parties, const std::string host_name, int port_base);
+std::vector<int> setup_sockets(int n_parties, int my_client_id, const std::string host_name, int port_base);
 
 
 /**
@@ -51,7 +52,7 @@ std::vector<int> setup_sockets(int n_parties, const std::string host_name, int p
  * @param sockets
  * @param n_parties
  */
-void send_private_inputs(std::vector<gfp>& values, std::vector<int>& sockets, int n_parties);
+void send_private_inputs(const std::vector<gfp>& values, std::vector<int>& sockets, int n_parties);
 
 /**
  * Assumes that Scripts/setup-online.sh has been run to compute prime
