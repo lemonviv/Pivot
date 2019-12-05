@@ -76,9 +76,9 @@ void djcs_t_aux_ep_mul(djcs_t_public_key* pk, EncodedNumber & res, EncodedNumber
  * @param res
  * @param ciphers
  * @param plains
- * @param feature_num
+ * @param size
  */
 void djcs_t_aux_inner_product(djcs_t_public_key* pk, hcs_random* hr, EncodedNumber & res,
-        EncodedNumber ciphers[], EncodedNumber plains[], int feature_num);
+        EncodedNumber ciphers[], EncodedNumber plains[], int size);
 
 #endif //COLLABORATIVEML_DJCS_T_AUX_H

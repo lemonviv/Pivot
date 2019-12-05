@@ -20,7 +20,7 @@ Client::Client() {}
 
 
 Client::Client(int param_client_id, int param_client_num, int param_has_label,
-                std::string param_network_config_file,std::string param_local_data_file)
+                std::string param_network_config_file, std::string param_local_data_file)
 {
     // copy params
     client_id = param_client_id;
@@ -130,6 +130,7 @@ Client::Client(const Client &client) {
     has_label = client.has_label;
     local_data = client.local_data;
     labels = client.labels;
+    feature_types = client.feature_types;
     channels = client.channels;
 
     m_pk = djcs_t_init_public_key();
@@ -490,6 +491,7 @@ Client::~Client() {
 
     // free local data
     std::vector< std::vector<float> >().swap(local_data);
+    std::vector<int>().swap(feature_types);
 
     // free labels if has_label == true
     if (has_label) {

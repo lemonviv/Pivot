@@ -262,7 +262,7 @@ void LogisticRegression::train(Client client) {
 
         std::vector<float> mpc_res_shares = receive_result(sockets, NUM_SPDZ_PARTIES, BATCH_SIZE);
 
-        // step 4: every client read mpc results from the output files, and aggregated together
+        // step 4: every client read mpc results and aggregated together
         EncodedNumber *encrypted_mpc_shares = new EncodedNumber[batch_size];
         for (int i = 0; i < batch_size; i++) {
             encrypted_mpc_shares[i].set_float(n, mpc_res_shares[i], FLOAT_PRECISION);
@@ -407,9 +407,9 @@ void LogisticRegression::train(Client client) {
 
 void LogisticRegression::init_datasets(Client client, float split) {
 
-    logger(stdout, "Begin initing datasets\n");
+    logger(stdout, "Begin init dataset\n");
 
-    int training_data_size = client.sample_num * 0.8;
+    int training_data_size = client.sample_num * split;
     int testing_data_size = client.sample_num - training_data_size;
 
     // store the indexes of the training dataset for random batch selection
@@ -452,12 +452,12 @@ void LogisticRegression::init_datasets(Client client, float split) {
         }
     }
 
-    logger(stdout, "End initing datasets\n");
+    logger(stdout, "End init dataset\n");
 }
 
 void LogisticRegression::init_datasets_with_indexes(Client client, int *new_indexes, float split) {
 
-    logger(stdout, "Begin initing datasets with indexes\n");
+    logger(stdout, "Begin init dataset with indexes\n");
 
     int training_data_size = client.sample_num * 0.8;
     int testing_data_size = client.sample_num - training_data_size;
@@ -479,7 +479,7 @@ void LogisticRegression::init_datasets_with_indexes(Client client, int *new_inde
         }
     }
 
-    logger(stdout, "End initing datasets with indexes\n");
+    logger(stdout, "End init dataset with indexes\n");
 }
 
 void LogisticRegression::test(Client client, int type, float & accuracy) {

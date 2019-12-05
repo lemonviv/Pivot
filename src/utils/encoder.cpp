@@ -172,30 +172,30 @@ void EncodedNumber::increase_exponent(int new_exponent)
 //}
 
 
-//void EncodedNumber::decode(long &v)
-//{
-//    if (exponent != 0) {
-//        // not integer, should not call this decode function
-//        logger(stdout, "exponent is not zero, failed, should call decode with float\n");
-//        return;
-//    }
-//
-//    switch (check_encoded_number()) {
-//        case Positive:
-//            fixed_pointed_decode(v, value);
-//            break;
-//        case Negative:
-//            mpz_sub(value, value, n);
-//            fixed_pointed_decode(v, value);
-//            break;
-//        case Overflow:
-//            logger(stdout, "encoded number %Zd is overflow\n", value);
-//            return;
-//        default:
-//            logger(stdout, "encoded number %Zd is corrupted\n", value);
-//            return;
-//    }
-//}
+void EncodedNumber::decode(long &v)
+{
+    if (exponent != 0) {
+        // not integer, should not call this decode function
+        logger(stdout, "exponent is not zero, failed, should call decode with float\n");
+        return;
+    }
+
+    switch (check_encoded_number()) {
+        case Positive:
+            fixed_pointed_decode(v, value);
+            break;
+        case Negative:
+            mpz_sub(value, value, n);
+            fixed_pointed_decode(v, value);
+            break;
+        case Overflow:
+            logger(stdout, "encoded number %Zd is overflow\n", value);
+            return;
+        default:
+            logger(stdout, "encoded number %Zd is corrupted\n", value);
+            return;
+    }
+}
 
 
 void EncodedNumber::decode(float &v)

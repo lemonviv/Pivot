@@ -23,10 +23,13 @@ set(SOURCE_FILES main.cpp
         src/utils/pb_converter.cpp
         src/include/protobuf/common.pb.h
         src/include/protobuf/common.pb.cc
-        src/include/protobuf/logistic.pb.h
-        src/include/protobuf/logistic.pb.cc tests/test_pb_converter.h tests/test_pb_converter.cpp
+        src/include/protobuf/logistic.pb.h src/include/protobuf/logistic.pb.cc tests/test_pb_converter.h tests/test_pb_converter.cpp
         src/include/protobuf/keys.pb.h src/include/protobuf/keys.pb.cc
-        src/utils/spdz/spdz_util.h src/utils/spdz/spdz_util.cpp)
+        src/include/protobuf/cart.pb.h src/include/protobuf/cart.pb.cc
+        src/utils/spdz/spdz_util.h src/utils/spdz/spdz_util.cpp
+        src/models/feature_splits.h src/models/feature_splits.cpp
+        src/models/tree_node.h src/models/tree_node.cpp
+        src/models/cart_tree.h src/models/cart_tree.cpp)
 
 set(SPDZ_HOME "/home/wuyuncheng/Documents/projects/VFL-SPDZ/")
 

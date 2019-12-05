@@ -99,7 +99,7 @@ void djcs_t_aux_ep_mul(djcs_t_public_key* pk, EncodedNumber & res, EncodedNumber
 
 
 void djcs_t_aux_inner_product(djcs_t_public_key* pk, hcs_random* hr, EncodedNumber & res,
-        EncodedNumber ciphers[], EncodedNumber plains[], int feature_num) {
+        EncodedNumber ciphers[], EncodedNumber plains[], int size) {
 
 //    if (ciphers.size() != plains.size()) {
 //        logger(stdout, "two vectors do not have the same size\n");
@@ -149,10 +149,10 @@ void djcs_t_aux_inner_product(djcs_t_public_key* pk, hcs_random* hr, EncodedNumb
 
     // assume the elements in the plains have the same exponent, so does ciphers
 
-    mpz_t *mpz_ciphers = (mpz_t *) malloc (feature_num * sizeof(mpz_t));
-    mpz_t *mpz_plains = (mpz_t *) malloc (feature_num * sizeof(mpz_t));
+    mpz_t *mpz_ciphers = (mpz_t *) malloc (size * sizeof(mpz_t));
+    mpz_t *mpz_plains = (mpz_t *) malloc (size * sizeof(mpz_t));
 
-    for (int i = 0; i < feature_num; i++) {
+    for (int i = 0; i < size; i++) {
         mpz_init(mpz_ciphers[i]);
         mpz_init(mpz_plains[i]);
         mpz_set(mpz_ciphers[i], ciphers[i].value);
@@ -166,7 +166,7 @@ void djcs_t_aux_inner_product(djcs_t_public_key* pk, hcs_random* hr, EncodedNumb
     mpz_set_si(sum1, 0);
     djcs_t_encrypt(pk, hr, sum, sum1);
 
-    for (int j = 0; j < feature_num; j++) {
+    for (int j = 0; j < size; j++) {
         // store the encrypted_exact_answer
         mpz_t tmp;
         mpz_init(tmp);

@@ -143,6 +143,303 @@ void test_pb_batch_losses() {
 }
 
 
+void test_pb_pruning_condition_result() {
+
+    // test is_satisfied false
+    int node_index = 0;
+    int is_satisfied = 0;
+    int classes_num = 2;
+    int sample_num = 2;
+    EncodedNumber **encrypted_label_vecs = new EncodedNumber*[classes_num];
+    for (int i = 0; i < classes_num; i++) {
+        encrypted_label_vecs[i] = new EncodedNumber[sample_num];
+    }
+    encrypted_label_vecs[0][0].set_float(n, 0.123456);
+    encrypted_label_vecs[0][0].type = Ciphertext;
+    encrypted_label_vecs[0][1].set_float(n, 0.222222);
+    encrypted_label_vecs[0][1].type = Ciphertext;
+    encrypted_label_vecs[1][0].set_float(n, 0.555555);
+    encrypted_label_vecs[1][0].type = Ciphertext;
+    encrypted_label_vecs[1][1].set_float(n, 0.888888);
+    encrypted_label_vecs[1][1].type = Ciphertext;
+
+    EncodedNumber label;
+
+    std::string s;
+    serialize_pruning_condition_result(node_index, is_satisfied, encrypted_label_vecs, classes_num, sample_num, label, s);
+
+    int d_node_index, d_is_satisfied;
+    EncodedNumber **d_encrypted_label_vecs = new EncodedNumber*[classes_num];
+    for (int i = 0; i < classes_num; i++) {
+        d_encrypted_label_vecs[i] = new EncodedNumber[sample_num];
+    }
+    EncodedNumber d_label;
+    deserialize_pruning_condition_result(d_node_index, d_is_satisfied, d_encrypted_label_vecs, d_label, s);
+
+    // test equals
+    bool is_success = true;
+    for (int i = 0; i < classes_num; i++) {
+        for (int j = 0; j < sample_num; j++) {
+            if (d_encrypted_label_vecs[i][j].exponent == encrypted_label_vecs[i][j].exponent
+                && d_encrypted_label_vecs[i][j].type == encrypted_label_vecs[i][j].type
+                && mpz_cmp(d_encrypted_label_vecs[i][j].n, encrypted_label_vecs[i][j].n) == 0
+                && mpz_cmp(d_encrypted_label_vecs[i][j].value, encrypted_label_vecs[i][j].value) == 0) {
+                continue;
+            } else {
+                is_success = false;
+            }
+        }
+    }
+
+    if (is_success && d_node_index == node_index && d_is_satisfied == is_satisfied) {
+        is_success = true;
+    } else {
+        is_success = false;
+    }
+
+    if (is_success) {
+        total_cases_num += 1;
+        passed_cases_num += 1;
+        logger(stdout, "test_pb_pruning_condition_result: succeed\n");
+    } else {
+        total_cases_num += 1;
+        logger(stdout, "test_pb_pruning_condition_result: failed\n");
+    }
+
+    // test is_satisfied true
+    node_index = 1;
+    is_satisfied = 1;
+
+    EncodedNumber label_true;
+
+    label_true.set_float(n, 0.555555);
+    label_true.type = Plaintext;
+
+    std::string ss;
+    serialize_pruning_condition_result(node_index, is_satisfied, encrypted_label_vecs, classes_num, sample_num, label_true, ss);
+    deserialize_pruning_condition_result(d_node_index, d_is_satisfied, d_encrypted_label_vecs, d_label, ss);
+
+    // test equals
+    is_success = true;
+
+    if (d_label.exponent == label_true.exponent
+        && d_label.type == label_true.type
+        && mpz_cmp(d_label.n, label_true.n) == 0
+        && mpz_cmp(d_label.value, label_true.value) == 0) {
+        is_success = is_success;
+    } else {
+        is_success = is_success && false;
+    }
+
+    if (is_success && d_node_index == node_index && d_is_satisfied == is_satisfied) {
+        is_success = true;
+    } else {
+        is_success = false;
+    }
+
+    if (is_success) {
+        total_cases_num += 1;
+        passed_cases_num += 1;
+        logger(stdout, "test_pb_pruning_condition_result: succeed\n");
+    } else {
+        total_cases_num += 1;
+        logger(stdout, "test_pb_pruning_condition_result: failed\n");
+    }
+
+}
+
+void test_pb_encrypted_statistics() {
+
+    // test split_num = 0
+    int client_id = 1;
+    int node_index = 2;
+    int split_num = 0;
+    int classes_num = 0;
+
+    EncodedNumber* left_samples_nums;
+    EncodedNumber* right_sample_nums;
+    EncodedNumber** encrypted_statistics;
+
+    std::string s, ds;
+    serialize_encrypted_statistics(client_id, node_index, split_num, classes_num,
+            left_samples_nums, right_sample_nums, encrypted_statistics, s);
+
+    int recv_client_id;
+    int recv_node_index;
+    int recv_split_num;
+    int recv_classes_num;
+
+    deserialize_encrypted_statistics(recv_client_id, recv_node_index, recv_split_num, recv_classes_num,
+            left_samples_nums, right_sample_nums, encrypted_statistics, s);
+
+    bool is_success = true;
+
+    if (!(recv_client_id == client_id && recv_node_index == node_index
+        && recv_split_num == split_num && recv_classes_num == classes_num)) {
+        is_success = false;
+    }
+
+    if (is_success) {
+        total_cases_num += 1;
+        passed_cases_num += 1;
+        logger(stdout, "test_pb_encrypted_statistics: succeed\n");
+    } else {
+        total_cases_num += 1;
+        logger(stdout, "test_pb_encrypted_statistics: failed\n");
+    }
+
+    // test split_num != 0
+    split_num = 2;
+    classes_num = 1;
+
+    EncodedNumber **encrypted_statistics_x = new EncodedNumber*[split_num];
+    for (int i = 0; i < split_num; i++) {
+        encrypted_statistics_x[i] = new EncodedNumber[2 * classes_num];
+    }
+    encrypted_statistics_x[0][0].set_float(n, 0.123456);
+    encrypted_statistics_x[0][0].type = Ciphertext;
+    encrypted_statistics_x[0][1].set_float(n, 0.222222);
+    encrypted_statistics_x[0][1].type = Ciphertext;
+    encrypted_statistics_x[1][0].set_float(n, 0.555555);
+    encrypted_statistics_x[1][0].type = Ciphertext;
+    encrypted_statistics_x[1][1].set_float(n, 0.888888);
+    encrypted_statistics_x[1][1].type = Ciphertext;
+
+    EncodedNumber* left_samples_nums_x = new EncodedNumber[split_num];
+    EncodedNumber* right_sample_nums_x = new EncodedNumber[split_num];
+
+    left_samples_nums_x[0].set_float(n, 0.123456);
+    left_samples_nums_x[0].type = Ciphertext;
+    left_samples_nums_x[1].set_float(n, 0.222222);
+    left_samples_nums_x[1].type = Ciphertext;
+
+    right_sample_nums_x[0].set_float(n, 0.123456);
+    right_sample_nums_x[0].type = Ciphertext;
+    right_sample_nums_x[1].set_float(n, 0.222222);
+    right_sample_nums_x[1].type = Ciphertext;
+
+    serialize_encrypted_statistics(client_id, node_index, split_num, classes_num,
+            left_samples_nums_x, right_sample_nums_x, encrypted_statistics_x, ds);
+
+    EncodedNumber* recv_left_sample_nums;
+    EncodedNumber* recv_right_sample_nums;
+    EncodedNumber** recv_encrypted_statistics;
+
+    deserialize_encrypted_statistics(client_id, node_index, split_num, classes_num,
+            recv_left_sample_nums, recv_right_sample_nums, recv_encrypted_statistics, ds);
+
+    is_success = true;
+
+    if (recv_encrypted_statistics[0][1].exponent == encrypted_statistics_x[0][1].exponent
+         && recv_encrypted_statistics[0][1].type == encrypted_statistics_x[0][1].type
+         && mpz_cmp(recv_encrypted_statistics[0][1].n, encrypted_statistics_x[0][1].n) == 0
+         && mpz_cmp(recv_encrypted_statistics[0][1].value, encrypted_statistics_x[0][1].value) == 0) {
+        is_success = true;
+    } else {
+        is_success = false;
+    }
+
+    if (is_success) {
+        total_cases_num += 1;
+        passed_cases_num += 1;
+        logger(stdout, "test_pb_encrypted_statistics: succeed\n");
+    } else {
+        total_cases_num += 1;
+        logger(stdout, "test_pb_encrypted_statistics: failed\n");
+    }
+}
+
+void test_pb_updated_info() {
+
+    int source_client_id = 1;
+    int best_client_id = 1;
+    int best_feature_id = 2;
+    int best_split_id = 3;
+
+    int sample_size = 2;
+
+    EncodedNumber left_impurity, right_impurity;
+    left_impurity.set_float(n, 0.1);
+    right_impurity.set_float(n, 0.2);
+
+    EncodedNumber *left_sample_iv = new EncodedNumber[sample_size];
+    EncodedNumber *right_sample_iv = new EncodedNumber[sample_size];
+
+    left_sample_iv[0].set_float(n, 0.123456);
+    left_sample_iv[0].type = Ciphertext;
+    left_sample_iv[1].set_float(n, 0.222222);
+    left_sample_iv[1].type = Ciphertext;
+    right_sample_iv[0].set_float(n, 0.555555);
+    right_sample_iv[0].type = Ciphertext;
+    right_sample_iv[1].set_float(n, 0.888888);
+    right_sample_iv[1].type = Ciphertext;
+
+    std::string send_s;
+    serialize_update_info(source_client_id, best_client_id, best_feature_id, best_split_id,
+            left_impurity, right_impurity, left_sample_iv, right_sample_iv, sample_size, send_s);
+
+    // deserialize
+    int recv_source_client_id, recv_best_client_id, recv_best_feature_id, recv_best_split_id;
+    EncodedNumber recv_left_impurity, recv_right_impurity;
+    EncodedNumber *recv_left_sample_iv, *recv_right_sample_iv;
+
+    deserialize_update_info(recv_source_client_id, recv_best_client_id, recv_best_feature_id, recv_best_split_id,
+            recv_left_impurity, recv_right_impurity, recv_left_sample_iv, recv_right_sample_iv, send_s);
+
+    bool is_success = true;
+
+    is_success = is_success && (recv_left_sample_iv[0].exponent == left_sample_iv[0].exponent);
+    is_success = is_success && (recv_left_sample_iv[0].type == left_sample_iv[0].type);
+    is_success = is_success && (mpz_cmp(recv_left_sample_iv[0].n, left_sample_iv[0].n) == 0);
+    is_success = is_success && (mpz_cmp(recv_left_sample_iv[0].value, left_sample_iv[0].value) == 0);
+    is_success = is_success && ((recv_best_client_id == best_client_id) && (recv_best_feature_id == best_feature_id)
+                    && (recv_best_split_id == best_split_id) && (recv_source_client_id == source_client_id));
+
+    if (is_success) {
+        total_cases_num += 1;
+        passed_cases_num += 1;
+        logger(stdout, "test_pb_updated_info: succeed\n");
+    } else {
+        total_cases_num += 1;
+        logger(stdout, "test_pb_updated_info: failed\n");
+    }
+}
+
+
+void test_pb_split_info() {
+
+    int global_split_num = 5;
+    std::vector<int> split_nums;
+    split_nums.push_back(1);
+    split_nums.push_back(2);
+
+    std::string s;
+    serialize_split_info(global_split_num, split_nums, s);
+
+    // deserialize
+    int recv_global_split_num;
+    std::vector<int> recv_split_nums;
+    deserialize_split_info(recv_global_split_num, recv_split_nums, s);
+
+    bool is_success = true;
+
+    if ((recv_global_split_num == global_split_num) && (recv_split_nums[0] == split_nums[0]) && (recv_split_nums[1] == split_nums[1])) {
+        is_success = true;
+    } else {
+        is_success = false;
+    }
+
+    if (is_success) {
+        total_cases_num += 1;
+        passed_cases_num += 1;
+        logger(stdout, "test_pb_split_info: succeed\n");
+    } else {
+        total_cases_num += 1;
+        logger(stdout, "test_pb_split_info: failed\n");
+    }
+}
+
+
 int test_pb() {
 
     logger(stdout, "****** Test protobuf serialization and deserialization ******\n");
@@ -154,6 +451,9 @@ int test_pb() {
     test_pb_batch_ids();
     test_pb_batch_sums();
     test_pb_batch_losses();
+    test_pb_pruning_condition_result();
+    test_pb_encrypted_statistics();
+    test_pb_updated_info();
 
     logger(stdout, "****** total_cases_num = %d, passed_cases_num = %d ******\n",
            total_cases_num, passed_cases_num);
