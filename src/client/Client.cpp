@@ -130,7 +130,6 @@ Client::Client(const Client &client) {
     has_label = client.has_label;
     local_data = client.local_data;
     labels = client.labels;
-    feature_types = client.feature_types;
     channels = client.channels;
 
     m_pk = djcs_t_init_public_key();
@@ -491,7 +490,6 @@ Client::~Client() {
 
     // free local data
     std::vector< std::vector<float> >().swap(local_data);
-    std::vector<int>().swap(feature_types);
 
     // free labels if has_label == true
     if (has_label) {

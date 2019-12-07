@@ -36,4 +36,5 @@ TreeNode::TreeNode(int m_depth, int m_type, int m_sample_size, EncodedNumber *m_
 TreeNode::~TreeNode() {
     //should free EncodedNumber?
     std::vector<int>().swap(available_feature_ids);
+    delete [] sample_iv;
 }

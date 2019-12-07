@@ -6,7 +6,7 @@
 #define COLLABORATIVEML_CART_TREE_H
 
 #include "tree_node.h"
-#include "feature_splits.h"
+#include "feature.h"
 #include "../client/Client.h"
 #include "libhcs.h"
 #include "gmp.h"
@@ -19,6 +19,10 @@
 #define MAX_IMPURITY 2.0
 #define MAX_VARIANCE 10000.0
 #define MAX_GLOBAL_SPLIT_NUM 1000
+#define MAX_DEPTH 10
+#define MAX_BINS 8
+#define PRUNE_SAMPLE_NUM 5
+#define PRUNE_VARIANCE_THRESHOLD 0.01
 
 class DecisionTree {
 
@@ -87,7 +91,17 @@ public:
      * @param client
      * @param split
      */
-    void init_datasets(Client client, float split);
+    void init_datasets(Client & client, float split);
+
+
+    /**
+     * init training data and test data according to new indexes received
+     *
+     * @param client
+     * @param new_indexes
+     * @param split
+     */
+    void init_datasets_with_indexes(Client & client, int new_indexes[], float split);
 
 
     /**
@@ -101,7 +115,7 @@ public:
      *
      * @param client
      */
-    void init_root_node(Client client);
+    void init_root_node(Client & client);
 
 
     /**
@@ -112,7 +126,7 @@ public:
      * @param encrypted_label_vecs
      * @param label
      */
-    bool check_pruning_conditions(Client client, int node_index, EncodedNumber ** & encrypted_label_vecs, EncodedNumber & label);
+    bool check_pruning_conditions(Client & client, int node_index, EncodedNumber ** & encrypted_label_vecs, EncodedNumber & label);
 
 
     /**
@@ -125,7 +139,7 @@ public:
      * @param encrypted_left_sample_nums
      * @param encrypted_right_sample_nums
      */
-    void compute_encrypted_statistics(Client client, int node_index,
+    void compute_encrypted_statistics(Client & client, int node_index,
             EncodedNumber ** & encrypted_statistics, EncodedNumber ** encrypted_label_vecs,
             EncodedNumber * & encrypted_left_sample_nums, EncodedNumber * & encrypted_right_sample_nums);
 
@@ -136,7 +150,7 @@ public:
      * @param client
      * @param node_index
      */
-    void build_tree_node(Client client, int node_index);
+    void build_tree_node(Client & client, int node_index);
 
 
     /**
@@ -145,7 +159,7 @@ public:
      * @param client
      * @param sample_id
      */
-    void predict(Client client, int sample_id);
+    void predict(Client & client, int sample_id);
 };
 
 #endif //COLLABORATIVEML_CART_TREE_H

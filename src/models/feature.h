@@ -2,8 +2,8 @@
 // Created by wuyuncheng on 26/11/19.
 //
 
-#ifndef COLLABORATIVEML_FEATURE_SPLITS_H
-#define COLLABORATIVEML_FEATURE_SPLITS_H
+#ifndef COLLABORATIVEML_FEATURE_H
+#define COLLABORATIVEML_FEATURE_H
 
 #include "../utils/util.h"
 #include <iostream>
@@ -91,4 +91,4 @@ public:
 };
 
 
-#endif //COLLABORATIVEML_FEATURE_SPLITS_H
+#endif //COLLABORATIVEML_FEATURE_H

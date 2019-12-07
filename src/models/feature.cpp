@@ -2,7 +2,7 @@
 // Created by wuyuncheng on 26/11/19.
 //
 
-#include "feature_splits.h"
+#include "feature.h"
 #include <numeric>      // std::iota
 #include <algorithm>    // std::sort
 
@@ -135,7 +135,7 @@ void Feature::find_splits() {
     int n_samples = original_feature_values.size();
     if (!is_categorical) {
         // find splits using quantile method
-        int n_sample_per_bin = n_samples / num_splits;
+        int n_sample_per_bin = n_samples / (num_splits + 1);
         for (int i = 0; i < num_splits; i++) {
             float split_value_i = (original_feature_values[sorted_indexes[(i + 1) * n_sample_per_bin]]
                                + original_feature_values[sorted_indexes[(i + 1) * n_sample_per_bin + 1]])/2;
@@ -144,7 +144,7 @@ void Feature::find_splits() {
     } else {
         // compute distinct values
         std::vector<float> distinct_values = compute_distinct_values();
-        if (distinct_values.size() < max_bins) {
+        if (distinct_values.size() <= max_bins) {
             // the split values are same as the distinct values
             num_splits = distinct_values.size() - 1;
             for (int i = 0; i < num_splits; i++) {
@@ -158,6 +158,8 @@ void Feature::find_splits() {
                 split_values.push_back(distinct_values[i]);
             }
         }
+
+        std::vector<float>().swap(distinct_values);
     }
 }
 

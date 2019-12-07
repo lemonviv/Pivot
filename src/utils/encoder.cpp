@@ -39,9 +39,9 @@ EncodedNumber& EncodedNumber::operator=(const EncodedNumber &number) {
 
 void EncodedNumber::set_integer(mpz_t pn, int v)
 {
-    //mpz_set(n, pn);
-    //fixed_pointed_encode(v, value, exponent);
-    set_float(pn, (float) v);
+    mpz_set(n, pn);
+    fixed_pointed_encode(v, value, exponent);
+    //set_float(pn, (float) v);
 }
 
 
@@ -307,7 +307,12 @@ void fixed_pointed_decode(float & value, mpz_t res, int exponent) {
     } else {
         char *t = mpz_get_str(NULL, 10, res);
         long v = ::atol(t);
-        value = (float) (v * pow(10, exponent));
+
+        if (v == 0) {
+            value = 0;
+        } else {
+            value = (float) (v * pow(10, exponent));
+        }
     }
 }
 
@@ -324,6 +329,12 @@ void fixed_pointed_decode_truncated(float & value, mpz_t res, int exponent, int 
     // convert to string and truncate string before assign to long
     char *t = mpz_get_str(NULL, 10, res);
     std::string s = t;
+
+    // handle the case that the result value is 0
+    if (::atol(t) == 0) {
+        value = 0;
+        return;
+    }
 
     // should preserve the former (s_size - exponent + real_exponent) elements
     int v_size = s.size() + exponent - real_exponent;

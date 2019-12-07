@@ -7,6 +7,9 @@
 #include "src/utils/pb_converter.h"
 #include "src/models/logistic_regression.h"
 #include "src/client/Client.h"
+#include "src/models/cart_tree.h"
+#include "src/models/feature.h"
+#include "src/models/tree_node.h"
 
 #include "tests/test_encoder.h"
 #include "tests/test_djcs_t_aux.h"
@@ -152,6 +155,74 @@ void test_share_decrypt(Client client) {
     }
 }
 
+void logistic_regression(Client client) {
+
+    LogisticRegression model(BATCH_SIZE, MAX_ITERATION, CONVERGENCE_THRESHOLD, ALPHA, client.feature_num);
+
+    logger(stdout, "init finished\n");
+
+    float split = 0.8;
+    if (client.client_id == 0) {
+        model.init_datasets(client, split);
+    } else {
+        int *new_indexes = new int[client.sample_num];
+        std::string recv_s;
+        client.recv_long_messages(client.channels[0].get(), recv_s);
+        deserialize_ids_from_string(new_indexes, recv_s);
+        model.init_datasets_with_indexes(client, new_indexes, split);
+    }
+
+    model.train(client);
+
+    int test_size = client.sample_num * 0.2;
+    int *sample_ids = new int[test_size];
+    for (int i = 0; i < test_size; i++) {
+        sample_ids[i] = client.sample_num - test_size + i;
+    }
+
+    float accuracy = 0.0;
+    model.test(client, 1, accuracy);
+    logger(stdout, "Testing accuracy = %f \n", accuracy);
+}
+
+void decision_tree(Client & client) {
+
+    logger(stdout, "Begin decision tree training\n");
+
+    int m_global_feature_num = 35;
+    int m_local_feature_num = client.local_data[0].size();
+    int m_internal_node_num = 0;
+    int m_type = 0;
+    int m_classes_num = 2;
+    int m_max_depth = MAX_DEPTH;
+    int m_max_bins = MAX_BINS;
+    int m_prune_sample_num = PRUNE_SAMPLE_NUM;
+    float m_prune_threshold = PRUNE_VARIANCE_THRESHOLD;
+
+    DecisionTree model(m_global_feature_num, m_local_feature_num, m_internal_node_num, m_type, m_classes_num,
+            m_max_depth, m_max_bins, m_prune_sample_num, m_prune_threshold);
+
+    logger(stdout, "Init decision tree model succeed\n");
+
+    float split = 0.8;
+    if (client.client_id == 0) {
+        model.init_datasets(client, split);
+    } else {
+        int *new_indexes = new int[client.sample_num];
+        std::string recv_s;
+        client.recv_long_messages(client.channels[0].get(), recv_s);
+        deserialize_ids_from_string(new_indexes, recv_s);
+        model.init_datasets_with_indexes(client, new_indexes, split);
+    }
+
+    model.init_features();
+    model.init_root_node(client);
+    model.build_tree_node(client, 0);
+
+    logger(stdout, "End decision tree training\n");
+
+}
+
 
 int main(int argc, char *argv[]) {
 
@@ -163,9 +234,6 @@ int main(int argc, char *argv[]) {
     std::string s2 = std::to_string(client_id);
     std::string data_file = s1 + "client_" + s2 + ".txt";
 
-    //const char *args[3] = {"dummy", argv[1], argv[2]};
-    //run_player(3, args);
-
     if (client_id == 0) {
         system_setup();
     }
@@ -173,9 +241,6 @@ int main(int argc, char *argv[]) {
     test_pb();
 
     Client client(client_id, client_num, has_label, network_file, data_file);
-    LogisticRegression model(BATCH_SIZE, MAX_ITERATION, CONVERGENCE_THRESHOLD, ALPHA, client.feature_num);
-
-    logger(stdout, "init finished\n");
 
     // set up keys
     if (client.client_id == 0) {
@@ -200,28 +265,8 @@ int main(int argc, char *argv[]) {
         compute_thresholds(client.m_pk, n, positive_threshold, negative_threshold);
     }
 
-    float split = 0.8;
-    if (client.client_id == 0) {
-        model.init_datasets(client, split);
-    } else {
-        int *new_indexes = new int[client.sample_num];
-        std::string recv_s;
-        client.recv_long_messages(client.channels[0].get(), recv_s);
-        deserialize_ids_from_string(new_indexes, recv_s);
-        model.init_datasets_with_indexes(client, new_indexes, split);
-    }
-
-    model.train(client);
-
-    int test_size = client.sample_num * 0.2;
-    int *sample_ids = new int[test_size];
-    for (int i = 0; i < test_size; i++) {
-        sample_ids[i] = client.sample_num - test_size + i;
-    }
-
-    float accuracy = 0.0;
-    model.test(client, 1, accuracy);
-    logger(stdout, "Testing accuracy = %f \n", accuracy);
+    //logistic_regression(client);
+    decision_tree(client);
 
 //    test_share_decrypt(client);
 
@@ -240,6 +285,8 @@ int main(int argc, char *argv[]) {
         mpz_clear(positive_threshold);
         mpz_clear(negative_threshold);
     }
+
+    logger(stdout, "The End\n");
 
     return 0;
 }

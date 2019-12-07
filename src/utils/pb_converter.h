@@ -100,7 +100,7 @@ void serialize_pruning_condition_result(int node_index, int is_satisfied, Encode
  * @param input_str
  */
 void deserialize_pruning_condition_result(int & node_index, int & is_satisfied,
-        EncodedNumber ** & encrypted_label_vecs, EncodedNumber & label, std::string input_str);
+        EncodedNumber **& encrypted_label_vecs, EncodedNumber & label, std::string input_str);
 
 
 /**

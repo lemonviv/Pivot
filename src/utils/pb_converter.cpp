@@ -200,7 +200,7 @@ void serialize_pruning_condition_result(int node_index, int is_satisfied, Encode
 }
 
 
-void deserialize_pruning_condition_result(int & node_index, int & is_satisfied, EncodedNumber ** & encrypted_label_vecs,
+void deserialize_pruning_condition_result(int & node_index, int & is_satisfied, EncodedNumber **& encrypted_label_vecs,
                                           EncodedNumber & label, std::string input_str) {
 
     com::collaborative::ml::PB_PruneConditionResult deserialized_pruning_condition_result;
@@ -213,6 +213,15 @@ void deserialize_pruning_condition_result(int & node_index, int & is_satisfied, 
     is_satisfied = deserialized_pruning_condition_result.pruning_satisfied();
 
     if (is_satisfied == 0) {
+
+//        int num1 = deserialized_pruning_condition_result.encrypted_label_vec_size();
+//        int num2 = deserialized_pruning_condition_result.encrypted_label_vec(0).encrypted_label_size();
+//
+//        EncodedNumber ** test_vecs = new EncodedNumber*[num1];
+//        for (int i = 0; i < num1; i++) {
+//            test_vecs[i] = new EncodedNumber[num2];
+//        }
+
         // not satisfied, read encrypted labels
         for (int i = 0; i < deserialized_pruning_condition_result.encrypted_label_vec_size(); i++) {
 
@@ -221,6 +230,14 @@ void deserialize_pruning_condition_result(int & node_index, int & is_satisfied, 
             for (int j = 0; j < pb_label_vec.encrypted_label_size(); j++) {
 
                 com::collaborative::ml::PB_EncodedNumber pb_number = pb_label_vec.encrypted_label(j);
+
+                // TODO: WHY NEED INIT HERE, NOT REFERENCE PARAMETER?
+
+//                mpz_init(encrypted_label_vecs[i][j].n);
+//                mpz_init(encrypted_label_vecs[i][j].value);
+
+//                gmp_printf("n = %Zd\n", encrypted_label_vecs[i][j].n);
+//                gmp_printf("value = %Zd\n", encrypted_label_vecs[i][j].value);
 
                 mpz_set_str(encrypted_label_vecs[i][j].n, pb_number.n().c_str(), 10);
                 mpz_set_str(encrypted_label_vecs[i][j].value, pb_number.value().c_str(), 10);
@@ -238,6 +255,8 @@ void deserialize_pruning_condition_result(int & node_index, int & is_satisfied, 
         label.exponent = pb_number_label.exponent();
         label.type = pb_number_label.type();
     }
+
+    logger(stdout, "Error after return?\n");
 }
 
 

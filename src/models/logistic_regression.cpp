@@ -771,7 +771,7 @@ void LogisticRegression::update_local_weights(
         djcs_t_aux_encrypt(pk, hr, sum, sum);
         for (int i = 0; i < batch_size; i++) {
             EncodedNumber tmp;
-            tmp.set_integer(n, 0);
+            tmp.set_float(n, 0);
             djcs_t_aux_ep_mul(pk, tmp, losses[i], batch_data[i][j]);
             djcs_t_aux_ee_add(pk, sum, sum, tmp);
         }
