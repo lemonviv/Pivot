@@ -461,6 +461,94 @@ void test_pb_split_info() {
 }
 
 
+void test_pb_prune_check_result() {
+
+    int node_index = 1;
+    int is_satisfied = 1;
+    EncodedNumber label;
+    label.set_float(n, 1.0);
+    label.type = Plaintext;
+
+    std::string s;
+    serialize_prune_check_result(node_index, is_satisfied, label, s);
+
+    int recv_node_index, recv_is_satisfied;
+    EncodedNumber recv_label;
+
+    deserialize_prune_check_result(recv_node_index, recv_is_satisfied, recv_label, s);
+
+    // test equals
+    bool is_success = true;
+    if ((recv_node_index == node_index) && (recv_is_satisfied == is_satisfied)
+        && label.exponent == recv_label.exponent
+        && label.type == recv_label.type
+        && mpz_cmp(label.n, recv_label.n) == 0
+        && mpz_cmp(label.value, recv_label.value) == 0) {
+        is_success = true;
+    } else {
+        is_success = false;
+    }
+
+    if (is_success) {
+        total_cases_num += 1;
+        passed_cases_num += 1;
+        logger(stdout, "test_pb_prune_check_result: succeed\n");
+    } else {
+        total_cases_num += 1;
+        logger(stdout, "test_pb_prune_check_result: failed\n");
+    }
+
+}
+
+
+void test_pb_encrypted_label_vector() {
+
+    EncodedNumber *encrypted_label_vector = new EncodedNumber[4];
+    encrypted_label_vector[0].set_float(n, 0.123456);
+    encrypted_label_vector[0].type = Ciphertext;
+    encrypted_label_vector[1].set_float(n, 0.654321);
+    encrypted_label_vector[1].type = Ciphertext;
+
+    encrypted_label_vector[2].set_float(n, 0.123456);
+    encrypted_label_vector[2].type = Ciphertext;
+    encrypted_label_vector[3].set_float(n, 0.654321);
+    encrypted_label_vector[3].type = Ciphertext;
+
+    int node_index = 1;
+
+    std::string s;
+    serialize_encrypted_label_vector(node_index, 2, 2, encrypted_label_vector, s);
+
+    int recv_node_index;
+
+    EncodedNumber *deserialized_label_vector = new EncodedNumber[4];
+    deserialize_encrypted_label_vector(recv_node_index, deserialized_label_vector, s);
+
+    // test equals
+    bool is_success = true;
+    for (int i = 0; i < 4; i++) {
+        if (encrypted_label_vector[i].exponent == deserialized_label_vector[i].exponent
+            && encrypted_label_vector[i].type == deserialized_label_vector[i].type
+            && mpz_cmp(encrypted_label_vector[i].n, deserialized_label_vector[i].n) == 0
+            && mpz_cmp(encrypted_label_vector[i].value, deserialized_label_vector[i].value) == 0) {
+            continue;
+        } else {
+            is_success = false;
+        }
+    }
+
+    if (is_success) {
+        total_cases_num += 1;
+        passed_cases_num += 1;
+        logger(stdout, "test_pb_encrypted_label_vector: succeed\n");
+    } else {
+        total_cases_num += 1;
+        logger(stdout, "test_pb_encrypted_label_vector: failed\n");
+    }
+
+}
+
+
 int test_pb() {
 
     logger(stdout, "****** Test protobuf serialization and deserialization ******\n");
@@ -475,9 +563,13 @@ int test_pb() {
     test_pb_pruning_condition_result();
     test_pb_encrypted_statistics();
     test_pb_updated_info();
+    test_pb_split_info();
+    test_pb_prune_check_result();
+    test_pb_encrypted_label_vector();
 
     logger(stdout, "****** total_cases_num = %d, passed_cases_num = %d ******\n",
            total_cases_num, passed_cases_num);
 
     return 0;
 }
+

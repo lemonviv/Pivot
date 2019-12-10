@@ -516,3 +516,93 @@ void deserialize_split_info(int & global_split_num, std::vector<int> & client_sp
         client_split_nums.push_back(deserialized_split_info.split_num_vec(i));
     }
 }
+
+
+void serialize_prune_check_result(int node_index, int is_satisfied, EncodedNumber label, std::string & output_str) {
+
+    com::collaborative::ml::PB_PruneCheckResult pb_prune_check_result;
+
+    pb_prune_check_result.set_node_index(node_index);
+    pb_prune_check_result.set_is_satisfied(is_satisfied);
+
+    com::collaborative::ml::PB_EncodedNumber *pb_number_label = new com::collaborative::ml::PB_EncodedNumber;
+
+    std::string n_str_label, value_str_label;
+    n_str_label = mpz_get_str(NULL, 10, label.n);
+    value_str_label = mpz_get_str(NULL, 10, label.value);
+
+    pb_number_label->set_n(n_str_label);
+    pb_number_label->set_value(value_str_label);
+    pb_number_label->set_exponent(label.exponent);
+    pb_number_label->set_type(label.type);
+
+    pb_prune_check_result.set_allocated_label(pb_number_label);
+
+    pb_prune_check_result.SerializeToString(&output_str);
+}
+
+void deserialize_prune_check_result(int & node_index, int & is_satisfied, EncodedNumber & label, std::string input_str) {
+
+    com::collaborative::ml::PB_PruneCheckResult deserialize_prune_check_result;
+    if (!deserialize_prune_check_result.ParseFromString(input_str)) {
+        logger(stdout, "Failed to parse PB_PruneCheckResult from string\n");
+        return;
+    }
+
+    node_index = deserialize_prune_check_result.node_index();
+    is_satisfied = deserialize_prune_check_result.is_satisfied();
+
+    com::collaborative::ml::PB_EncodedNumber pb_number_label = deserialize_prune_check_result.label();
+
+    mpz_set_str(label.n, pb_number_label.n().c_str(), 10);
+    mpz_set_str(label.value, pb_number_label.value().c_str(), 10);
+    label.exponent = pb_number_label.exponent();
+    label.type = pb_number_label.type();
+}
+
+
+
+void serialize_encrypted_label_vector(int node_index, int classes_num,
+                                      int sample_num, EncodedNumber * encrypted_label_vector, std::string & output_str) {
+
+    com::collaborative::ml::PB_EncryptedLabelVector pb_encrypted_label_vector;
+
+    for (int i = 0; i < classes_num * sample_num; i++) {
+
+        com::collaborative::ml::PB_EncodedNumber *pb_number = pb_encrypted_label_vector.add_label_indicator();
+
+        std::string n_str, value_str;
+        n_str = mpz_get_str(NULL, 10, encrypted_label_vector[i].n);
+        value_str = mpz_get_str(NULL, 10, encrypted_label_vector[i].value);
+        pb_number->set_n(n_str);
+        pb_number->set_value(value_str);
+        pb_number->set_exponent(encrypted_label_vector[i].exponent);
+        pb_number->set_type(encrypted_label_vector[i].type);
+
+    }
+
+    pb_encrypted_label_vector.SerializeToString(&output_str);
+
+}
+
+
+void deserialize_encrypted_label_vector(int & node_index, EncodedNumber *& encrypted_label_vector, std::string input_str) {
+
+    com::collaborative::ml::PB_EncryptedLabelVector pb_deserialize_encrypted_label_vector;
+    if (!pb_deserialize_encrypted_label_vector.ParseFromString(input_str)) {
+        logger(stdout, "Failed to parse PB_EncryptedLabelVector from string\n");
+        return;
+    }
+
+    encrypted_label_vector = new EncodedNumber[pb_deserialize_encrypted_label_vector.label_indicator_size()];
+
+    for (int i = 0; i < pb_deserialize_encrypted_label_vector.label_indicator_size(); i++) {
+
+        com::collaborative::ml::PB_EncodedNumber pb_number = pb_deserialize_encrypted_label_vector.label_indicator(i);
+
+        mpz_set_str(encrypted_label_vector[i].n, pb_number.n().c_str(), 10);
+        mpz_set_str(encrypted_label_vector[i].value, pb_number.value().c_str(), 10);
+        encrypted_label_vector[i].exponent = pb_number.exponent();
+        encrypted_label_vector[i].type = pb_number.type();
+    }
+}

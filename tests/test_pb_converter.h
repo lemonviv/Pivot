@@ -17,6 +17,9 @@ void test_pb_pruning_condition_result();
 void test_pb_encrypted_statistics();
 void test_pb_updated_info();
 void test_pb_split_info();
+void test_pb_prune_check_result();
+void test_pb_encrypted_label_vector();
+
 int test_pb();
 
 #endif //COLLABORATIVEML_TEST_PB_CONVERTER_H

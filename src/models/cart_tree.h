@@ -19,7 +19,7 @@
 #define MAX_IMPURITY 2.0
 #define MAX_VARIANCE 10000.0
 #define MAX_GLOBAL_SPLIT_NUM 1000
-#define MAX_DEPTH 10
+#define MAX_DEPTH 5
 #define MAX_BINS 8
 #define PRUNE_SAMPLE_NUM 5
 #define PRUNE_VARIANCE_THRESHOLD 0.01
@@ -128,6 +128,8 @@ public:
      */
     bool check_pruning_conditions(Client & client, int node_index, EncodedNumber ** & encrypted_label_vecs, EncodedNumber & label);
 
+
+    bool check_pruning_conditions_revise(Client & client, int node_index);
 
     /**
      * compute encrypted impurity gain for each feature and each split

@@ -40,8 +40,10 @@ void protobuf_AssignDesc_cart_2eproto();
 void protobuf_ShutdownFile_cart_2eproto();
 
 class PB_EncryptedLabelVec;
+class PB_EncryptedLabelVector;
 class PB_EncryptedStatPerSplit;
 class PB_EncryptedStatistics;
+class PB_PruneCheckResult;
 class PB_PruneConditionResult;
 class PB_SplitInfo;
 class PB_UpdateInfo;
@@ -245,6 +247,193 @@ class PB_PruneConditionResult : public ::google::protobuf::Message /* @@protoc_i
 
   void InitAsDefaultInstance();
   static PB_PruneConditionResult* default_instance_;
+};
+// -------------------------------------------------------------------
+
+class PB_PruneCheckResult : public ::google::protobuf::Message /* @@protoc_insertion_point(class_definition:com.collaborative.ml.PB_PruneCheckResult) */ {
+ public:
+  PB_PruneCheckResult();
+  virtual ~PB_PruneCheckResult();
+
+  PB_PruneCheckResult(const PB_PruneCheckResult& from);
+
+  inline PB_PruneCheckResult& operator=(const PB_PruneCheckResult& from) {
+    CopyFrom(from);
+    return *this;
+  }
+
+  static const ::google::protobuf::Descriptor* descriptor();
+  static const PB_PruneCheckResult& default_instance();
+
+  void Swap(PB_PruneCheckResult* other);
+
+  // implements Message ----------------------------------------------
+
+  inline PB_PruneCheckResult* New() const { return New(NULL); }
+
+  PB_PruneCheckResult* New(::google::protobuf::Arena* arena) const;
+  void CopyFrom(const ::google::protobuf::Message& from);
+  void MergeFrom(const ::google::protobuf::Message& from);
+  void CopyFrom(const PB_PruneCheckResult& from);
+  void MergeFrom(const PB_PruneCheckResult& from);
+  void Clear();
+  bool IsInitialized() const;
+
+  int ByteSize() const;
+  bool MergePartialFromCodedStream(
+      ::google::protobuf::io::CodedInputStream* input);
+  void SerializeWithCachedSizes(
+      ::google::protobuf::io::CodedOutputStream* output) const;
+  ::google::protobuf::uint8* InternalSerializeWithCachedSizesToArray(
+      bool deterministic, ::google::protobuf::uint8* output) const;
+  ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8* output) const {
+    return InternalSerializeWithCachedSizesToArray(false, output);
+  }
+  int GetCachedSize() const { return _cached_size_; }
+  private:
+  void SharedCtor();
+  void SharedDtor();
+  void SetCachedSize(int size) const;
+  void InternalSwap(PB_PruneCheckResult* other);
+  private:
+  inline ::google::protobuf::Arena* GetArenaNoVirtual() const {
+    return _internal_metadata_.arena();
+  }
+  inline void* MaybeArenaPtr() const {
+    return _internal_metadata_.raw_arena_ptr();
+  }
+  public:
+
+  ::google::protobuf::Metadata GetMetadata() const;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  // optional int32 node_index = 1;
+  void clear_node_index();
+  static const int kNodeIndexFieldNumber = 1;
+  ::google::protobuf::int32 node_index() const;
+  void set_node_index(::google::protobuf::int32 value);
+
+  // optional int32 is_satisfied = 2;
+  void clear_is_satisfied();
+  static const int kIsSatisfiedFieldNumber = 2;
+  ::google::protobuf::int32 is_satisfied() const;
+  void set_is_satisfied(::google::protobuf::int32 value);
+
+  // optional .com.collaborative.ml.PB_EncodedNumber label = 3;
+  bool has_label() const;
+  void clear_label();
+  static const int kLabelFieldNumber = 3;
+  const ::com::collaborative::ml::PB_EncodedNumber& label() const;
+  ::com::collaborative::ml::PB_EncodedNumber* mutable_label();
+  ::com::collaborative::ml::PB_EncodedNumber* release_label();
+  void set_allocated_label(::com::collaborative::ml::PB_EncodedNumber* label);
+
+  // @@protoc_insertion_point(class_scope:com.collaborative.ml.PB_PruneCheckResult)
+ private:
+
+  ::google::protobuf::internal::InternalMetadataWithArena _internal_metadata_;
+  bool _is_default_instance_;
+  ::google::protobuf::int32 node_index_;
+  ::google::protobuf::int32 is_satisfied_;
+  ::com::collaborative::ml::PB_EncodedNumber* label_;
+  mutable int _cached_size_;
+  friend void  protobuf_AddDesc_cart_2eproto();
+  friend void protobuf_AssignDesc_cart_2eproto();
+  friend void protobuf_ShutdownFile_cart_2eproto();
+
+  void InitAsDefaultInstance();
+  static PB_PruneCheckResult* default_instance_;
+};
+// -------------------------------------------------------------------
+
+class PB_EncryptedLabelVector : public ::google::protobuf::Message /* @@protoc_insertion_point(class_definition:com.collaborative.ml.PB_EncryptedLabelVector) */ {
+ public:
+  PB_EncryptedLabelVector();
+  virtual ~PB_EncryptedLabelVector();
+
+  PB_EncryptedLabelVector(const PB_EncryptedLabelVector& from);
+
+  inline PB_EncryptedLabelVector& operator=(const PB_EncryptedLabelVector& from) {
+    CopyFrom(from);
+    return *this;
+  }
+
+  static const ::google::protobuf::Descriptor* descriptor();
+  static const PB_EncryptedLabelVector& default_instance();
+
+  void Swap(PB_EncryptedLabelVector* other);
+
+  // implements Message ----------------------------------------------
+
+  inline PB_EncryptedLabelVector* New() const { return New(NULL); }
+
+  PB_EncryptedLabelVector* New(::google::protobuf::Arena* arena) const;
+  void CopyFrom(const ::google::protobuf::Message& from);
+  void MergeFrom(const ::google::protobuf::Message& from);
+  void CopyFrom(const PB_EncryptedLabelVector& from);
+  void MergeFrom(const PB_EncryptedLabelVector& from);
+  void Clear();
+  bool IsInitialized() const;
+
+  int ByteSize() const;
+  bool MergePartialFromCodedStream(
+      ::google::protobuf::io::CodedInputStream* input);
+  void SerializeWithCachedSizes(
+      ::google::protobuf::io::CodedOutputStream* output) const;
+  ::google::protobuf::uint8* InternalSerializeWithCachedSizesToArray(
+      bool deterministic, ::google::protobuf::uint8* output) const;
+  ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8* output) const {
+    return InternalSerializeWithCachedSizesToArray(false, output);
+  }
+  int GetCachedSize() const { return _cached_size_; }
+  private:
+  void SharedCtor();
+  void SharedDtor();
+  void SetCachedSize(int size) const;
+  void InternalSwap(PB_EncryptedLabelVector* other);
+  private:
+  inline ::google::protobuf::Arena* GetArenaNoVirtual() const {
+    return _internal_metadata_.arena();
+  }
+  inline void* MaybeArenaPtr() const {
+    return _internal_metadata_.raw_arena_ptr();
+  }
+  public:
+
+  ::google::protobuf::Metadata GetMetadata() const;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  // repeated .com.collaborative.ml.PB_EncodedNumber label_indicator = 1;
+  int label_indicator_size() const;
+  void clear_label_indicator();
+  static const int kLabelIndicatorFieldNumber = 1;
+  const ::com::collaborative::ml::PB_EncodedNumber& label_indicator(int index) const;
+  ::com::collaborative::ml::PB_EncodedNumber* mutable_label_indicator(int index);
+  ::com::collaborative::ml::PB_EncodedNumber* add_label_indicator();
+  ::google::protobuf::RepeatedPtrField< ::com::collaborative::ml::PB_EncodedNumber >*
+      mutable_label_indicator();
+  const ::google::protobuf::RepeatedPtrField< ::com::collaborative::ml::PB_EncodedNumber >&
+      label_indicator() const;
+
+  // @@protoc_insertion_point(class_scope:com.collaborative.ml.PB_EncryptedLabelVector)
+ private:
+
+  ::google::protobuf::internal::InternalMetadataWithArena _internal_metadata_;
+  bool _is_default_instance_;
+  ::google::protobuf::RepeatedPtrField< ::com::collaborative::ml::PB_EncodedNumber > label_indicator_;
+  mutable int _cached_size_;
+  friend void  protobuf_AddDesc_cart_2eproto();
+  friend void protobuf_AssignDesc_cart_2eproto();
+  friend void protobuf_ShutdownFile_cart_2eproto();
+
+  void InitAsDefaultInstance();
+  static PB_EncryptedLabelVector* default_instance_;
 };
 // -------------------------------------------------------------------
 
@@ -861,6 +1050,110 @@ inline void PB_PruneConditionResult::set_allocated_label(::com::collaborative::m
 
 // -------------------------------------------------------------------
 
+// PB_PruneCheckResult
+
+// optional int32 node_index = 1;
+inline void PB_PruneCheckResult::clear_node_index() {
+  node_index_ = 0;
+}
+inline ::google::protobuf::int32 PB_PruneCheckResult::node_index() const {
+  // @@protoc_insertion_point(field_get:com.collaborative.ml.PB_PruneCheckResult.node_index)
+  return node_index_;
+}
+inline void PB_PruneCheckResult::set_node_index(::google::protobuf::int32 value) {
+  
+  node_index_ = value;
+  // @@protoc_insertion_point(field_set:com.collaborative.ml.PB_PruneCheckResult.node_index)
+}
+
+// optional int32 is_satisfied = 2;
+inline void PB_PruneCheckResult::clear_is_satisfied() {
+  is_satisfied_ = 0;
+}
+inline ::google::protobuf::int32 PB_PruneCheckResult::is_satisfied() const {
+  // @@protoc_insertion_point(field_get:com.collaborative.ml.PB_PruneCheckResult.is_satisfied)
+  return is_satisfied_;
+}
+inline void PB_PruneCheckResult::set_is_satisfied(::google::protobuf::int32 value) {
+  
+  is_satisfied_ = value;
+  // @@protoc_insertion_point(field_set:com.collaborative.ml.PB_PruneCheckResult.is_satisfied)
+}
+
+// optional .com.collaborative.ml.PB_EncodedNumber label = 3;
+inline bool PB_PruneCheckResult::has_label() const {
+  return !_is_default_instance_ && label_ != NULL;
+}
+inline void PB_PruneCheckResult::clear_label() {
+  if (GetArenaNoVirtual() == NULL && label_ != NULL) delete label_;
+  label_ = NULL;
+}
+inline const ::com::collaborative::ml::PB_EncodedNumber& PB_PruneCheckResult::label() const {
+  // @@protoc_insertion_point(field_get:com.collaborative.ml.PB_PruneCheckResult.label)
+  return label_ != NULL ? *label_ : *default_instance_->label_;
+}
+inline ::com::collaborative::ml::PB_EncodedNumber* PB_PruneCheckResult::mutable_label() {
+  
+  if (label_ == NULL) {
+    label_ = new ::com::collaborative::ml::PB_EncodedNumber;
+  }
+  // @@protoc_insertion_point(field_mutable:com.collaborative.ml.PB_PruneCheckResult.label)
+  return label_;
+}
+inline ::com::collaborative::ml::PB_EncodedNumber* PB_PruneCheckResult::release_label() {
+  // @@protoc_insertion_point(field_release:com.collaborative.ml.PB_PruneCheckResult.label)
+  
+  ::com::collaborative::ml::PB_EncodedNumber* temp = label_;
+  label_ = NULL;
+  return temp;
+}
+inline void PB_PruneCheckResult::set_allocated_label(::com::collaborative::ml::PB_EncodedNumber* label) {
+  delete label_;
+  label_ = label;
+  if (label) {
+    
+  } else {
+    
+  }
+  // @@protoc_insertion_point(field_set_allocated:com.collaborative.ml.PB_PruneCheckResult.label)
+}
+
+// -------------------------------------------------------------------
+
+// PB_EncryptedLabelVector
+
+// repeated .com.collaborative.ml.PB_EncodedNumber label_indicator = 1;
+inline int PB_EncryptedLabelVector::label_indicator_size() const {
+  return label_indicator_.size();
+}
+inline void PB_EncryptedLabelVector::clear_label_indicator() {
+  label_indicator_.Clear();
+}
+inline const ::com::collaborative::ml::PB_EncodedNumber& PB_EncryptedLabelVector::label_indicator(int index) const {
+  // @@protoc_insertion_point(field_get:com.collaborative.ml.PB_EncryptedLabelVector.label_indicator)
+  return label_indicator_.Get(index);
+}
+inline ::com::collaborative::ml::PB_EncodedNumber* PB_EncryptedLabelVector::mutable_label_indicator(int index) {
+  // @@protoc_insertion_point(field_mutable:com.collaborative.ml.PB_EncryptedLabelVector.label_indicator)
+  return label_indicator_.Mutable(index);
+}
+inline ::com::collaborative::ml::PB_EncodedNumber* PB_EncryptedLabelVector::add_label_indicator() {
+  // @@protoc_insertion_point(field_add:com.collaborative.ml.PB_EncryptedLabelVector.label_indicator)
+  return label_indicator_.Add();
+}
+inline ::google::protobuf::RepeatedPtrField< ::com::collaborative::ml::PB_EncodedNumber >*
+PB_EncryptedLabelVector::mutable_label_indicator() {
+  // @@protoc_insertion_point(field_mutable_list:com.collaborative.ml.PB_EncryptedLabelVector.label_indicator)
+  return &label_indicator_;
+}
+inline const ::google::protobuf::RepeatedPtrField< ::com::collaborative::ml::PB_EncodedNumber >&
+PB_EncryptedLabelVector::label_indicator() const {
+  // @@protoc_insertion_point(field_list:com.collaborative.ml.PB_EncryptedLabelVector.label_indicator)
+  return label_indicator_;
+}
+
+// -------------------------------------------------------------------
+
 // PB_EncryptedStatPerSplit
 
 // repeated .com.collaborative.ml.PB_EncodedNumber encrypted_stat = 1;
@@ -1288,6 +1581,10 @@ PB_SplitInfo::mutable_split_num_vec() {
 }
 
 #endif  // !PROTOBUF_INLINE_NOT_IN_HEADERS
+// -------------------------------------------------------------------
+
+// -------------------------------------------------------------------
+
 // -------------------------------------------------------------------
 
 // -------------------------------------------------------------------

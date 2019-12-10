@@ -190,4 +190,50 @@ void serialize_split_info(int global_split_num, std::vector<int> client_split_nu
  */
 void deserialize_split_info(int & global_split_num, std::vector<int> & client_split_nums, std::string input_str);
 
+
+/**
+ * serialize prune check result
+ *
+ * @param node_index
+ * @param is_satisfied
+ * @param label
+ * @param output_str
+ */
+void serialize_prune_check_result(int node_index, int is_satisfied, EncodedNumber label, std::string & output_str);
+
+
+/**
+ * deserialize prune check result
+ *
+ * @param node_index
+ * @param is_satisfied
+ * @param label
+ * @param input_str
+ */
+void deserialize_prune_check_result(int & node_index, int & is_satisfied, EncodedNumber & label, std::string input_str);
+
+
+/**
+ * serialize encrypted vector
+ *
+ * @param node_index
+ * @param classes_num
+ * @param sample_num
+ * @param encrypted_label_vector
+ * @param output_str
+ */
+void serialize_encrypted_label_vector(int node_index, int classes_num,
+        int sample_num, EncodedNumber * encrypted_label_vector, std::string & output_str);
+
+
+/**
+ * deserialize encrypted label vector
+ *
+ * @param node_index
+ * @param encrypted_label_vector
+ * @param input_str
+ */
+void deserialize_encrypted_label_vector(int & node_index, EncodedNumber *& encrypted_label_vector, std::string input_str);
+
+
 #endif //COLLABORATIVEML_PB_CONVERTER_H

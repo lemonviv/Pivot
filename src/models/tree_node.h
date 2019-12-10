@@ -33,6 +33,8 @@ public:
     TreeNode();
     TreeNode(int m_depth, int type, int sample_size, EncodedNumber *sample_iv);
     ~TreeNode();
+
+    void print_node();
 };
 
 #endif //COLLABORATIVEML_TREE_NODE_H

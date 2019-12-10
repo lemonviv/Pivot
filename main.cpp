@@ -238,7 +238,7 @@ int main(int argc, char *argv[]) {
         system_setup();
     }
 
-    test_pb();
+    //test_pb();
 
     Client client(client_id, client_num, has_label, network_file, data_file);
 

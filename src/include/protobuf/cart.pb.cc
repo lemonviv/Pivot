@@ -29,6 +29,12 @@ const ::google::protobuf::internal::GeneratedMessageReflection*
 const ::google::protobuf::Descriptor* PB_PruneConditionResult_descriptor_ = NULL;
 const ::google::protobuf::internal::GeneratedMessageReflection*
   PB_PruneConditionResult_reflection_ = NULL;
+const ::google::protobuf::Descriptor* PB_PruneCheckResult_descriptor_ = NULL;
+const ::google::protobuf::internal::GeneratedMessageReflection*
+  PB_PruneCheckResult_reflection_ = NULL;
+const ::google::protobuf::Descriptor* PB_EncryptedLabelVector_descriptor_ = NULL;
+const ::google::protobuf::internal::GeneratedMessageReflection*
+  PB_EncryptedLabelVector_reflection_ = NULL;
 const ::google::protobuf::Descriptor* PB_EncryptedStatPerSplit_descriptor_ = NULL;
 const ::google::protobuf::internal::GeneratedMessageReflection*
   PB_EncryptedStatPerSplit_reflection_ = NULL;
@@ -85,7 +91,39 @@ void protobuf_AssignDesc_cart_2eproto() {
       sizeof(PB_PruneConditionResult),
       GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(PB_PruneConditionResult, _internal_metadata_),
       GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(PB_PruneConditionResult, _is_default_instance_));
-  PB_EncryptedStatPerSplit_descriptor_ = file->message_type(2);
+  PB_PruneCheckResult_descriptor_ = file->message_type(2);
+  static const int PB_PruneCheckResult_offsets_[3] = {
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(PB_PruneCheckResult, node_index_),
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(PB_PruneCheckResult, is_satisfied_),
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(PB_PruneCheckResult, label_),
+  };
+  PB_PruneCheckResult_reflection_ =
+    ::google::protobuf::internal::GeneratedMessageReflection::NewGeneratedMessageReflection(
+      PB_PruneCheckResult_descriptor_,
+      PB_PruneCheckResult::default_instance_,
+      PB_PruneCheckResult_offsets_,
+      -1,
+      -1,
+      -1,
+      sizeof(PB_PruneCheckResult),
+      GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(PB_PruneCheckResult, _internal_metadata_),
+      GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(PB_PruneCheckResult, _is_default_instance_));
+  PB_EncryptedLabelVector_descriptor_ = file->message_type(3);
+  static const int PB_EncryptedLabelVector_offsets_[1] = {
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(PB_EncryptedLabelVector, label_indicator_),
+  };
+  PB_EncryptedLabelVector_reflection_ =
+    ::google::protobuf::internal::GeneratedMessageReflection::NewGeneratedMessageReflection(
+      PB_EncryptedLabelVector_descriptor_,
+      PB_EncryptedLabelVector::default_instance_,
+      PB_EncryptedLabelVector_offsets_,
+      -1,
+      -1,
+      -1,
+      sizeof(PB_EncryptedLabelVector),
+      GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(PB_EncryptedLabelVector, _internal_metadata_),
+      GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(PB_EncryptedLabelVector, _is_default_instance_));
+  PB_EncryptedStatPerSplit_descriptor_ = file->message_type(4);
   static const int PB_EncryptedStatPerSplit_offsets_[1] = {
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(PB_EncryptedStatPerSplit, encrypted_stat_),
   };
@@ -100,7 +138,7 @@ void protobuf_AssignDesc_cart_2eproto() {
       sizeof(PB_EncryptedStatPerSplit),
       GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(PB_EncryptedStatPerSplit, _internal_metadata_),
       GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(PB_EncryptedStatPerSplit, _is_default_instance_));
-  PB_EncryptedStatistics_descriptor_ = file->message_type(3);
+  PB_EncryptedStatistics_descriptor_ = file->message_type(5);
   static const int PB_EncryptedStatistics_offsets_[7] = {
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(PB_EncryptedStatistics, client_id_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(PB_EncryptedStatistics, node_index_),
@@ -121,7 +159,7 @@ void protobuf_AssignDesc_cart_2eproto() {
       sizeof(PB_EncryptedStatistics),
       GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(PB_EncryptedStatistics, _internal_metadata_),
       GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(PB_EncryptedStatistics, _is_default_instance_));
-  PB_UpdateInfo_descriptor_ = file->message_type(4);
+  PB_UpdateInfo_descriptor_ = file->message_type(6);
   static const int PB_UpdateInfo_offsets_[8] = {
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(PB_UpdateInfo, source_client_id_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(PB_UpdateInfo, best_client_id_),
@@ -143,7 +181,7 @@ void protobuf_AssignDesc_cart_2eproto() {
       sizeof(PB_UpdateInfo),
       GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(PB_UpdateInfo, _internal_metadata_),
       GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(PB_UpdateInfo, _is_default_instance_));
-  PB_SplitInfo_descriptor_ = file->message_type(5);
+  PB_SplitInfo_descriptor_ = file->message_type(7);
   static const int PB_SplitInfo_offsets_[2] = {
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(PB_SplitInfo, global_split_num_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(PB_SplitInfo, split_num_vec_),
@@ -177,6 +215,10 @@ void protobuf_RegisterTypes(const ::std::string&) {
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedMessage(
       PB_PruneConditionResult_descriptor_, &PB_PruneConditionResult::default_instance());
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedMessage(
+      PB_PruneCheckResult_descriptor_, &PB_PruneCheckResult::default_instance());
+  ::google::protobuf::MessageFactory::InternalRegisterGeneratedMessage(
+      PB_EncryptedLabelVector_descriptor_, &PB_EncryptedLabelVector::default_instance());
+  ::google::protobuf::MessageFactory::InternalRegisterGeneratedMessage(
       PB_EncryptedStatPerSplit_descriptor_, &PB_EncryptedStatPerSplit::default_instance());
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedMessage(
       PB_EncryptedStatistics_descriptor_, &PB_EncryptedStatistics::default_instance());
@@ -193,6 +235,10 @@ void protobuf_ShutdownFile_cart_2eproto() {
   delete PB_EncryptedLabelVec_reflection_;
   delete PB_PruneConditionResult::default_instance_;
   delete PB_PruneConditionResult_reflection_;
+  delete PB_PruneCheckResult::default_instance_;
+  delete PB_PruneCheckResult_reflection_;
+  delete PB_EncryptedLabelVector::default_instance_;
+  delete PB_EncryptedLabelVector_reflection_;
   delete PB_EncryptedStatPerSplit::default_instance_;
   delete PB_EncryptedStatPerSplit_reflection_;
   delete PB_EncryptedStatistics::default_instance_;
@@ -220,40 +266,49 @@ void protobuf_AddDesc_cart_2eproto() {
     "isfied\030\002 \001(\005\022G\n\023encrypted_label_vec\030\003 \003("
     "\0132*.com.collaborative.ml.PB_EncryptedLab"
     "elVec\0225\n\005label\030\004 \001(\0132&.com.collaborative"
-    ".ml.PB_EncodedNumber\"Z\n\030PB_EncryptedStat"
-    "PerSplit\022>\n\016encrypted_stat\030\001 \003(\0132&.com.c"
-    "ollaborative.ml.PB_EncodedNumber\"\331\002\n\026PB_"
-    "EncryptedStatistics\022\021\n\tclient_id\030\001 \001(\005\022\022"
-    "\n\nnode_index\030\002 \001(\005\022\027\n\017local_split_num\030\003 "
-    "\001(\005\022\023\n\013classes_num\030\004 \001(\005\022J\n\032left_sample_"
-    "nums_of_splits\030\005 \003(\0132&.com.collaborative"
-    ".ml.PB_EncodedNumber\022K\n\033right_sample_num"
-    "s_of_splits\030\006 \003(\0132&.com.collaborative.ml"
-    ".PB_EncodedNumber\022Q\n\031encrypted_stats_of_"
-    "splits\030\007 \003(\0132..com.collaborative.ml.PB_E"
-    "ncryptedStatPerSplit\"\217\003\n\rPB_UpdateInfo\022\030"
-    "\n\020source_client_id\030\001 \001(\005\022\026\n\016best_client_"
-    "id\030\002 \001(\005\022\027\n\017best_feature_id\030\003 \001(\005\022\025\n\rbes"
-    "t_split_id\030\004 \001(\005\022D\n\024left_branch_impurity"
-    "\030\005 \001(\0132&.com.collaborative.ml.PB_Encoded"
-    "Number\022E\n\025right_branch_impurity\030\006 \001(\0132&."
-    "com.collaborative.ml.PB_EncodedNumber\022F\n"
-    "\026left_branch_sample_ivs\030\007 \003(\0132&.com.coll"
-    "aborative.ml.PB_EncodedNumber\022G\n\027right_b"
-    "ranch_sample_ivs\030\010 \003(\0132&.com.collaborati"
-    "ve.ml.PB_EncodedNumber\"\?\n\014PB_SplitInfo\022\030"
-    "\n\020global_split_num\030\001 \001(\005\022\025\n\rsplit_num_ve"
-    "c\030\002 \003(\005b\006proto3", 1255);
+    ".ml.PB_EncodedNumber\"v\n\023PB_PruneCheckRes"
+    "ult\022\022\n\nnode_index\030\001 \001(\005\022\024\n\014is_satisfied\030"
+    "\002 \001(\005\0225\n\005label\030\003 \001(\0132&.com.collaborative"
+    ".ml.PB_EncodedNumber\"Z\n\027PB_EncryptedLabe"
+    "lVector\022\?\n\017label_indicator\030\001 \003(\0132&.com.c"
+    "ollaborative.ml.PB_EncodedNumber\"Z\n\030PB_E"
+    "ncryptedStatPerSplit\022>\n\016encrypted_stat\030\001"
+    " \003(\0132&.com.collaborative.ml.PB_EncodedNu"
+    "mber\"\331\002\n\026PB_EncryptedStatistics\022\021\n\tclien"
+    "t_id\030\001 \001(\005\022\022\n\nnode_index\030\002 \001(\005\022\027\n\017local_"
+    "split_num\030\003 \001(\005\022\023\n\013classes_num\030\004 \001(\005\022J\n\032"
+    "left_sample_nums_of_splits\030\005 \003(\0132&.com.c"
+    "ollaborative.ml.PB_EncodedNumber\022K\n\033righ"
+    "t_sample_nums_of_splits\030\006 \003(\0132&.com.coll"
+    "aborative.ml.PB_EncodedNumber\022Q\n\031encrypt"
+    "ed_stats_of_splits\030\007 \003(\0132..com.collabora"
+    "tive.ml.PB_EncryptedStatPerSplit\"\217\003\n\rPB_"
+    "UpdateInfo\022\030\n\020source_client_id\030\001 \001(\005\022\026\n\016"
+    "best_client_id\030\002 \001(\005\022\027\n\017best_feature_id\030"
+    "\003 \001(\005\022\025\n\rbest_split_id\030\004 \001(\005\022D\n\024left_bra"
+    "nch_impurity\030\005 \001(\0132&.com.collaborative.m"
+    "l.PB_EncodedNumber\022E\n\025right_branch_impur"
+    "ity\030\006 \001(\0132&.com.collaborative.ml.PB_Enco"
+    "dedNumber\022F\n\026left_branch_sample_ivs\030\007 \003("
+    "\0132&.com.collaborative.ml.PB_EncodedNumbe"
+    "r\022G\n\027right_branch_sample_ivs\030\010 \003(\0132&.com"
+    ".collaborative.ml.PB_EncodedNumber\"\?\n\014PB"
+    "_SplitInfo\022\030\n\020global_split_num\030\001 \001(\005\022\025\n\r"
+    "split_num_vec\030\002 \003(\005b\006proto3", 1467);
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedFile(
     "cart.proto", &protobuf_RegisterTypes);
   PB_EncryptedLabelVec::default_instance_ = new PB_EncryptedLabelVec();
   PB_PruneConditionResult::default_instance_ = new PB_PruneConditionResult();
+  PB_PruneCheckResult::default_instance_ = new PB_PruneCheckResult();
+  PB_EncryptedLabelVector::default_instance_ = new PB_EncryptedLabelVector();
   PB_EncryptedStatPerSplit::default_instance_ = new PB_EncryptedStatPerSplit();
   PB_EncryptedStatistics::default_instance_ = new PB_EncryptedStatistics();
   PB_UpdateInfo::default_instance_ = new PB_UpdateInfo();
   PB_SplitInfo::default_instance_ = new PB_SplitInfo();
   PB_EncryptedLabelVec::default_instance_->InitAsDefaultInstance();
   PB_PruneConditionResult::default_instance_->InitAsDefaultInstance();
+  PB_PruneCheckResult::default_instance_->InitAsDefaultInstance();
+  PB_EncryptedLabelVector::default_instance_->InitAsDefaultInstance();
   PB_EncryptedStatPerSplit::default_instance_->InitAsDefaultInstance();
   PB_EncryptedStatistics::default_instance_->InitAsDefaultInstance();
   PB_UpdateInfo::default_instance_->InitAsDefaultInstance();
@@ -984,6 +1039,654 @@ void PB_PruneConditionResult::set_allocated_label(::com::collaborative::ml::PB_E
     
   }
   // @@protoc_insertion_point(field_set_allocated:com.collaborative.ml.PB_PruneConditionResult.label)
+}
+
+#endif  // PROTOBUF_INLINE_NOT_IN_HEADERS
+
+// ===================================================================
+
+#if !defined(_MSC_VER) || _MSC_VER >= 1900
+const int PB_PruneCheckResult::kNodeIndexFieldNumber;
+const int PB_PruneCheckResult::kIsSatisfiedFieldNumber;
+const int PB_PruneCheckResult::kLabelFieldNumber;
+#endif  // !defined(_MSC_VER) || _MSC_VER >= 1900
+
+PB_PruneCheckResult::PB_PruneCheckResult()
+  : ::google::protobuf::Message(), _internal_metadata_(NULL) {
+  SharedCtor();
+  // @@protoc_insertion_point(constructor:com.collaborative.ml.PB_PruneCheckResult)
+}
+
+void PB_PruneCheckResult::InitAsDefaultInstance() {
+  _is_default_instance_ = true;
+  label_ = const_cast< ::com::collaborative::ml::PB_EncodedNumber*>(&::com::collaborative::ml::PB_EncodedNumber::default_instance());
+}
+
+PB_PruneCheckResult::PB_PruneCheckResult(const PB_PruneCheckResult& from)
+  : ::google::protobuf::Message(),
+    _internal_metadata_(NULL) {
+  SharedCtor();
+  MergeFrom(from);
+  // @@protoc_insertion_point(copy_constructor:com.collaborative.ml.PB_PruneCheckResult)
+}
+
+void PB_PruneCheckResult::SharedCtor() {
+    _is_default_instance_ = false;
+  _cached_size_ = 0;
+  node_index_ = 0;
+  is_satisfied_ = 0;
+  label_ = NULL;
+}
+
+PB_PruneCheckResult::~PB_PruneCheckResult() {
+  // @@protoc_insertion_point(destructor:com.collaborative.ml.PB_PruneCheckResult)
+  SharedDtor();
+}
+
+void PB_PruneCheckResult::SharedDtor() {
+  if (this != default_instance_) {
+    delete label_;
+  }
+}
+
+void PB_PruneCheckResult::SetCachedSize(int size) const {
+  GOOGLE_SAFE_CONCURRENT_WRITES_BEGIN();
+  _cached_size_ = size;
+  GOOGLE_SAFE_CONCURRENT_WRITES_END();
+}
+const ::google::protobuf::Descriptor* PB_PruneCheckResult::descriptor() {
+  protobuf_AssignDescriptorsOnce();
+  return PB_PruneCheckResult_descriptor_;
+}
+
+const PB_PruneCheckResult& PB_PruneCheckResult::default_instance() {
+  if (default_instance_ == NULL) protobuf_AddDesc_cart_2eproto();
+  return *default_instance_;
+}
+
+PB_PruneCheckResult* PB_PruneCheckResult::default_instance_ = NULL;
+
+PB_PruneCheckResult* PB_PruneCheckResult::New(::google::protobuf::Arena* arena) const {
+  PB_PruneCheckResult* n = new PB_PruneCheckResult;
+  if (arena != NULL) {
+    arena->Own(n);
+  }
+  return n;
+}
+
+void PB_PruneCheckResult::Clear() {
+// @@protoc_insertion_point(message_clear_start:com.collaborative.ml.PB_PruneCheckResult)
+#if defined(__clang__)
+#define ZR_HELPER_(f) \
+  _Pragma("clang diagnostic push") \
+  _Pragma("clang diagnostic ignored \"-Winvalid-offsetof\"") \
+  __builtin_offsetof(PB_PruneCheckResult, f) \
+  _Pragma("clang diagnostic pop")
+#else
+#define ZR_HELPER_(f) reinterpret_cast<char*>(\
+  &reinterpret_cast<PB_PruneCheckResult*>(16)->f)
+#endif
+
+#define ZR_(first, last) do {\
+  ::memset(&first, 0,\
+           ZR_HELPER_(last) - ZR_HELPER_(first) + sizeof(last));\
+} while (0)
+
+  ZR_(node_index_, is_satisfied_);
+  if (GetArenaNoVirtual() == NULL && label_ != NULL) delete label_;
+  label_ = NULL;
+
+#undef ZR_HELPER_
+#undef ZR_
+
+}
+
+bool PB_PruneCheckResult::MergePartialFromCodedStream(
+    ::google::protobuf::io::CodedInputStream* input) {
+#define DO_(EXPRESSION) if (!GOOGLE_PREDICT_TRUE(EXPRESSION)) goto failure
+  ::google::protobuf::uint32 tag;
+  // @@protoc_insertion_point(parse_start:com.collaborative.ml.PB_PruneCheckResult)
+  for (;;) {
+    ::std::pair< ::google::protobuf::uint32, bool> p = input->ReadTagWithCutoff(127);
+    tag = p.first;
+    if (!p.second) goto handle_unusual;
+    switch (::google::protobuf::internal::WireFormatLite::GetTagFieldNumber(tag)) {
+      // optional int32 node_index = 1;
+      case 1: {
+        if (tag == 8) {
+          DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
+                   ::google::protobuf::int32, ::google::protobuf::internal::WireFormatLite::TYPE_INT32>(
+                 input, &node_index_)));
+
+        } else {
+          goto handle_unusual;
+        }
+        if (input->ExpectTag(16)) goto parse_is_satisfied;
+        break;
+      }
+
+      // optional int32 is_satisfied = 2;
+      case 2: {
+        if (tag == 16) {
+         parse_is_satisfied:
+          DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
+                   ::google::protobuf::int32, ::google::protobuf::internal::WireFormatLite::TYPE_INT32>(
+                 input, &is_satisfied_)));
+
+        } else {
+          goto handle_unusual;
+        }
+        if (input->ExpectTag(26)) goto parse_label;
+        break;
+      }
+
+      // optional .com.collaborative.ml.PB_EncodedNumber label = 3;
+      case 3: {
+        if (tag == 26) {
+         parse_label:
+          DO_(::google::protobuf::internal::WireFormatLite::ReadMessageNoVirtual(
+               input, mutable_label()));
+        } else {
+          goto handle_unusual;
+        }
+        if (input->ExpectAtEnd()) goto success;
+        break;
+      }
+
+      default: {
+      handle_unusual:
+        if (tag == 0 ||
+            ::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
+            ::google::protobuf::internal::WireFormatLite::WIRETYPE_END_GROUP) {
+          goto success;
+        }
+        DO_(::google::protobuf::internal::WireFormatLite::SkipField(input, tag));
+        break;
+      }
+    }
+  }
+success:
+  // @@protoc_insertion_point(parse_success:com.collaborative.ml.PB_PruneCheckResult)
+  return true;
+failure:
+  // @@protoc_insertion_point(parse_failure:com.collaborative.ml.PB_PruneCheckResult)
+  return false;
+#undef DO_
+}
+
+void PB_PruneCheckResult::SerializeWithCachedSizes(
+    ::google::protobuf::io::CodedOutputStream* output) const {
+  // @@protoc_insertion_point(serialize_start:com.collaborative.ml.PB_PruneCheckResult)
+  // optional int32 node_index = 1;
+  if (this->node_index() != 0) {
+    ::google::protobuf::internal::WireFormatLite::WriteInt32(1, this->node_index(), output);
+  }
+
+  // optional int32 is_satisfied = 2;
+  if (this->is_satisfied() != 0) {
+    ::google::protobuf::internal::WireFormatLite::WriteInt32(2, this->is_satisfied(), output);
+  }
+
+  // optional .com.collaborative.ml.PB_EncodedNumber label = 3;
+  if (this->has_label()) {
+    ::google::protobuf::internal::WireFormatLite::WriteMessageMaybeToArray(
+      3, *this->label_, output);
+  }
+
+  // @@protoc_insertion_point(serialize_end:com.collaborative.ml.PB_PruneCheckResult)
+}
+
+::google::protobuf::uint8* PB_PruneCheckResult::InternalSerializeWithCachedSizesToArray(
+    bool deterministic, ::google::protobuf::uint8* target) const {
+  // @@protoc_insertion_point(serialize_to_array_start:com.collaborative.ml.PB_PruneCheckResult)
+  // optional int32 node_index = 1;
+  if (this->node_index() != 0) {
+    target = ::google::protobuf::internal::WireFormatLite::WriteInt32ToArray(1, this->node_index(), target);
+  }
+
+  // optional int32 is_satisfied = 2;
+  if (this->is_satisfied() != 0) {
+    target = ::google::protobuf::internal::WireFormatLite::WriteInt32ToArray(2, this->is_satisfied(), target);
+  }
+
+  // optional .com.collaborative.ml.PB_EncodedNumber label = 3;
+  if (this->has_label()) {
+    target = ::google::protobuf::internal::WireFormatLite::
+      InternalWriteMessageNoVirtualToArray(
+        3, *this->label_, false, target);
+  }
+
+  // @@protoc_insertion_point(serialize_to_array_end:com.collaborative.ml.PB_PruneCheckResult)
+  return target;
+}
+
+int PB_PruneCheckResult::ByteSize() const {
+// @@protoc_insertion_point(message_byte_size_start:com.collaborative.ml.PB_PruneCheckResult)
+  int total_size = 0;
+
+  // optional int32 node_index = 1;
+  if (this->node_index() != 0) {
+    total_size += 1 +
+      ::google::protobuf::internal::WireFormatLite::Int32Size(
+        this->node_index());
+  }
+
+  // optional int32 is_satisfied = 2;
+  if (this->is_satisfied() != 0) {
+    total_size += 1 +
+      ::google::protobuf::internal::WireFormatLite::Int32Size(
+        this->is_satisfied());
+  }
+
+  // optional .com.collaborative.ml.PB_EncodedNumber label = 3;
+  if (this->has_label()) {
+    total_size += 1 +
+      ::google::protobuf::internal::WireFormatLite::MessageSizeNoVirtual(
+        *this->label_);
+  }
+
+  GOOGLE_SAFE_CONCURRENT_WRITES_BEGIN();
+  _cached_size_ = total_size;
+  GOOGLE_SAFE_CONCURRENT_WRITES_END();
+  return total_size;
+}
+
+void PB_PruneCheckResult::MergeFrom(const ::google::protobuf::Message& from) {
+// @@protoc_insertion_point(generalized_merge_from_start:com.collaborative.ml.PB_PruneCheckResult)
+  if (GOOGLE_PREDICT_FALSE(&from == this)) {
+    ::google::protobuf::internal::MergeFromFail(__FILE__, __LINE__);
+  }
+  const PB_PruneCheckResult* source = 
+      ::google::protobuf::internal::DynamicCastToGenerated<const PB_PruneCheckResult>(
+          &from);
+  if (source == NULL) {
+  // @@protoc_insertion_point(generalized_merge_from_cast_fail:com.collaborative.ml.PB_PruneCheckResult)
+    ::google::protobuf::internal::ReflectionOps::Merge(from, this);
+  } else {
+  // @@protoc_insertion_point(generalized_merge_from_cast_success:com.collaborative.ml.PB_PruneCheckResult)
+    MergeFrom(*source);
+  }
+}
+
+void PB_PruneCheckResult::MergeFrom(const PB_PruneCheckResult& from) {
+// @@protoc_insertion_point(class_specific_merge_from_start:com.collaborative.ml.PB_PruneCheckResult)
+  if (GOOGLE_PREDICT_FALSE(&from == this)) {
+    ::google::protobuf::internal::MergeFromFail(__FILE__, __LINE__);
+  }
+  if (from.node_index() != 0) {
+    set_node_index(from.node_index());
+  }
+  if (from.is_satisfied() != 0) {
+    set_is_satisfied(from.is_satisfied());
+  }
+  if (from.has_label()) {
+    mutable_label()->::com::collaborative::ml::PB_EncodedNumber::MergeFrom(from.label());
+  }
+}
+
+void PB_PruneCheckResult::CopyFrom(const ::google::protobuf::Message& from) {
+// @@protoc_insertion_point(generalized_copy_from_start:com.collaborative.ml.PB_PruneCheckResult)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+void PB_PruneCheckResult::CopyFrom(const PB_PruneCheckResult& from) {
+// @@protoc_insertion_point(class_specific_copy_from_start:com.collaborative.ml.PB_PruneCheckResult)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+bool PB_PruneCheckResult::IsInitialized() const {
+
+  return true;
+}
+
+void PB_PruneCheckResult::Swap(PB_PruneCheckResult* other) {
+  if (other == this) return;
+  InternalSwap(other);
+}
+void PB_PruneCheckResult::InternalSwap(PB_PruneCheckResult* other) {
+  std::swap(node_index_, other->node_index_);
+  std::swap(is_satisfied_, other->is_satisfied_);
+  std::swap(label_, other->label_);
+  _internal_metadata_.Swap(&other->_internal_metadata_);
+  std::swap(_cached_size_, other->_cached_size_);
+}
+
+::google::protobuf::Metadata PB_PruneCheckResult::GetMetadata() const {
+  protobuf_AssignDescriptorsOnce();
+  ::google::protobuf::Metadata metadata;
+  metadata.descriptor = PB_PruneCheckResult_descriptor_;
+  metadata.reflection = PB_PruneCheckResult_reflection_;
+  return metadata;
+}
+
+#if PROTOBUF_INLINE_NOT_IN_HEADERS
+// PB_PruneCheckResult
+
+// optional int32 node_index = 1;
+void PB_PruneCheckResult::clear_node_index() {
+  node_index_ = 0;
+}
+ ::google::protobuf::int32 PB_PruneCheckResult::node_index() const {
+  // @@protoc_insertion_point(field_get:com.collaborative.ml.PB_PruneCheckResult.node_index)
+  return node_index_;
+}
+ void PB_PruneCheckResult::set_node_index(::google::protobuf::int32 value) {
+  
+  node_index_ = value;
+  // @@protoc_insertion_point(field_set:com.collaborative.ml.PB_PruneCheckResult.node_index)
+}
+
+// optional int32 is_satisfied = 2;
+void PB_PruneCheckResult::clear_is_satisfied() {
+  is_satisfied_ = 0;
+}
+ ::google::protobuf::int32 PB_PruneCheckResult::is_satisfied() const {
+  // @@protoc_insertion_point(field_get:com.collaborative.ml.PB_PruneCheckResult.is_satisfied)
+  return is_satisfied_;
+}
+ void PB_PruneCheckResult::set_is_satisfied(::google::protobuf::int32 value) {
+  
+  is_satisfied_ = value;
+  // @@protoc_insertion_point(field_set:com.collaborative.ml.PB_PruneCheckResult.is_satisfied)
+}
+
+// optional .com.collaborative.ml.PB_EncodedNumber label = 3;
+bool PB_PruneCheckResult::has_label() const {
+  return !_is_default_instance_ && label_ != NULL;
+}
+void PB_PruneCheckResult::clear_label() {
+  if (GetArenaNoVirtual() == NULL && label_ != NULL) delete label_;
+  label_ = NULL;
+}
+const ::com::collaborative::ml::PB_EncodedNumber& PB_PruneCheckResult::label() const {
+  // @@protoc_insertion_point(field_get:com.collaborative.ml.PB_PruneCheckResult.label)
+  return label_ != NULL ? *label_ : *default_instance_->label_;
+}
+::com::collaborative::ml::PB_EncodedNumber* PB_PruneCheckResult::mutable_label() {
+  
+  if (label_ == NULL) {
+    label_ = new ::com::collaborative::ml::PB_EncodedNumber;
+  }
+  // @@protoc_insertion_point(field_mutable:com.collaborative.ml.PB_PruneCheckResult.label)
+  return label_;
+}
+::com::collaborative::ml::PB_EncodedNumber* PB_PruneCheckResult::release_label() {
+  // @@protoc_insertion_point(field_release:com.collaborative.ml.PB_PruneCheckResult.label)
+  
+  ::com::collaborative::ml::PB_EncodedNumber* temp = label_;
+  label_ = NULL;
+  return temp;
+}
+void PB_PruneCheckResult::set_allocated_label(::com::collaborative::ml::PB_EncodedNumber* label) {
+  delete label_;
+  label_ = label;
+  if (label) {
+    
+  } else {
+    
+  }
+  // @@protoc_insertion_point(field_set_allocated:com.collaborative.ml.PB_PruneCheckResult.label)
+}
+
+#endif  // PROTOBUF_INLINE_NOT_IN_HEADERS
+
+// ===================================================================
+
+#if !defined(_MSC_VER) || _MSC_VER >= 1900
+const int PB_EncryptedLabelVector::kLabelIndicatorFieldNumber;
+#endif  // !defined(_MSC_VER) || _MSC_VER >= 1900
+
+PB_EncryptedLabelVector::PB_EncryptedLabelVector()
+  : ::google::protobuf::Message(), _internal_metadata_(NULL) {
+  SharedCtor();
+  // @@protoc_insertion_point(constructor:com.collaborative.ml.PB_EncryptedLabelVector)
+}
+
+void PB_EncryptedLabelVector::InitAsDefaultInstance() {
+  _is_default_instance_ = true;
+}
+
+PB_EncryptedLabelVector::PB_EncryptedLabelVector(const PB_EncryptedLabelVector& from)
+  : ::google::protobuf::Message(),
+    _internal_metadata_(NULL) {
+  SharedCtor();
+  MergeFrom(from);
+  // @@protoc_insertion_point(copy_constructor:com.collaborative.ml.PB_EncryptedLabelVector)
+}
+
+void PB_EncryptedLabelVector::SharedCtor() {
+    _is_default_instance_ = false;
+  _cached_size_ = 0;
+}
+
+PB_EncryptedLabelVector::~PB_EncryptedLabelVector() {
+  // @@protoc_insertion_point(destructor:com.collaborative.ml.PB_EncryptedLabelVector)
+  SharedDtor();
+}
+
+void PB_EncryptedLabelVector::SharedDtor() {
+  if (this != default_instance_) {
+  }
+}
+
+void PB_EncryptedLabelVector::SetCachedSize(int size) const {
+  GOOGLE_SAFE_CONCURRENT_WRITES_BEGIN();
+  _cached_size_ = size;
+  GOOGLE_SAFE_CONCURRENT_WRITES_END();
+}
+const ::google::protobuf::Descriptor* PB_EncryptedLabelVector::descriptor() {
+  protobuf_AssignDescriptorsOnce();
+  return PB_EncryptedLabelVector_descriptor_;
+}
+
+const PB_EncryptedLabelVector& PB_EncryptedLabelVector::default_instance() {
+  if (default_instance_ == NULL) protobuf_AddDesc_cart_2eproto();
+  return *default_instance_;
+}
+
+PB_EncryptedLabelVector* PB_EncryptedLabelVector::default_instance_ = NULL;
+
+PB_EncryptedLabelVector* PB_EncryptedLabelVector::New(::google::protobuf::Arena* arena) const {
+  PB_EncryptedLabelVector* n = new PB_EncryptedLabelVector;
+  if (arena != NULL) {
+    arena->Own(n);
+  }
+  return n;
+}
+
+void PB_EncryptedLabelVector::Clear() {
+// @@protoc_insertion_point(message_clear_start:com.collaborative.ml.PB_EncryptedLabelVector)
+  label_indicator_.Clear();
+}
+
+bool PB_EncryptedLabelVector::MergePartialFromCodedStream(
+    ::google::protobuf::io::CodedInputStream* input) {
+#define DO_(EXPRESSION) if (!GOOGLE_PREDICT_TRUE(EXPRESSION)) goto failure
+  ::google::protobuf::uint32 tag;
+  // @@protoc_insertion_point(parse_start:com.collaborative.ml.PB_EncryptedLabelVector)
+  for (;;) {
+    ::std::pair< ::google::protobuf::uint32, bool> p = input->ReadTagWithCutoff(127);
+    tag = p.first;
+    if (!p.second) goto handle_unusual;
+    switch (::google::protobuf::internal::WireFormatLite::GetTagFieldNumber(tag)) {
+      // repeated .com.collaborative.ml.PB_EncodedNumber label_indicator = 1;
+      case 1: {
+        if (tag == 10) {
+          DO_(input->IncrementRecursionDepth());
+         parse_loop_label_indicator:
+          DO_(::google::protobuf::internal::WireFormatLite::ReadMessageNoVirtualNoRecursionDepth(
+                input, add_label_indicator()));
+        } else {
+          goto handle_unusual;
+        }
+        if (input->ExpectTag(10)) goto parse_loop_label_indicator;
+        input->UnsafeDecrementRecursionDepth();
+        if (input->ExpectAtEnd()) goto success;
+        break;
+      }
+
+      default: {
+      handle_unusual:
+        if (tag == 0 ||
+            ::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
+            ::google::protobuf::internal::WireFormatLite::WIRETYPE_END_GROUP) {
+          goto success;
+        }
+        DO_(::google::protobuf::internal::WireFormatLite::SkipField(input, tag));
+        break;
+      }
+    }
+  }
+success:
+  // @@protoc_insertion_point(parse_success:com.collaborative.ml.PB_EncryptedLabelVector)
+  return true;
+failure:
+  // @@protoc_insertion_point(parse_failure:com.collaborative.ml.PB_EncryptedLabelVector)
+  return false;
+#undef DO_
+}
+
+void PB_EncryptedLabelVector::SerializeWithCachedSizes(
+    ::google::protobuf::io::CodedOutputStream* output) const {
+  // @@protoc_insertion_point(serialize_start:com.collaborative.ml.PB_EncryptedLabelVector)
+  // repeated .com.collaborative.ml.PB_EncodedNumber label_indicator = 1;
+  for (unsigned int i = 0, n = this->label_indicator_size(); i < n; i++) {
+    ::google::protobuf::internal::WireFormatLite::WriteMessageMaybeToArray(
+      1, this->label_indicator(i), output);
+  }
+
+  // @@protoc_insertion_point(serialize_end:com.collaborative.ml.PB_EncryptedLabelVector)
+}
+
+::google::protobuf::uint8* PB_EncryptedLabelVector::InternalSerializeWithCachedSizesToArray(
+    bool deterministic, ::google::protobuf::uint8* target) const {
+  // @@protoc_insertion_point(serialize_to_array_start:com.collaborative.ml.PB_EncryptedLabelVector)
+  // repeated .com.collaborative.ml.PB_EncodedNumber label_indicator = 1;
+  for (unsigned int i = 0, n = this->label_indicator_size(); i < n; i++) {
+    target = ::google::protobuf::internal::WireFormatLite::
+      InternalWriteMessageNoVirtualToArray(
+        1, this->label_indicator(i), false, target);
+  }
+
+  // @@protoc_insertion_point(serialize_to_array_end:com.collaborative.ml.PB_EncryptedLabelVector)
+  return target;
+}
+
+int PB_EncryptedLabelVector::ByteSize() const {
+// @@protoc_insertion_point(message_byte_size_start:com.collaborative.ml.PB_EncryptedLabelVector)
+  int total_size = 0;
+
+  // repeated .com.collaborative.ml.PB_EncodedNumber label_indicator = 1;
+  total_size += 1 * this->label_indicator_size();
+  for (int i = 0; i < this->label_indicator_size(); i++) {
+    total_size +=
+      ::google::protobuf::internal::WireFormatLite::MessageSizeNoVirtual(
+        this->label_indicator(i));
+  }
+
+  GOOGLE_SAFE_CONCURRENT_WRITES_BEGIN();
+  _cached_size_ = total_size;
+  GOOGLE_SAFE_CONCURRENT_WRITES_END();
+  return total_size;
+}
+
+void PB_EncryptedLabelVector::MergeFrom(const ::google::protobuf::Message& from) {
+// @@protoc_insertion_point(generalized_merge_from_start:com.collaborative.ml.PB_EncryptedLabelVector)
+  if (GOOGLE_PREDICT_FALSE(&from == this)) {
+    ::google::protobuf::internal::MergeFromFail(__FILE__, __LINE__);
+  }
+  const PB_EncryptedLabelVector* source = 
+      ::google::protobuf::internal::DynamicCastToGenerated<const PB_EncryptedLabelVector>(
+          &from);
+  if (source == NULL) {
+  // @@protoc_insertion_point(generalized_merge_from_cast_fail:com.collaborative.ml.PB_EncryptedLabelVector)
+    ::google::protobuf::internal::ReflectionOps::Merge(from, this);
+  } else {
+  // @@protoc_insertion_point(generalized_merge_from_cast_success:com.collaborative.ml.PB_EncryptedLabelVector)
+    MergeFrom(*source);
+  }
+}
+
+void PB_EncryptedLabelVector::MergeFrom(const PB_EncryptedLabelVector& from) {
+// @@protoc_insertion_point(class_specific_merge_from_start:com.collaborative.ml.PB_EncryptedLabelVector)
+  if (GOOGLE_PREDICT_FALSE(&from == this)) {
+    ::google::protobuf::internal::MergeFromFail(__FILE__, __LINE__);
+  }
+  label_indicator_.MergeFrom(from.label_indicator_);
+}
+
+void PB_EncryptedLabelVector::CopyFrom(const ::google::protobuf::Message& from) {
+// @@protoc_insertion_point(generalized_copy_from_start:com.collaborative.ml.PB_EncryptedLabelVector)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+void PB_EncryptedLabelVector::CopyFrom(const PB_EncryptedLabelVector& from) {
+// @@protoc_insertion_point(class_specific_copy_from_start:com.collaborative.ml.PB_EncryptedLabelVector)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+bool PB_EncryptedLabelVector::IsInitialized() const {
+
+  return true;
+}
+
+void PB_EncryptedLabelVector::Swap(PB_EncryptedLabelVector* other) {
+  if (other == this) return;
+  InternalSwap(other);
+}
+void PB_EncryptedLabelVector::InternalSwap(PB_EncryptedLabelVector* other) {
+  label_indicator_.UnsafeArenaSwap(&other->label_indicator_);
+  _internal_metadata_.Swap(&other->_internal_metadata_);
+  std::swap(_cached_size_, other->_cached_size_);
+}
+
+::google::protobuf::Metadata PB_EncryptedLabelVector::GetMetadata() const {
+  protobuf_AssignDescriptorsOnce();
+  ::google::protobuf::Metadata metadata;
+  metadata.descriptor = PB_EncryptedLabelVector_descriptor_;
+  metadata.reflection = PB_EncryptedLabelVector_reflection_;
+  return metadata;
+}
+
+#if PROTOBUF_INLINE_NOT_IN_HEADERS
+// PB_EncryptedLabelVector
+
+// repeated .com.collaborative.ml.PB_EncodedNumber label_indicator = 1;
+int PB_EncryptedLabelVector::label_indicator_size() const {
+  return label_indicator_.size();
+}
+void PB_EncryptedLabelVector::clear_label_indicator() {
+  label_indicator_.Clear();
+}
+const ::com::collaborative::ml::PB_EncodedNumber& PB_EncryptedLabelVector::label_indicator(int index) const {
+  // @@protoc_insertion_point(field_get:com.collaborative.ml.PB_EncryptedLabelVector.label_indicator)
+  return label_indicator_.Get(index);
+}
+::com::collaborative::ml::PB_EncodedNumber* PB_EncryptedLabelVector::mutable_label_indicator(int index) {
+  // @@protoc_insertion_point(field_mutable:com.collaborative.ml.PB_EncryptedLabelVector.label_indicator)
+  return label_indicator_.Mutable(index);
+}
+::com::collaborative::ml::PB_EncodedNumber* PB_EncryptedLabelVector::add_label_indicator() {
+  // @@protoc_insertion_point(field_add:com.collaborative.ml.PB_EncryptedLabelVector.label_indicator)
+  return label_indicator_.Add();
+}
+::google::protobuf::RepeatedPtrField< ::com::collaborative::ml::PB_EncodedNumber >*
+PB_EncryptedLabelVector::mutable_label_indicator() {
+  // @@protoc_insertion_point(field_mutable_list:com.collaborative.ml.PB_EncryptedLabelVector.label_indicator)
+  return &label_indicator_;
+}
+const ::google::protobuf::RepeatedPtrField< ::com::collaborative::ml::PB_EncodedNumber >&
+PB_EncryptedLabelVector::label_indicator() const {
+  // @@protoc_insertion_point(field_list:com.collaborative.ml.PB_EncryptedLabelVector.label_indicator)
+  return label_indicator_;
 }
 
 #endif  // PROTOBUF_INLINE_NOT_IN_HEADERS
