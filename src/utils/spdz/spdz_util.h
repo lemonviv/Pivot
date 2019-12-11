@@ -30,6 +30,16 @@
  */
 void send_private_batch_shares(std::vector<float> shares, std::vector<int>& sockets, int n_parties);
 
+/**
+ * send public parameters in decision tree
+ *
+ * @param type
+ * @param global_split_num
+ * @param classes_num
+ * @param sockets
+ * @param n_parties
+ */
+void send_public_parameters(int type, int global_split_num, int classes_num, std::vector<int>& sockets, int n_parties);
 
 /**
  * setup sockets to communicate with spdz parties
@@ -70,6 +80,17 @@ void initialise_fields(const string& dir_prefix);
  */
 std::vector<float> receive_result(std::vector<int>& sockets, int n_parties, int size);
 
+
+/**
+ * receive result from spdz for decision tree
+ *
+ * @param sockets
+ * @param n_parties
+ * @param size
+ * @param best_split_index
+ * @return
+ */
+std::vector<float> receive_result_dt(std::vector<int>& sockets, int n_parties, int size, int & best_split_index);
 
 
 #endif //COLLABORATIVEML_SPDZ_UTIL_H

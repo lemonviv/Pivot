@@ -436,6 +436,13 @@ void DecisionTree::build_tree_node(Client & client, int node_index) {
     EncodedNumber *encrypted_labels; // flatten
     std::string result_str;
 
+    /*** send private batch shares ***/
+    // init static gfp
+    string prep_data_prefix = get_prep_dir(NUM_SPDZ_PARTIES, 128, gf2n::default_degree());
+    logger(stdout, "prep_data_prefix = %s \n", prep_data_prefix.c_str());
+    initialise_fields(prep_data_prefix);
+    bigint::init_thread();
+
     if (!check_pruning_conditions_revise(client, node_index)) {
 
         // super client send encrypted labels to the other clients
@@ -470,6 +477,12 @@ void DecisionTree::build_tree_node(Client & client, int node_index) {
 
     } else {
         return;
+    }
+
+    // setup sockets
+    std::vector<int> sockets = setup_sockets(NUM_SPDZ_PARTIES, client.client_id, "localhost", SPDZ_PORT_NUM_DT);
+    for (int i = 0; i < NUM_SPDZ_PARTIES; i++) {
+        logger(stdout, "socket %d = %d\n", i, sockets[i]);
     }
 
     encrypted_label_vecs = new EncodedNumber*[classes_num];
@@ -813,10 +826,48 @@ void DecisionTree::build_tree_node(Client & client, int node_index) {
 
     /** secret shares conversion finished, talk to SPDZ parties for MPC computations */
 
+    if (client.client_id == 0) {
+        send_public_parameters(type, global_split_num, classes_num, sockets, NUM_SPDZ_PARTIES);
+        logger(stdout, "Finish send public parameters to SPDZ engines\n");
+    }
+
+    for (int i = 0; i < global_split_num; i++) {
+        for (int j = 0; j < classes_num * 2; j++) {
+            vector<float> x;
+            x.push_back(stats_shares[i][j]);
+            send_private_batch_shares(x, sockets, NUM_SPDZ_PARTIES);
+        }
+    }
+
+    for (int i = 0; i < global_split_num; i++) {
+        vector<gfp> input_values_gfp(1);
+        input_values_gfp[0].assign(left_sample_nums_shares[i]);
+        send_private_inputs(input_values_gfp, sockets, NUM_SPDZ_PARTIES);
+    }
+
+    for (int i = 0; i < global_split_num; i++) {
+        vector<gfp> input_values_gfp(1);
+        input_values_gfp[0].assign(right_sample_nums_shares[i]);
+        send_private_inputs(input_values_gfp, sockets, NUM_SPDZ_PARTIES);
+    }
+
+    logger(stdout, "Finish send private values to SPDZ engines\n");
+
     // receive result from the SPDZ parties
     // TODO: communicate with SPDZ parties
     int index_in_global_split_num = 0;
     float impurity_left_branch = 0.25, impurity_right_branch = 0.25;
+
+    vector<float> impurities = receive_result_dt(sockets, NUM_SPDZ_PARTIES, 3, index_in_global_split_num);
+    EncodedNumber *encrypted_impurities = new EncodedNumber[impurities.size()];
+    for (int i = 0; i < impurities.size(); i++) {
+        encrypted_impurities[i].set_float(n, impurities[i], FLOAT_PRECISION);
+        djcs_t_aux_encrypt(client.m_pk, client.m_hr, encrypted_impurities[i], encrypted_impurities[i]);
+    }
+
+    logger(stdout, "Received: best_split_index = %d\n", index_in_global_split_num);
+
+    // recover encrypted impurities for the left and right branches
 
     /** update tree nodes, including sample iv for the next tree node computation */
 
@@ -837,7 +888,11 @@ void DecisionTree::build_tree_node(Client & client, int node_index) {
         }
     }
 
+    logger(stdout, "Correct here after receiving best_split_index\n");
+
     if (i_star == client.client_id) {
+
+        logger(stdout, "i_star = %d\n", i_star);
 
         // compute locally and broadcast
 
@@ -856,13 +911,40 @@ void DecisionTree::build_tree_node(Client & client, int node_index) {
             }
         }
 
+        logger(stdout, "Correct here before aggregating encrypted impurities\n");
+
         // now we have (i_*, j_*, s_*), retrieve s_*-th split ivs and update sample_ivs of two branches
 
-        EncodedNumber left_impurity, right_impurity;
-        left_impurity.set_float(n, impurity_left_branch);
-        right_impurity.set_float(n, impurity_right_branch);
-        djcs_t_aux_encrypt(client.m_pk, client.m_hr, left_impurity, left_impurity);
-        djcs_t_aux_encrypt(client.m_pk, client.m_hr, right_impurity, right_impurity);
+        EncodedNumber *aggregate_enc_impurities = new EncodedNumber[impurities.size()];
+        for (int i = 0; i < impurities.size(); i++) {
+            aggregate_enc_impurities[i] = encrypted_impurities[i];
+        }
+
+        logger(stdout, "Correct after initialize aggregate_enc_impurities\n");
+
+        for (int i = 0; i < client.client_num; i++) {
+            if (i != i_star) {
+                std::string recv_s;
+                EncodedNumber *recv_encrypted_impurities = new EncodedNumber[impurities.size()];
+                client.recv_long_messages(client.channels[i].get(), recv_s);
+                int size;
+                deserialize_sums_from_string(recv_encrypted_impurities, size, recv_s);
+                for (int j = 0; j < impurities.size(); j++) {
+                    djcs_t_aux_ee_add(client.m_pk, aggregate_enc_impurities[j],
+                            aggregate_enc_impurities[j], recv_encrypted_impurities[j]);
+                }
+
+                delete [] recv_encrypted_impurities;
+            }
+        }
+
+        logger(stdout, "Correct here after aggregating encrypted impurities\n");
+
+        //EncodedNumber left_impurity, right_impurity;
+        //left_impurity.set_float(n, impurity_left_branch);
+        //right_impurity.set_float(n, impurity_right_branch);
+        //djcs_t_aux_encrypt(client.m_pk, client.m_hr, left_impurity, left_impurity);
+        //djcs_t_aux_encrypt(client.m_pk, client.m_hr, right_impurity, right_impurity);
 
         // update current node index for prediction
         tree_nodes[node_index].is_self_feature = 1;
@@ -872,8 +954,8 @@ void DecisionTree::build_tree_node(Client & client, int node_index) {
 
         tree_nodes[left_child_index].depth = tree_nodes[node_index].depth + 1;
         tree_nodes[right_child_index].depth = tree_nodes[node_index].depth + 1;
-        tree_nodes[left_child_index].impurity = left_impurity;
-        tree_nodes[right_child_index].impurity = right_impurity;
+        tree_nodes[left_child_index].impurity = aggregate_enc_impurities[0];
+        tree_nodes[right_child_index].impurity = aggregate_enc_impurities[1];
         tree_nodes[left_child_index].sample_size = tree_nodes[node_index].sample_size;
         tree_nodes[right_child_index].sample_size = tree_nodes[node_index].sample_size;
 
@@ -902,7 +984,7 @@ void DecisionTree::build_tree_node(Client & client, int node_index) {
 
         // serialize and send to the other clients
         std::string update_str;
-        serialize_update_info(client.client_id, client.client_id, j_star, s_star, left_impurity, right_impurity,
+        serialize_update_info(client.client_id, client.client_id, j_star, s_star, aggregate_enc_impurities[0], aggregate_enc_impurities[1],
                 tree_nodes[left_child_index].sample_iv, tree_nodes[right_child_index].sample_iv,
                 tree_nodes[node_index].sample_size, update_str);
         for (int i = 0; i < client.client_num; i++) {
@@ -911,7 +993,16 @@ void DecisionTree::build_tree_node(Client & client, int node_index) {
             }
         }
 
+        logger(stdout, "Correct here after updating and sending information to the other clients\n");
+
+        delete [] aggregate_enc_impurities;
+
     } else {
+
+        // serialize encrypted impurities and send to i_star
+        std::string s;
+        serialize_batch_sums(encrypted_impurities, impurities.size(), s);
+        client.send_long_messages(client.channels[i_star].get(), s);
 
         // receive from i_star client and update
         std::string recv_update_str;
@@ -961,6 +1052,10 @@ void DecisionTree::build_tree_node(Client & client, int node_index) {
         delete [] recv_right_sample_iv;
     }
 
+    for (unsigned int i = 0; i < sockets.size(); i++) {
+        close_client_socket(sockets[i]);
+    }
+
     logger(stdout, "Tree node %d update finished\n", node_index);
 
     /** recursively build the next child tree nodes */
@@ -976,6 +1071,7 @@ void DecisionTree::build_tree_node(Client & client, int node_index) {
     delete [] encrypted_right_branch_sample_nums;
     delete [] global_left_branch_sample_nums;
     delete [] global_right_branch_sample_nums;
+    delete [] encrypted_impurities;
 
     if (local_splits_num != 0) {
         for (int i = 0; i < local_splits_num; i++) {

@@ -23,6 +23,8 @@
 #define MAX_BINS 8
 #define PRUNE_SAMPLE_NUM 5
 #define PRUNE_VARIANCE_THRESHOLD 0.01
+#define SPDZ_PORT_NUM_DT 18000
+#define NUM_SPDZ_PARTIES 3
 
 class DecisionTree {
 

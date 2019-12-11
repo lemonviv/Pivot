@@ -27,7 +27,25 @@ void send_private_batch_shares(std::vector<float> shares, std::vector<int>& sock
 
     // Run the computation
     send_private_inputs(input_values_gfp, sockets, n_parties);
-    cout << "Sent private inputs to each SPDZ engine, waiting for result..." << endl;
+}
+
+
+void send_public_parameters(int type, int global_split_num, int classes_num, std::vector<int>& sockets, int n_parties) {
+
+    octetStream os;
+
+    vector<gfp> parameters(3);
+    parameters[0].assign(type);
+    parameters[1].assign(global_split_num);
+    parameters[2].assign(classes_num);
+
+    parameters[0].pack(os);
+    parameters[1].pack(os);
+    parameters[2].pack(os);
+
+    for (int i = 0; i < n_parties; i++) {
+        os.Send(sockets[i]);
+    }
 }
 
 
@@ -53,15 +71,10 @@ void send_private_inputs(const std::vector<gfp>& values, std::vector<int>& socke
     std::vector< std::vector<gfp> > triples(num_inputs, vector<gfp>(3));
     std::vector<gfp> triple_shares(3);
 
-    logger(stdout, "ready for receiving inputs from spdz\n");
-
     // Receive num_inputs triples from SPDZ
     for (int j = 0; j < n_parties; j++)
     {
         os.reset_write_head();
-
-        logger(stdout, "sockets[%d] = %d \n", j, sockets[j]);
-
         os.Receive(sockets[j]);
 
         for (int j = 0; j < num_inputs; j++)
@@ -73,8 +86,6 @@ void send_private_inputs(const std::vector<gfp>& values, std::vector<int>& socke
             }
         }
     }
-
-    logger(stdout, "Finish preparing values \n");
 
     // Check triple relations (is a party cheating?)
     for (int i = 0; i < num_inputs; i++)
@@ -96,7 +107,6 @@ void send_private_inputs(const std::vector<gfp>& values, std::vector<int>& socke
     for (int j = 0; j < n_parties; j++)
         os.Send(sockets[j]);
 }
-
 
 
 void initialise_fields(const string& dir_prefix)
@@ -147,6 +157,43 @@ std::vector<float> receive_result(std::vector<int>& sockets, int n_parties, int 
         //cout<< "i = " << i << ", t = " << t <<endl;
         res_shares[i] = static_cast<float>(t * pow(2, -SPDZ_FIXED_PRECISION));
     }
+
+    return res_shares;
+}
+
+
+std::vector<float> receive_result_dt(std::vector<int>& sockets, int n_parties, int size, int & best_split_index) {
+
+    cout << "Receive result from the SPDZ engine" << endl;
+    std::vector<gfp> output_values(size);
+    octetStream os;
+    for (int i = 0; i < n_parties; i++)
+    {
+        os.reset_write_head();
+        os.Receive(sockets[i]);
+        for (int j = 0; j < size; j++)
+        {
+            gfp value;
+            value.unpack(os);
+            output_values[j] += value;
+        }
+    }
+
+    std::vector<float> res_shares(size - 1);
+
+    for (int i = 0; i < size - 1; i++) {
+        gfp val = output_values[i];
+        bigint aa;
+        to_signed_bigint(aa, val);
+        long t = aa.get_si();
+        //cout<< "i = " << i << ", t = " << t <<endl;
+        res_shares[i] = static_cast<float>(t * pow(2, -SPDZ_FIXED_PRECISION));
+    }
+
+    gfp index = output_values[size - 1];
+    bigint index_aa;
+    to_signed_bigint(index_aa, index);
+    best_split_index = index_aa.get_si();
 
     return res_shares;
 }
