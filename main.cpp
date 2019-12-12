@@ -221,6 +221,11 @@ void decision_tree(Client & client) {
 
     logger(stdout, "End decision tree training\n");
 
+    float accuracy = 0.0;
+    model.test_accuracy(client, accuracy);
+
+    logger(stdout, "Accuracy = %f\n", accuracy);
+
 }
 
 
@@ -267,6 +272,7 @@ int main(int argc, char *argv[]) {
 
     //logistic_regression(client);
     decision_tree(client);
+
 
 //    test_share_decrypt(client);
 

@@ -24,7 +24,7 @@ public:
     int sample_size;                            // the number of samples on the node
     EncodedNumber impurity;                     // the impurity of the current tree node, Gini index for classification, variance for regression
     EncodedNumber *sample_iv;                   // the encrypted indicator vector of which samples are available on this node
-    EncodedNumber label;                        // if is_leaf is true, a label is assigned; if type = 0, T = int, else T = float
+    EncodedNumber label;                        // if is_leaf is true, a label is assigned
     int left_child;                             // left branch id of the current node, if it is not a leaf node, -1: not decided
     int right_child;                            // right branch id of the current node, if it is not a leaf node, -1: not decided
 
@@ -35,6 +35,39 @@ public:
     ~TreeNode();
 
     void print_node();
+};
+
+struct PredictionObj {
+    int is_leaf;
+    int is_self_feature;
+    int best_client_id;
+    int best_feature_id;
+    int best_split_id;
+    int mark;
+    int index;
+
+    PredictionObj() {
+        is_leaf = -1;
+        is_self_feature = -1;
+        best_client_id = -1;
+        best_feature_id = -1;
+        best_split_id = -1;
+        mark = -1;
+        index = -1;
+    }
+
+    PredictionObj(int m_is_leaf, int m_is_self_feature, int m_best_client_id,
+            int m_best_feature_id, int m_best_split_id, int m_mark, int m_index) {
+        is_leaf = m_is_leaf;
+        is_self_feature = m_is_self_feature;
+        best_client_id = m_best_client_id;
+        best_feature_id = m_best_feature_id;
+        best_split_id = m_best_split_id;
+        mark = m_mark;
+        index = m_index;
+    }
+
+    ~PredictionObj() {}
 };
 
 #endif //COLLABORATIVEML_TREE_NODE_H

@@ -160,10 +160,19 @@ public:
     /**
      * predict a result given a sample id
      *
-     * @param client
      * @param sample_id
+     * @param node_index_2_leaf_index_map
      */
-    void predict(Client & client, int sample_id);
+    std::vector<int> compute_binary_vector(int sample_id, std::map<int,int> node_index_2_leaf_index_map);
+
+
+    /**
+     * test the accuracy on the test data
+     *
+     * @param client
+     * @param accuracy
+     */
+    void test_accuracy(Client & client, float & accuracy);
 };
 
 #endif //COLLABORATIVEML_CART_TREE_H

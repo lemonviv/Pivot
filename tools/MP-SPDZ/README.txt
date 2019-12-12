@@ -10,6 +10,10 @@ To communicate with MP-SPDZ programs, the following steps should be done.
     (1) ./semi-party.x -F -N 3 -I -p 0 vfl_logistic_func
     (2) ./semi-party.x -F -N 3 -I -p 1 vfl_logistic_func
     (3) ./semi-party.x -F -N 3 -I -p 2 vfl_logistic_func
+    If running decision tree:
+    (1) ./semi-party.x -F -N 3 -I -p 0 vfl_decision_tree
+    (2) ./semi-party.x -F -N 3 -I -p 1 vfl_decision_tree
+    (3) ./semi-party.x -F -N 3 -I -p 2 vfl_decision_tree
 7. Open three terminals in CollaborativeML/build, execute the following commands, respectively:
     (1) ./CollaborativeML 0
     (2) ./CollaborativeML 1

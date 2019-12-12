@@ -14,6 +14,8 @@
 #include <errno.h>
 #include <sys/types.h>
 #include <sys/inotify.h>
+#include <map>
+#include <stack>
 
 #include "../utils/spdz/spdz_util.h"
 
@@ -444,6 +446,8 @@ void DecisionTree::build_tree_node(Client & client, int node_index) {
     bigint::init_thread();
 
     if (!check_pruning_conditions_revise(client, node_index)) {
+
+        tree_nodes[node_index].is_leaf = 0;
 
         // super client send encrypted labels to the other clients
         if (client.client_id == 0) {
@@ -958,6 +962,8 @@ void DecisionTree::build_tree_node(Client & client, int node_index) {
         tree_nodes[right_child_index].impurity = aggregate_enc_impurities[1];
         tree_nodes[left_child_index].sample_size = tree_nodes[node_index].sample_size;
         tree_nodes[right_child_index].sample_size = tree_nodes[node_index].sample_size;
+        tree_nodes[left_child_index].type = tree_nodes[node_index].type;
+        tree_nodes[right_child_index].type = tree_nodes[node_index].type;
 
         for (int i = 0; i < tree_nodes[node_index].available_feature_ids.size(); i++) {
             int feature_id = tree_nodes[node_index].available_feature_ids[i];
@@ -1039,6 +1045,8 @@ void DecisionTree::build_tree_node(Client & client, int node_index) {
         tree_nodes[right_child_index].impurity = recv_right_impurity;
         tree_nodes[left_child_index].sample_size = tree_nodes[node_index].sample_size;
         tree_nodes[right_child_index].sample_size = tree_nodes[node_index].sample_size;
+        tree_nodes[left_child_index].type = tree_nodes[node_index].type;
+        tree_nodes[right_child_index].type = tree_nodes[node_index].type;
 
         tree_nodes[left_child_index].sample_iv = new EncodedNumber[tree_nodes[left_child_index].sample_size];
         tree_nodes[right_child_index].sample_iv = new EncodedNumber[tree_nodes[right_child_index].sample_size];
@@ -1087,7 +1095,7 @@ void DecisionTree::build_tree_node(Client & client, int node_index) {
     std::vector<int>().swap(right_sample_nums_shares);
     std::vector< std::vector<float> >().swap(stats_shares);
 
-    logger(stdout, "End build tree\n");
+    logger(stdout, "End build tree node %d\n", node_index);
 }
 
 // TODO: this function could be optimized
@@ -1178,12 +1186,205 @@ void DecisionTree::compute_encrypted_statistics(Client & client, int node_index,
 }
 
 
-void DecisionTree::predict(Client & client, int sample_id) {
+std::vector<int> DecisionTree::compute_binary_vector(int sample_id, std::map<int, int> node_index_2_leaf_index_map) {
 
-    logger(stdout, "Begin predict a sample id = %d\n", sample_id);
+    vector<float> sample_values = testing_data[sample_id];
+    std::vector<int> binary_vector(internal_node_num + 1);
 
-    logger(stdout, "End predict a sample id = %d\n", sample_id);
+    // traverse the whole tree iteratively, and compute binary_vector
+    std::stack<PredictionObj> traverse_prediction_objs;
+    PredictionObj prediction_obj(tree_nodes[0].is_leaf, tree_nodes[0].is_self_feature, tree_nodes[0].best_client_id,
+            tree_nodes[0].best_feature_id, tree_nodes[0].best_split_id, 1, 0);
+    traverse_prediction_objs.push(prediction_obj);
+    while (!traverse_prediction_objs.empty()) {
+        PredictionObj pred_obj = traverse_prediction_objs.top();
+        if (pred_obj.is_leaf == 1) {
+            // find leaf index and record
+            int leaf_index = node_index_2_leaf_index_map.find(pred_obj.index)->second;
+            binary_vector[leaf_index] = pred_obj.mark;
+            traverse_prediction_objs.pop();
+        } else if (pred_obj.is_self_feature != 1) {
+            // both left and right branches are marked as 1 * current_mark
+            traverse_prediction_objs.pop();
+            int left_node_index = pred_obj.index * 2 + 1;
+            int right_node_index = pred_obj.index * 2 + 2;
+
+            PredictionObj left(tree_nodes[left_node_index].is_leaf, tree_nodes[left_node_index].is_self_feature,
+                    tree_nodes[left_node_index].best_client_id, tree_nodes[left_node_index].best_feature_id,
+                    tree_nodes[left_node_index].best_split_id, pred_obj.mark, left_node_index);
+            PredictionObj right(tree_nodes[right_node_index].is_leaf, tree_nodes[right_node_index].is_self_feature,
+                    tree_nodes[right_node_index].best_client_id, tree_nodes[right_node_index].best_feature_id,
+                    tree_nodes[right_node_index].best_split_id, pred_obj.mark, right_node_index);
+            traverse_prediction_objs.push(left);
+            traverse_prediction_objs.push(right);
+        } else {
+            // is self feature, retrieve split value and compare
+            traverse_prediction_objs.pop();
+            int feature_id = pred_obj.best_feature_id;
+            int split_id = pred_obj.best_split_id;
+            float split_value = features[feature_id].split_values[split_id];
+            int left_mark, right_mark;
+            if (sample_values[feature_id] <= split_value) {
+                left_mark = pred_obj.mark * 1;
+                right_mark = pred_obj.mark * 0;
+            } else {
+                left_mark = pred_obj.mark * 0;
+                right_mark = pred_obj.mark * 1;
+            }
+
+            int left_node_index = pred_obj.index * 2 + 1;
+            int right_node_index = pred_obj.index * 2 + 2;
+            PredictionObj left(tree_nodes[left_node_index].is_leaf, tree_nodes[left_node_index].is_self_feature,
+                    tree_nodes[left_node_index].best_client_id, tree_nodes[left_node_index].best_feature_id,
+                    tree_nodes[left_node_index].best_split_id, left_mark, left_node_index);
+            PredictionObj right(tree_nodes[right_node_index].is_leaf, tree_nodes[right_node_index].is_self_feature,
+                    tree_nodes[right_node_index].best_client_id, tree_nodes[right_node_index].best_feature_id,
+                    tree_nodes[right_node_index].best_split_id, right_mark, right_node_index);
+
+            traverse_prediction_objs.push(left);
+            traverse_prediction_objs.push(right);
+        }
+    }
+
+    return binary_vector;
 }
+
+
+void DecisionTree::test_accuracy(Client &client, float &accuracy) {
+
+    logger(stdout, "Begin test accuracy on testing dataset\n");
+
+    /**
+     * Testing procedure:
+     *  1. Organize the leaf label vector, and record the map between tree node index and leaf index
+     *  2. For each sample in the testing dataset, search the whole tree and do the following:
+     *      2.1 if meet feature that not belong to self, mark 1, and iteratively search left and right branches with 1
+     *      2.2 if meet feature that belongs to self, compare with the split value, mark satisfied branch with 1 while
+     *          the other branch with 0, and iteratively search left and right branches
+     *      2.3 if meet the leaf node, record the corresponding leaf index with current value
+     *  3. After each client obtaining a 0-1 vector of leaf nodes, do the following:
+     *      3.1 the "client_num-1"-th client element-wise multiply with leaf label vector, and encrypt the vector,
+     *          send to the next client, i.e., client_num-2
+     *      3.2 every client on the Robin cycle updates the vector by element-wise homomorphic multiplication, and send to the next
+     *      3.3 the last client, i.e., client 0 get the final encrypted vector and homomorphic add together, call share decryption
+     *  4. If label is matched, correct_num += 1, otherwise, continue
+     *  5. Return the final test accuracy by correct_num / testing_dataset.size()
+     */
+
+    // compute public key size in encoded number
+    mpz_t n;
+    mpz_init(n);
+    mpz_sub_ui(n, client.m_pk->g, 1);
+
+    // step 1: organize the leaf label vector, compute the map
+    logger(stdout, "internal_node_num = %d\n", internal_node_num);
+    EncodedNumber *label_vector = new EncodedNumber[internal_node_num + 1];
+
+    std::map<int, int> node_index_2_leaf_index_map;
+    int leaf_cur_index = 0;
+    for (int i = 0; i < pow(2, max_depth + 1) - 1; i++) {
+        if (tree_nodes[i].is_leaf == 1) {
+            node_index_2_leaf_index_map.insert(std::make_pair(i, leaf_cur_index));
+            label_vector[leaf_cur_index] = tree_nodes[i].label;  // record leaf label vector
+            leaf_cur_index ++;
+        }
+    }
+
+    int correct_num = 0;
+
+    // for each sample
+    for (int i = 0; i < testing_data.size(); i++) {
+
+        // compute binary vector for the current sample
+        std::vector<int> binary_vector = compute_binary_vector(i, node_index_2_leaf_index_map);
+        EncodedNumber *encoded_binary_vector = new EncodedNumber[binary_vector.size()];
+        EncodedNumber *updated_label_vector = new EncodedNumber[binary_vector.size()];
+
+        // update in Robin cycle, from the last client to client 0
+        if (client.client_id == client.client_num - 1) {
+
+            for (int j = 0; j < binary_vector.size(); j++) {
+                encoded_binary_vector[j].set_integer(n, binary_vector[j]);
+                djcs_t_aux_ep_mul(client.m_pk, updated_label_vector[j], label_vector[j], encoded_binary_vector[j]);
+            }
+
+            // send to the next client
+            std::string send_s;
+            serialize_batch_sums(updated_label_vector, binary_vector.size(), send_s);
+            client.send_long_messages(client.channels[client.client_id - 1].get(), send_s);
+
+        } else if (client.client_id > 0) {
+
+            std::string recv_s;
+            client.recv_long_messages(client.channels[client.client_id + 1].get(), recv_s);
+            int recv_size; // should be same as binary_vector.size()
+            deserialize_sums_from_string(updated_label_vector, recv_size, recv_s);
+            for (int j = 0; j < binary_vector.size(); j++) {
+                encoded_binary_vector[j].set_integer(n, binary_vector[j]);
+                djcs_t_aux_ep_mul(client.m_pk, updated_label_vector[j], updated_label_vector[j], encoded_binary_vector[j]);
+            }
+
+            std::string resend_s;
+            serialize_batch_sums(updated_label_vector, binary_vector.size(), resend_s);
+            client.send_long_messages(client.channels[client.client_id - 1].get(), resend_s);
+
+        } else {
+
+            // the super client update the last, and aggregate before calling share decryption
+            std::string final_recv_s;
+            client.recv_long_messages(client.channels[client.client_id + 1].get(), final_recv_s);
+            int final_recv_size;
+            deserialize_sums_from_string(updated_label_vector, final_recv_size, final_recv_s);
+            for (int j = 0; j < binary_vector.size(); j++) {
+                encoded_binary_vector[j].set_integer(n, binary_vector[j]);
+                djcs_t_aux_ep_mul(client.m_pk, updated_label_vector[j], updated_label_vector[j], encoded_binary_vector[j]);
+            }
+        }
+
+        // aggregate and call share decryption
+        if (client.client_id == 0) {
+
+            EncodedNumber *encrypted_aggregation = new EncodedNumber[1];
+            encrypted_aggregation[0].set_float(n, 0, 2 * FLOAT_PRECISION);
+            djcs_t_aux_encrypt(client.m_pk, client.m_hr, encrypted_aggregation[0], encrypted_aggregation[0]);
+            for (int j = 0; j < binary_vector.size(); j++) {
+                djcs_t_aux_ee_add(client.m_pk, encrypted_aggregation[0], encrypted_aggregation[0], updated_label_vector[j]);
+            }
+
+            EncodedNumber *decrypted_label = new EncodedNumber[1];
+            client.share_batch_decrypt(encrypted_aggregation, decrypted_label, 1);
+
+            float decoded_label;
+            decrypted_label->decode(decoded_label);
+
+            float rounded_decoded_label;
+            if (decoded_label >= 0.5) {
+                rounded_decoded_label = 1.0;
+            } else {
+                rounded_decoded_label = 0.0;
+            }
+
+            logger(stdout, "decoded_label = %f while true label = %f\n", decoded_label, testingg_data_labels[i]);
+
+            if (rounded_decoded_label == testingg_data_labels[i]) {
+                correct_num += 1;
+            }
+
+        } else {
+            std::string s, response_s;
+            client.recv_long_messages(client.channels[0].get(), s);
+            client.decrypt_batch_piece(s, response_s, 0);
+        }
+
+    }
+
+    accuracy = (float) correct_num / (float) testingg_data_labels.size();
+
+    logger(stdout, "End test accuracy on testing dataset\n");
+
+    delete [] label_vector;
+}
+
 
 
 DecisionTree::~DecisionTree() {
