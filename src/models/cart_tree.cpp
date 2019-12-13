@@ -261,8 +261,7 @@ bool DecisionTree::check_pruning_conditions_revise(Client & client, int node_ind
 
         decrypted_conditions[0].decode(available_num);
 
-        if ((tree_nodes[node_index].depth == max_depth) ||
-            (tree_nodes[node_index].available_global_feature_num == 0)) {
+        if ((tree_nodes[node_index].depth == max_depth) || (tree_nodes[node_index].available_global_feature_num == 0)) {
             // case 1
             is_satisfied = 1;
         } else {
@@ -293,6 +292,17 @@ bool DecisionTree::check_pruning_conditions_revise(Client & client, int node_ind
             }
         }
 
+        // the fisrt message for notifying whether is_satisfied == 1
+
+        serialize_prune_check_result(node_index, is_satisfied, label, result_str);
+
+        // send to the other client
+        for (int i = 0; i < client.client_num; i++) {
+            if (i != client.client_id) {
+                client.send_long_messages(client.channels[i].get(), result_str);
+            }
+        }
+
         // pack pruning condition result pb string and sends to the other clients
         if (is_satisfied) {
 
@@ -300,59 +310,77 @@ bool DecisionTree::check_pruning_conditions_revise(Client & client, int node_ind
 
             // compute label information
             // TODO: here should find majority class as label for classification, should modify latter
-            // for classification, the label is djcs_t_aux_dot_product(labels, sample_ivs) / available_num
+            // for classification, the label is djcs_t_aux_dot_product(labels, sample_ivs) / available_num (might incorrect)
             // for regression, the label is djcs_t_aux_dot_product(labels, sample_ivs) / available_num
-            float inv_available_num = 1.0 / (float) available_num;
-            EncodedNumber inv_encoded;
-            inv_encoded.set_float(n, inv_available_num);
 
-            auto *encoded_labels = new EncodedNumber[training_data_labels.size()];
-            for (int i = 0; i < training_data_labels.size(); i++) {
-                encoded_labels[i].set_float(n, training_data_labels[i]);
+            if (type == 0) {
+
+                auto *class_sample_nums = new EncodedNumber[indicator_class_vecs.size()];
+                for (int xx = 0; xx < indicator_class_vecs.size(); xx++) {
+                    class_sample_nums[xx].set_integer(n, 0);
+                    djcs_t_aux_encrypt(client.m_pk, client.m_hr, class_sample_nums[xx], class_sample_nums[xx]);
+                    for (int j = 0; j < indicator_class_vecs[xx].size(); j++) {
+                        if (indicator_class_vecs[xx][j] == 1) {
+                            djcs_t_aux_ee_add(client.m_pk, class_sample_nums[xx], class_sample_nums[xx],
+                                              tree_nodes[node_index].sample_iv[j]);
+                        }
+                    }
+                }
+
+                // TODO: should send to SPDZ for finding the majority class
+                std::string sample_nums_str;
+                auto *decrypted_class_sample_nums = new EncodedNumber[indicator_class_vecs.size()];
+                client.share_batch_decrypt(class_sample_nums, decrypted_class_sample_nums, indicator_class_vecs.size());
+
+                float majority_class_label = -1;
+                long majority_class_sample_num = -1;
+                for (int j = 0; j < indicator_class_vecs.size(); j++) {
+                    long x;
+                    decrypted_class_sample_nums[j].decode(x);
+                    logger(stdout, "x = %d\n", x);
+                    if (majority_class_sample_num < x) {
+                        majority_class_label = (float) j;
+                        majority_class_sample_num = x;
+                    }
+                }
+
+                logger(stdout, "Majority class label = %f\n", majority_class_label);
+
+                EncodedNumber majority_label;
+                majority_label.set_float(n, majority_class_label, 2 * FLOAT_PRECISION);
+                djcs_t_aux_encrypt(client.m_pk, client.m_hr, majority_label, majority_label);
+                label = majority_label;
+
+            } else {
+                float inv_available_num = 1.0 / (float) available_num;
+                EncodedNumber inv_encoded;
+                inv_encoded.set_float(n, inv_available_num);
+
+                auto *encoded_labels = new EncodedNumber[training_data_labels.size()];
+                for (int i = 0; i < training_data_labels.size(); i++) {
+                    encoded_labels[i].set_float(n, training_data_labels[i]);
+                }
+
+                EncodedNumber dot_product_res;
+                djcs_t_aux_inner_product(client.m_pk, client.m_hr, dot_product_res,
+                                         tree_nodes[node_index].sample_iv, encoded_labels, training_data_labels.size());
+                djcs_t_aux_ep_mul(client.m_pk, label, dot_product_res, inv_encoded);
+
+                delete [] encoded_labels;
             }
 
-            EncodedNumber dot_product_res;
-            djcs_t_aux_inner_product(client.m_pk, client.m_hr, dot_product_res,
-                    tree_nodes[node_index].sample_iv, encoded_labels, training_data_labels.size());
-
-            djcs_t_aux_ep_mul(client.m_pk, label, dot_product_res, inv_encoded);
-
             // send encrypted impurity and plaintext label
-            serialize_prune_check_result(node_index, is_satisfied, label, result_str);
+            std::string second_result_str;
+            serialize_prune_check_result(node_index, is_satisfied, label, second_result_str);
 
             tree_nodes[node_index].is_leaf = 1;
             tree_nodes[node_index].label = label;
 
-            delete [] encoded_labels;
-
-        } else {
-
-            serialize_prune_check_result(node_index, is_satisfied, label, result_str);
-
-
-            // not satisfied, send encrypted label vectors
-            // tree_nodes[node_index].is_leaf = 0;
-//            for (int i = 0; i < classes_num; i++) {
-//                for (int j = 0; j < training_data_labels.size(); j++) {
-//                    EncodedNumber tmp;
-//                    tmp.set_float(n, indicator_class_vecs[i][j]);
-//                    djcs_t_aux_ep_mul(client.m_pk, encrypted_label_vecs[i][j], tree_nodes[node_index].sample_iv[j], tmp);
-//                }
-//            }
-//
-//            serialize_pruning_condition_result(node_index, is_satisfied, encrypted_label_vecs, classes_num,
-//                    training_data_labels.size(), label, result_str);
-
-//            ofstream test_pb_file;
-//            test_pb_file.open("test_pb_file.txt");
-//            test_pb_file << result_str;
-//            test_pb_file.close();
-        }
-
-        // send to the other client
-        for (int i = 0; i < client.client_num; i++) {
-            if (i != client.client_id) {
-                client.send_long_messages(client.channels[i].get(), result_str);
+            // send to the other client
+            for (int i = 0; i < client.client_num; i++) {
+                if (i != client.client_id) {
+                    client.send_long_messages(client.channels[i].get(), second_result_str);
+                }
             }
         }
 
@@ -368,16 +396,6 @@ bool DecisionTree::check_pruning_conditions_revise(Client & client, int node_ind
         // receive the result of the pruning conditions check
         // leave update to the outside
         client.recv_long_messages(client.channels[0].get(), result_str);
-
-//        EncodedNumber **test_vecs = new EncodedNumber*[classes_num];
-//        for (int i = 0; i < classes_num; i++) {
-//            test_vecs[i] = new EncodedNumber[training_data_labels.size()];
-//        }
-//        EncodedNumber test_label;
-//        deserialize_pruning_condition_result(recv_node_index, is_satisfied, test_vecs, test_label, result_str);
-
-        //deserialize_pruning_condition_result(recv_node_index, is_satisfied, encrypted_label_vecs, label, result_str);
-
         deserialize_prune_check_result(recv_node_index, is_satisfied, label, result_str);
 
         if (recv_node_index != node_index) {
@@ -386,6 +404,19 @@ bool DecisionTree::check_pruning_conditions_revise(Client & client, int node_ind
         }
 
         if (is_satisfied == 1) {
+
+            if (type == 0) {
+                std::string ss, response_ss;
+                client.recv_long_messages(client.channels[0].get(), ss);
+                client.decrypt_batch_piece(ss, response_ss, 0);
+            }
+
+            // receive another message for updating the label
+            std::string second_result_str;
+            client.recv_long_messages(client.channels[0].get(), second_result_str);
+            int second_recv_node_index, second_is_satisfied;
+            deserialize_prune_check_result(second_recv_node_index, second_is_satisfied, label, second_result_str);
+
             tree_nodes[node_index].is_leaf = 1;
             tree_nodes[node_index].label = label;
         }
@@ -400,7 +431,6 @@ bool DecisionTree::check_pruning_conditions_revise(Client & client, int node_ind
 void DecisionTree::build_tree_node(Client & client, int node_index) {
 
     logger(stdout, "******************* Begin build tree node %d *******************\n", node_index);
-
 
     /** recursively build a decision tree
      *
@@ -964,6 +994,8 @@ void DecisionTree::build_tree_node(Client & client, int node_index) {
         tree_nodes[right_child_index].sample_size = tree_nodes[node_index].sample_size;
         tree_nodes[left_child_index].type = tree_nodes[node_index].type;
         tree_nodes[right_child_index].type = tree_nodes[node_index].type;
+        tree_nodes[left_child_index].available_global_feature_num = tree_nodes[node_index].available_global_feature_num - 1;
+        tree_nodes[right_child_index].available_global_feature_num = tree_nodes[node_index].available_global_feature_num - 1;
 
         for (int i = 0; i < tree_nodes[node_index].available_feature_ids.size(); i++) {
             int feature_id = tree_nodes[node_index].available_feature_ids[i];
@@ -1047,6 +1079,8 @@ void DecisionTree::build_tree_node(Client & client, int node_index) {
         tree_nodes[right_child_index].sample_size = tree_nodes[node_index].sample_size;
         tree_nodes[left_child_index].type = tree_nodes[node_index].type;
         tree_nodes[right_child_index].type = tree_nodes[node_index].type;
+        tree_nodes[left_child_index].available_global_feature_num = tree_nodes[node_index].available_global_feature_num - 1;
+        tree_nodes[right_child_index].available_global_feature_num = tree_nodes[node_index].available_global_feature_num - 1;
 
         tree_nodes[left_child_index].sample_iv = new EncodedNumber[tree_nodes[left_child_index].sample_size];
         tree_nodes[right_child_index].sample_iv = new EncodedNumber[tree_nodes[right_child_index].sample_size];
@@ -1384,7 +1418,6 @@ void DecisionTree::test_accuracy(Client &client, float &accuracy) {
 
     delete [] label_vector;
 }
-
 
 
 DecisionTree::~DecisionTree() {
