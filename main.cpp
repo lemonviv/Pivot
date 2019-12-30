@@ -161,7 +161,7 @@ void logistic_regression(Client client) {
 
     logger(stdout, "init finished\n");
 
-    float split = 0.8;
+    float split = 0.7;
     if (client.client_id == 0) {
         model.init_datasets(client, split);
     } else {
@@ -174,7 +174,7 @@ void logistic_regression(Client client) {
 
     model.train(client);
 
-    int test_size = client.sample_num * 0.2;
+    int test_size = client.sample_num * (1 - SPLIT_PERCENTAGE);
     int *sample_ids = new int[test_size];
     for (int i = 0; i < test_size; i++) {
         sample_ids[i] = client.sample_num - test_size + i;
@@ -185,26 +185,28 @@ void logistic_regression(Client client) {
     logger(stdout, "Testing accuracy = %f \n", accuracy);
 }
 
-void decision_tree(Client & client) {
+void decision_tree(Client & client, int solution_type, int optimization_type, int max_tree_depth) {
 
     logger(stdout, "Begin decision tree training\n");
 
-    int m_global_feature_num = 35;
+    int m_global_feature_num = GLOBAL_FEATURE_NUM;
     int m_local_feature_num = client.local_data[0].size();
     int m_internal_node_num = 0;
     int m_type = 0;
     int m_classes_num = 2;
-    int m_max_depth = MAX_DEPTH;
+    int m_max_depth = max_tree_depth;
     int m_max_bins = MAX_BINS;
     int m_prune_sample_num = PRUNE_SAMPLE_NUM;
     float m_prune_threshold = PRUNE_VARIANCE_THRESHOLD;
+    int m_solution_type = solution_type;
+    int m_optimization_type = optimization_type;
 
     DecisionTree model(m_global_feature_num, m_local_feature_num, m_internal_node_num, m_type, m_classes_num,
-            m_max_depth, m_max_bins, m_prune_sample_num, m_prune_threshold);
+            m_max_depth, m_max_bins, m_prune_sample_num, m_prune_threshold, m_solution_type, m_optimization_type);
 
     logger(stdout, "Init decision tree model succeed\n");
 
-    float split = 0.8;
+    float split = SPLIT_PERCENTAGE;
     if (client.client_id == 0) {
         model.init_datasets(client, split);
     } else {
@@ -220,12 +222,12 @@ void decision_tree(Client & client) {
     model.build_tree_node(client, 0);
 
     logger(stdout, "End decision tree training\n");
+    logger(stdout, "The internal node number is %d\n", model.internal_node_num);
 
     float accuracy = 0.0;
     model.test_accuracy(client, accuracy);
 
     logger(stdout, "Accuracy = %f\n", accuracy);
-
 }
 
 
@@ -239,11 +241,34 @@ int main(int argc, char *argv[]) {
     std::string s2 = std::to_string(client_id);
     std::string data_file = s1 + "client_" + s2 + ".txt";
 
-    if (client_id == 0) {
-        system_setup();
+    int solution_type = 0;  // type = 0, basic solution; type = 1, enhanced solution
+    int optimization_type = 0;  // type = 0, no optimization; type = 1, combining splits; type = 2, packing; type = 3, parallelism; type = 4, full optimization
+    int max_tree_depth = MAX_DEPTH;
+
+    if (argc > 2) {
+        client_num = atoi(argv[2]);
+    }
+    if (argc > 3) {
+        solution_type = atoi(argv[3]);
+    }
+    if (argc > 4) {
+        optimization_type = atoi(argv[4]);
+    }
+    if (argc > 5) {
+        network_file = argv[5];
+    }
+    if (argc > 6) {
+        data_file = argv[6];
+    }
+    if (argc > 7) {
+        max_tree_depth = atoi(argv[7]);
     }
 
     //test_pb();
+
+    if (client_id == 0) {
+        system_setup();
+    }
 
     Client client(client_id, client_num, has_label, network_file, data_file);
 
@@ -271,7 +296,7 @@ int main(int argc, char *argv[]) {
     }
 
     //logistic_regression(client);
-    decision_tree(client);
+    decision_tree(client, solution_type, optimization_type, max_tree_depth);
 
 
 //    test_share_decrypt(client);

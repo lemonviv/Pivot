@@ -9,6 +9,7 @@
 #include "libhcs.h"
 #include "../utils/encoder.h"
 #include <comm/Comm.hpp>
+#include "../include/common.h"
 
 /**
  * This class is the client in distributed collaborative machine learning
@@ -110,8 +111,9 @@ public:
      * @param ciphers
      * @param decrypted_res
      * @param size
+     * @param parallel 0 no parallelism, 1 parallelism
      */
-    void share_batch_decrypt(EncodedNumber *ciphers, EncodedNumber *& decrypted_res, int size = 1);
+    void share_batch_decrypt(EncodedNumber *ciphers, EncodedNumber *& decrypted_res, int size = 1, int parallel = 0);
 
 
     /**
@@ -120,8 +122,9 @@ public:
      * @param s
      * @param response_s
      * @param src_client_id
+     * @param parallel 0 no parallelism, 1 parallelism
      */
-    void decrypt_batch_piece(std::string s, std::string & response_s, int src_client_id);
+    void decrypt_batch_piece(std::string s, std::string & response_s, int src_client_id, int parallel = 0);
 
 
     /**

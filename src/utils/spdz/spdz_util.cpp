@@ -57,9 +57,9 @@ std::vector<int> setup_sockets(int n_parties, int my_client_id, const std::strin
     {
         set_up_client_socket(sockets[i], host_name.c_str(), port_base + i);
         send(sockets[i], (octet*) &my_client_id, sizeof(int));
-        cout << "set up for " << i << "-th party succeed" << ", sockets = " << sockets[i] << ", port_num = " << port_base + i << endl;
+        //cout << "set up for " << i << "-th party succeed" << ", sockets = " << sockets[i] << ", port_num = " << port_base + i << endl;
     }
-    cout << "Finish setup socket connections to SPDZ engines." << endl;
+    //cout << "Finish setup socket connections to SPDZ engines." << endl;
     return sockets;
 }
 

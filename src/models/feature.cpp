@@ -133,6 +133,35 @@ void Feature::find_splits() {
     // feature as label encoder sortable values
 
     int n_samples = original_feature_values.size();
+    std::vector<float> distinct_values = compute_distinct_values();
+
+    // if distinct values is larger than max_bins + 1, treat as continuous feature
+    // otherwise, treat as categorical feature
+    if (distinct_values.size() >= max_bins) {
+        // treat as continuous feature, find splits using quantile method (might not accurate when the values are imbalanced)
+        int n_sample_per_bin = n_samples / (num_splits + 1);
+        for (int i = 0; i < num_splits; i++) {
+            float split_value_i = (original_feature_values[sorted_indexes[(i + 1) * n_sample_per_bin]]
+                                   + original_feature_values[sorted_indexes[(i + 1) * n_sample_per_bin + 1]])/2;
+            split_values.push_back(split_value_i);
+        }
+    }
+    else if (distinct_values.size() > 1) {
+        // the split values are same as the distinct values
+        num_splits = distinct_values.size() - 1;
+        for (int i = 0; i < num_splits; i++) {
+            split_values.push_back(distinct_values[i]);
+        }
+    }
+    else {
+        // the distinct values is equal to 1, which is suspicious for the input dataset
+        logger(stdout, "This feature has only one distinct value, please check it again\n");
+        num_splits = distinct_values.size();
+        split_values.push_back(distinct_values[0]);
+    }
+
+/* PREVIOUS METHOD
+    int n_samples = original_feature_values.size();
     if (!is_categorical) {
         // find splits using quantile method
         int n_sample_per_bin = n_samples / (num_splits + 1);
@@ -161,6 +190,7 @@ void Feature::find_splits() {
 
         std::vector<float>().swap(distinct_values);
     }
+*/
 }
 
 

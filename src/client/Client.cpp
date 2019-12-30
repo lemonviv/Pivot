@@ -14,6 +14,7 @@
 #include "../utils/util.h"
 #include "../utils/pb_converter.h"
 #include "../include/protobuf/keys.pb.h"
+#include "omp.h"
 
 
 Client::Client() {}
@@ -285,7 +286,7 @@ void Client::serialize_send_keys(std::string &send_keys, djcs_t_public_key *pk, 
 }
 
 
-void Client::share_batch_decrypt(EncodedNumber *ciphers, EncodedNumber *& decrypted_res, int size) {
+void Client::share_batch_decrypt(EncodedNumber *ciphers, EncodedNumber *& decrypted_res, int size, int parallel) {
 
     mpz_t **dec = (mpz_t **) malloc (size * sizeof(mpz_t *));
     for (int i = 0; i < size; i++) {
@@ -304,6 +305,8 @@ void Client::share_batch_decrypt(EncodedNumber *ciphers, EncodedNumber *& decryp
     }
 
     // decrypt by its own
+    omp_set_num_threads(NUM_OMP_THREADS);
+#pragma omp parallel for if (parallel == 1)
     for (int i = 0; i < size; i++) {
         djcs_t_share_decrypt(m_pk, m_au, dec[i][client_id], ciphers[i].value);
     }
@@ -339,7 +342,7 @@ void Client::share_batch_decrypt(EncodedNumber *ciphers, EncodedNumber *& decryp
 }
 
 
-void Client::decrypt_batch_piece(std::string s, std::string & response_s, int src_client_id) {
+void Client::decrypt_batch_piece(std::string s, std::string & response_s, int src_client_id, int parallel) {
 
     // deserialization
     EncodedNumber *ciphers;
@@ -347,13 +350,17 @@ void Client::decrypt_batch_piece(std::string s, std::string & response_s, int sr
     deserialize_sums_from_string(ciphers, size, s);
 
     // share decrypt
+    omp_set_num_threads(NUM_OMP_THREADS);
+#pragma omp parallel for if (parallel == 1)
     for (int i = 0; i < size; i++) {
-        mpz_t t;
-        mpz_init(t);
-        djcs_t_share_decrypt(m_pk, m_au, t, ciphers[i].value);
+//        mpz_t t;
+//        mpz_init(t);
+//        djcs_t_share_decrypt(m_pk, m_au, t, ciphers[i].value);
+//        ciphers[i].type = Plaintext;
+//        mpz_set(ciphers[i].value, t);
+//        mpz_clear(t);
+        djcs_t_share_decrypt(m_pk, m_au, ciphers[i].value, ciphers[i].value);
         ciphers[i].type = Plaintext;
-        mpz_set(ciphers[i].value, t);
-        mpz_clear(t);
     }
 
     // serialization and return

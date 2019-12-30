@@ -16,13 +16,14 @@
 #include <sys/inotify.h>
 #include <map>
 #include <stack>
+#include "omp.h"
 
 #include "../utils/spdz/spdz_util.h"
 
 DecisionTree::DecisionTree() {}
 
-DecisionTree::DecisionTree(int m_global_feature_num, int m_local_feature_num, int m_internal_node_num, int m_type, int m_classes_num,
-                           int m_max_depth, int m_max_bins, int m_prune_sample_num, float m_prune_threshold) {
+DecisionTree::DecisionTree(int m_global_feature_num, int m_local_feature_num, int m_internal_node_num, int m_type, int m_classes_num, int m_max_depth,
+        int m_max_bins, int m_prune_sample_num, float m_prune_threshold, int m_solution_type, int m_optimization_type) {
 
     global_feature_num = m_global_feature_num;
     local_feature_num = m_local_feature_num;
@@ -39,6 +40,30 @@ DecisionTree::DecisionTree(int m_global_feature_num, int m_local_feature_num, in
     int maximum_nodes = pow(2, max_depth + 1) - 1;
     tree_nodes = new TreeNode[maximum_nodes];
     features = new Feature[local_feature_num];
+
+    if (m_solution_type == 0) {
+        solution_type = Basic;
+    } else {
+        solution_type = Enhanced;
+    }
+
+    switch (m_optimization_type) {
+        case 1:
+            optimization_type = CombiningSplits;
+            break;
+        case 2:
+            optimization_type = Packing;
+            break;
+        case 3:
+            optimization_type = Parallelism;
+            break;
+        case 4:
+            optimization_type = All;
+            break;
+        default:
+            optimization_type = Non;
+            break;
+    }
 }
 
 
@@ -55,6 +80,7 @@ void DecisionTree::init_datasets(Client & client, float split) {
         data_indexes.push_back(i);
     }
 
+    //TODO: remove randomness for testing
     auto rng = std::default_random_engine();
     std::shuffle(std::begin(data_indexes), std::end(data_indexes), rng);
 
@@ -124,7 +150,7 @@ void DecisionTree::init_datasets_with_indexes(Client & client, int *new_indexes,
 
     logger(stdout, "Begin init dataset with indexes\n");
 
-    int training_data_size = client.sample_num * 0.8;
+    int training_data_size = client.sample_num * split;
     int testing_data_size = client.sample_num - training_data_size;
 
     // select the former training data size as training data, and the latter as testing data
@@ -292,7 +318,7 @@ bool DecisionTree::check_pruning_conditions_revise(Client & client, int node_ind
             }
         }
 
-        // the fisrt message for notifying whether is_satisfied == 1
+        // the first message for notifying whether is_satisfied == 1
 
         serialize_prune_check_result(node_index, is_satisfied, label, result_str);
 
@@ -446,9 +472,13 @@ void DecisionTree::build_tree_node(Client & client, int node_index) {
      *  // 6. wait for SPDZ parties return (i_*, j_*, s_*), where i_* is client id, j_* is feature id, and s_* is split id
      *  // 7. client who owns the best split feature do the splits and update mask vector, and broadcast to the other clients
      *  // 8. every client updates mask vector and local tree model
-     *  // 9. recursively build the next two tree node
+     *  // 9. recursively build the next two tree nodes
      *
      * */
+
+    struct timeval tree_node_1, tree_node_2;
+    double tree_node_time = 0;
+    gettimeofday(&tree_node_1, NULL);
 
     if (node_index >= pow(2, max_depth + 1) - 1) {
         logger(stdout, "Node exceeds the maximum tree depth\n");
@@ -482,6 +512,10 @@ void DecisionTree::build_tree_node(Client & client, int node_index) {
         // super client send encrypted labels to the other clients
         if (client.client_id == 0) {
 
+            struct timeval encrypted_label_1, encrypted_label_2;
+            double encrypted_label_time = 0;
+            gettimeofday(&encrypted_label_1, NULL);
+
             encrypted_labels = new EncodedNumber[classes_num * sample_num];
 
             for (int i = 0; i < classes_num; i++) {
@@ -491,6 +525,13 @@ void DecisionTree::build_tree_node(Client & client, int node_index) {
                     djcs_t_aux_ep_mul(client.m_pk, encrypted_labels[i * sample_num + j], tree_nodes[node_index].sample_iv[j], tmp);
                 }
             }
+
+            gettimeofday(&encrypted_label_2, NULL);
+            encrypted_label_time += (double)((encrypted_label_2.tv_sec - encrypted_label_1.tv_sec) * 1000 +
+                                        (double)(encrypted_label_2.tv_usec - encrypted_label_1.tv_usec) / 1000);
+
+            gmp_printf("Local encrypted label computation time: %'.3f ms\n", encrypted_label_time);
+
 
             serialize_encrypted_label_vector(node_index, classes_num, training_data_labels.size(), encrypted_labels, result_str);
 
@@ -515,9 +556,10 @@ void DecisionTree::build_tree_node(Client & client, int node_index) {
 
     // setup sockets
     std::vector<int> sockets = setup_sockets(NUM_SPDZ_PARTIES, client.client_id, "localhost", SPDZ_PORT_NUM_DT);
-    for (int i = 0; i < NUM_SPDZ_PARTIES; i++) {
-        logger(stdout, "socket %d = %d\n", i, sockets[i]);
-    }
+
+//    for (int i = 0; i < NUM_SPDZ_PARTIES; i++) {
+//        logger(stdout, "socket %d = %d\n", i, sockets[i]);
+//    }
 
     encrypted_label_vecs = new EncodedNumber*[classes_num];
     for (int i = 0; i < classes_num; i++) {
@@ -708,6 +750,11 @@ void DecisionTree::build_tree_node(Client & client, int node_index) {
 
     /** encrypted statistics computed finished, convert the encrypted values to secret shares */
 
+    struct timeval conversion_1, conversion_2;
+    double conversion_time = 0;
+    gettimeofday(&conversion_1, NULL);
+
+
     if (client.client_id == 0) {
 
         // receive encrypted shares from the other clients
@@ -757,7 +804,8 @@ void DecisionTree::build_tree_node(Client & client, int node_index) {
         auto *decrypted_right_shares = new EncodedNumber[global_split_num];
 
         // decrypt left shares and set to shares vector
-        client.share_batch_decrypt(global_left_branch_sample_nums, decrypted_left_shares, global_split_num);
+        client.share_batch_decrypt(global_left_branch_sample_nums, decrypted_left_shares, global_split_num,
+                (optimization_type == Parallelism || optimization_type == All));
         for (int i = 0; i < global_split_num; i++) {
             long x;
             decrypted_left_shares[i].decode(x);
@@ -765,7 +813,8 @@ void DecisionTree::build_tree_node(Client & client, int node_index) {
         }
 
         // decrypt right shares and set to shares vector
-        client.share_batch_decrypt(global_right_branch_sample_nums, decrypted_right_shares, global_split_num);
+        client.share_batch_decrypt(global_right_branch_sample_nums, decrypted_right_shares, global_split_num,
+                (optimization_type == Parallelism || optimization_type == All));
         for (int i = 0; i < global_split_num; i++) {
             long x;
             decrypted_right_shares[i].decode(x);
@@ -775,7 +824,8 @@ void DecisionTree::build_tree_node(Client & client, int node_index) {
         // decrypt encrypted statistics and set to shares vector
         for (int i = 0; i < global_split_num; i++) {
             std::vector<float> tmp;
-            client.share_batch_decrypt(global_encrypted_statistics[i], decrypted_global_statistics[i], 2 * classes_num);
+            client.share_batch_decrypt(global_encrypted_statistics[i], decrypted_global_statistics[i],
+                    2 * classes_num, (optimization_type == Parallelism || optimization_type == All));
             for (int j = 0; j < 2 * classes_num; j++) {
                 float x;
                 decrypted_global_statistics[i][j].decode(x);
@@ -844,19 +894,40 @@ void DecisionTree::build_tree_node(Client & client, int node_index) {
         // receive share decrypt information, and decrypt the corresponding information
         std::string s_left_shares, response_s_left_shares, s_right_shares, response_s_right_shares;
         client.recv_long_messages(client.channels[0].get(), s_left_shares);
-        client.decrypt_batch_piece(s_left_shares, response_s_left_shares, 0);
+        client.decrypt_batch_piece(s_left_shares, response_s_left_shares, 0,
+                (optimization_type == Parallelism || optimization_type == All));
 
         client.recv_long_messages(client.channels[0].get(), s_right_shares);
-        client.decrypt_batch_piece(s_right_shares, response_s_right_shares, 0);
+        client.decrypt_batch_piece(s_right_shares, response_s_right_shares, 0,
+                (optimization_type == Parallelism || optimization_type == All));
 
         for (int i = 0; i < global_split_num; i++) {
             std::string s_stat_shares, response_s_stat_shares;
             client.recv_long_messages(client.channels[0].get(), s_stat_shares);
-            client.decrypt_batch_piece(s_stat_shares, response_s_stat_shares, 0);
+            client.decrypt_batch_piece(s_stat_shares, response_s_stat_shares, 0,
+                    (optimization_type == Parallelism || optimization_type == All));
         }
     }
 
+
     logger(stdout, "Conversion to secret shares succeed\n");
+
+    gettimeofday(&conversion_2, NULL);
+    conversion_time += (double)((conversion_2.tv_sec - conversion_1.tv_sec) * 1000 +
+                          (double)(conversion_2.tv_usec - conversion_1.tv_usec) / 1000);
+
+    gmp_printf("Secret share conversion time: %'.3f ms\n", conversion_time);
+
+    double current_collapse_time = 0;
+    current_collapse_time += (double) ((conversion_2.tv_sec - tree_node_1.tv_sec) * 1000 +
+                                       (double)(conversion_2.tv_usec - tree_node_1.tv_usec) / 1000);
+
+    gmp_printf("Current collapse time: %'.3f ms\n", current_collapse_time);
+
+
+    struct timeval spdz_1, spdz_2;
+    double spdz_time = 0;
+    gettimeofday(&spdz_1, NULL);
 
     /** secret shares conversion finished, talk to SPDZ parties for MPC computations */
 
@@ -900,6 +971,19 @@ void DecisionTree::build_tree_node(Client & client, int node_index) {
     }
 
     logger(stdout, "Received: best_split_index = %d\n", index_in_global_split_num);
+
+
+    gettimeofday(&spdz_2, NULL);
+    spdz_time += (double)((spdz_2.tv_sec - spdz_1.tv_sec) * 1000 +
+                               (double)(spdz_2.tv_usec - spdz_1.tv_usec) / 1000);
+
+    gmp_printf("SPDZ time: %'.3f ms\n", spdz_time);
+
+    double current_collapse_time_2 = 0;
+    current_collapse_time_2 += (double) ((spdz_2.tv_sec - tree_node_1.tv_sec) * 1000 +
+                                       (double)(spdz_2.tv_usec - tree_node_1.tv_usec) / 1000);
+
+    gmp_printf("Current collapse time 2: %'.3f ms\n", current_collapse_time_2);
 
     // recover encrypted impurities for the left and right branches
 
@@ -1012,6 +1096,8 @@ void DecisionTree::build_tree_node(Client & client, int node_index) {
         tree_nodes[left_child_index].sample_iv = new EncodedNumber[tree_nodes[left_child_index].sample_size];
         tree_nodes[right_child_index].sample_iv = new EncodedNumber[tree_nodes[right_child_index].sample_size];
 
+        omp_set_num_threads(NUM_OMP_THREADS);
+#pragma omp parallel for if((optimization_type == Parallelism) || (optimization_type == All))
         for (int i = 0; i < tree_nodes[node_index].sample_size; i++) {
             EncodedNumber left, right;
             left.set_integer(n, split_left_iv[i]);
@@ -1100,6 +1186,13 @@ void DecisionTree::build_tree_node(Client & client, int node_index) {
 
     logger(stdout, "Tree node %d update finished\n", node_index);
 
+
+    gettimeofday(&tree_node_2, NULL);
+    tree_node_time += (double)((tree_node_2.tv_sec - tree_node_1.tv_sec) * 1000 +
+                              (double)(tree_node_2.tv_usec - tree_node_1.tv_usec) / 1000);
+
+    gmp_printf("Build a tree node time: %'.3f ms\n", tree_node_time);
+
     /** recursively build the next child tree nodes */
 
     internal_node_num += 1;
@@ -1134,8 +1227,14 @@ void DecisionTree::build_tree_node(Client & client, int node_index) {
 
 // TODO: this function could be optimized
 void DecisionTree::compute_encrypted_statistics(Client & client, int node_index,
-        EncodedNumber ** & encrypted_statistics, EncodedNumber ** encrypted_label_vecs,
-        EncodedNumber * & encrypted_left_sample_nums, EncodedNumber * & encrypted_right_sample_nums) {
+        EncodedNumber ** & encrypted_statistics,
+        EncodedNumber ** encrypted_label_vecs,
+        EncodedNumber * & encrypted_left_sample_nums,
+        EncodedNumber * & encrypted_right_sample_nums) {
+
+    struct timeval parallel_1, parallel_2;
+    double parallel_time = 0;
+    gettimeofday(&parallel_1, NULL);
 
     logger(stdout, "Begin compute encrypted statistics\n");
 
@@ -1152,71 +1251,144 @@ void DecisionTree::compute_encrypted_statistics(Client & client, int node_index,
      * splits of features are flatted, classes_num * 2 are for left and right
      */
 
-    for (int j = 0; j < available_feature_num; j++) {
 
-        int feature_id = tree_nodes[node_index].available_feature_ids[j];
+    //    omp_lock_t lock;
+//    omp_init_lock(&lock);
 
-        for (int s = 0; s < features[feature_id].num_splits; s++) {
+    if ((optimization_type == CombiningSplits) || (optimization_type == All)) {
 
-            // compute encrypted statistics (left branch and right branch) for the current split
-            std::vector<int> left_iv = features[feature_id].split_ivs_left[s];
-            std::vector<int> right_iv = features[feature_id].split_ivs_right[s];
+        // combining splits optimization
 
-            // compute encrypted branch sample nums for this split by dot product between split iv and sample_iv
-//            EncodedNumber *left_iv_encoded = new EncodedNumber[left_iv.size()];
-//            EncodedNumber *right_iv_encoded = new EncodedNumber[right_iv.size()];
-//            for (int aa = 0; aa < left_iv.size(); aa++) {
-//                left_iv_encoded->set_integer(n, left_iv[aa]);
-//                right_iv_encoded->set_integer(n, right_iv[aa]);
-//            }
-//            djcs_t_aux_inner_product(client.m_pk, client.m_hr, encrypted_left_sample_nums[split_index],
-//                    tree_nodes[node_index].sample_iv, left_iv_encoded, left_iv.size());
-//            djcs_t_aux_inner_product(client.m_pk, client.m_hr, encrypted_right_sample_nums[split_index],
-//                    tree_nodes[node_index].sample_iv, right_iv_encoded, right_iv.size());
+        for (int j = 0; j < available_feature_num; j++) {
 
-            EncodedNumber left_sum, right_sum;
-            left_sum.set_integer(n, 0);
-            right_sum.set_integer(n, 0);
-            djcs_t_aux_encrypt(client.m_pk, client.m_hr, left_sum, left_sum);
-            djcs_t_aux_encrypt(client.m_pk, client.m_hr, right_sum, right_sum);
-            for (int i = 0; i < left_iv.size(); i++) {
-                if (left_iv[i] == 1) {
-                    djcs_t_aux_ee_add(client.m_pk, left_sum, left_sum, tree_nodes[node_index].sample_iv[i]);
+            int feature_id = tree_nodes[node_index].available_feature_ids[j];
+
+            // in this method, the feature values are sorted, use the sorted indexes to re-organize
+            // the encrypted mask vector, and compute num_splits + 1 bucket statistics by one traverse
+            // then the encrypted statistics for the num_splits can be aggregated by num_splits homomorphic additions
+
+            int split_num = features[feature_id].num_splits;
+            std::vector<int> sorted_indices = features[feature_id].sorted_indexes;
+            EncodedNumber * sorted_sample_iv = new EncodedNumber[sample_num];
+
+            // copy the sample_iv
+            for (int idx = 0; idx < sample_num; idx++) {
+                sorted_sample_iv[idx] = tree_nodes[node_index].sample_iv[sorted_indices[idx]];
+            }
+
+            // compute the encrypted aggregation of split_num + 1 buckets
+            EncodedNumber * left_sums = new EncodedNumber[split_num];
+            EncodedNumber * right_sums = new EncodedNumber[split_num];
+            EncodedNumber total_sum;
+            total_sum.set_integer(n, 0);
+            djcs_t_aux_encrypt(client.m_pk, client.m_hr, total_sum, total_sum);
+            for (int idx = 0; idx < split_num + 1; idx++) {
+                left_sums[idx].set_integer(n, 0);
+                right_sums[idx].set_integer(n, 0);
+                djcs_t_aux_encrypt(client.m_pk, client.m_hr, left_sums[idx], left_sums[idx]);
+                djcs_t_aux_encrypt(client.m_pk, client.m_hr, right_sums[idx], right_sums[idx]);
+            }
+
+            // compute statistics by one traverse
+            int split_iterator = 0;
+            for (int sample_idx = 0; sample_idx < sample_num; sample_idx++) {
+                djcs_t_aux_ee_add(client.m_pk, total_sum, total_sum, sorted_sample_iv[sample_idx]);
+
+                if (split_iterator == split_num) {
+                    continue;
                 }
-                if (right_iv[i] == 1) {
-                    djcs_t_aux_ee_add(client.m_pk, right_sum, right_sum, tree_nodes[node_index].sample_iv[i]);
+
+                int sorted_idx = sorted_indices[sample_idx];
+                float sorted_feature_value = features[feature_id].original_feature_values[sorted_idx];
+                if (sorted_feature_value <= features[feature_id].split_values[split_iterator]) {
+                    djcs_t_aux_ee_add(client.m_pk, left_sums[split_iterator], left_sums[split_iterator], sorted_sample_iv[sample_idx]);
+                } else {
+                    split_iterator += 1;
+                    if (split_iterator == split_num) {
+                        continue;
+                    } else {
+                        djcs_t_aux_ee_add(client.m_pk, left_sums[split_iterator], left_sums[split_iterator], sorted_sample_iv[sample_idx]);
+                    }
                 }
             }
-            encrypted_left_sample_nums[split_index] = left_sum;
-            encrypted_right_sample_nums[split_index] = right_sum;
 
             for (int c = 0; c < classes_num; c++) {
 
-                EncodedNumber left_stat, right_stat;
-                left_stat.set_float(n, 0);
-                right_stat.set_float(n, 0);
-                djcs_t_aux_encrypt(client.m_pk, client.m_hr, left_stat, left_stat);
-                djcs_t_aux_encrypt(client.m_pk, client.m_hr, right_stat, right_stat);
+            }
 
-                //int sample_num = left_iv.size();
-                for (int k = 0; k < sample_num; k++) {
-                    if (left_iv[k] == 1) {
-                        djcs_t_aux_ee_add(client.m_pk, left_stat, left_stat, encrypted_label_vecs[c][k]);
+
+        }
+
+
+    } else { // no combining splits optimization
+
+//    omp_set_num_threads(NUM_OMP_THREADS);
+//#pragma omp parallel for if((optimization_type == Parallelism) || (optimization_type == All))
+        for (int j = 0; j < available_feature_num; j++) {
+
+            int feature_id = tree_nodes[node_index].available_feature_ids[j];
+
+//        omp_set_lock(&lock);
+
+            for (int s = 0; s < features[feature_id].num_splits; s++) {
+
+                // compute encrypted statistics (left branch and right branch) for the current split
+                std::vector<int> left_iv = features[feature_id].split_ivs_left[s];
+                std::vector<int> right_iv = features[feature_id].split_ivs_right[s];
+
+                EncodedNumber left_sum, right_sum;
+                left_sum.set_integer(n, 0);
+                right_sum.set_integer(n, 0);
+                djcs_t_aux_encrypt(client.m_pk, client.m_hr, left_sum, left_sum);
+                djcs_t_aux_encrypt(client.m_pk, client.m_hr, right_sum, right_sum);
+
+                for (int i = 0; i < left_iv.size(); i++) {
+                    if (left_iv[i] == 1) {
+                        djcs_t_aux_ee_add(client.m_pk, left_sum, left_sum, tree_nodes[node_index].sample_iv[i]);
                     }
-                    if (right_iv[k] == 1) {
-                        djcs_t_aux_ee_add(client.m_pk, right_stat, right_stat, encrypted_label_vecs[c][k]);
+                    if (right_iv[i] == 1) {
+                        djcs_t_aux_ee_add(client.m_pk, right_sum, right_sum, tree_nodes[node_index].sample_iv[i]);
                     }
                 }
 
-                encrypted_statistics[split_index][2 * c] = left_stat;
-                encrypted_statistics[split_index][2 * c + 1] = right_stat;
+                encrypted_left_sample_nums[split_index] = left_sum;
+                encrypted_right_sample_nums[split_index] = right_sum;
+
+                for (int c = 0; c < classes_num; c++) {
+
+                    EncodedNumber left_stat, right_stat;
+                    left_stat.set_float(n, 0);
+                    right_stat.set_float(n, 0);
+                    djcs_t_aux_encrypt(client.m_pk, client.m_hr, left_stat, left_stat);
+                    djcs_t_aux_encrypt(client.m_pk, client.m_hr, right_stat, right_stat);
+
+                    for (int k = 0; k < sample_num; k++) {
+                        if (left_iv[k] == 1) {
+                            djcs_t_aux_ee_add(client.m_pk, left_stat, left_stat, encrypted_label_vecs[c][k]);
+                        }
+                        if (right_iv[k] == 1) {
+                            djcs_t_aux_ee_add(client.m_pk, right_stat, right_stat, encrypted_label_vecs[c][k]);
+                        }
+                    }
+
+                    encrypted_statistics[split_index][2 * c] = left_stat;
+                    encrypted_statistics[split_index][2 * c + 1] = right_stat;
+                }
+
+                split_index ++;
             }
 
-            split_index ++;
+//        omp_unset_lock(&lock);
         }
     }
 
     logger(stdout, "End compute encrypted statistics\n");
+
+    gettimeofday(&parallel_2, NULL);
+    parallel_time += (double)((parallel_2.tv_sec - parallel_1.tv_sec) * 1000 +
+                              (double)(parallel_2.tv_usec - parallel_1.tv_usec) / 1000);
+
+    gmp_printf("Parallel encrypted statistic computation time: %'.3f ms\n", parallel_time);
 }
 
 
@@ -1400,7 +1572,7 @@ void DecisionTree::test_accuracy(Client &client, float &accuracy) {
 
             logger(stdout, "decoded_label = %f while true label = %f\n", decoded_label, testingg_data_labels[i]);
 
-            if (rounded_decoded_label == testingg_data_labels[i]) {
+            if (decoded_label == testingg_data_labels[i]) {
                 correct_num += 1;
             }
 
@@ -1411,6 +1583,8 @@ void DecisionTree::test_accuracy(Client &client, float &accuracy) {
         }
 
     }
+
+    logger(stdout, "correct_num = %d, testing_data_size = %d\n", correct_num, testingg_data_labels.size());
 
     accuracy = (float) correct_num / (float) testingg_data_labels.size();
 

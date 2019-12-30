@@ -536,7 +536,8 @@ void LogisticRegression::test(Client client, int type, float & accuracy) {
                 for (int i = 0; i < size; i++) {
                     partial_sums_array[i][j] = partial_sums[i];
                 }
-            } else {
+            }
+            else {
                 // receive from the other clients
                 std::string recv_s;
                 EncodedNumber *recv_partial_sums = new EncodedNumber[size];

@@ -11,19 +11,19 @@
 
 class Feature {
 public:
-    int id;                                      // index of local feature
-    int num_splits;                              // the number of splits of the current feature, should <= max_bins - 1
-    int max_bins;                                // the maximum number of bins
-    int is_used;                                 // 0: not used, 1: used, -1: not decided
-    int is_categorical;                             // 0: not categorical, 1: categorical, -1: not decided
-    std::vector<float> split_values;                 // int or float
-    std::vector<float> original_feature_values;      // the original data of this feature in the training dataset
-    float maximum_value;                             // maximum value of this feature
-    float minimum_value;                             // minimum value of this feature
-    std::vector<int> sorted_indexes;             // the values of this feature are sorted, the re-sorted indexes are recorded
-    //std::vector<float> sorted_distinct_values;   // the sorted distinct values after sorting the feature values
+    int id;                                           // index of local feature
+    int num_splits;                                   // the number of splits of the current feature, should <= max_bins - 1
+    int max_bins;                                     // the maximum number of bins
+    int is_used;                                      // 0: not used, 1: used, -1: not decided
+    int is_categorical;                               // 0: not categorical, 1: categorical, -1: not decided
+    std::vector<float> split_values;                  // int or float
+    std::vector<float> original_feature_values;       // the original data of this feature in the training dataset
+    float maximum_value;                              // maximum value of this feature
+    float minimum_value;                              // minimum value of this feature
+    std::vector<int> sorted_indexes;                  // the values of this feature are sorted, the re-sorted indexes are recorded
+    //std::vector<float> sorted_distinct_values;      // the sorted distinct values after sorting the feature values
     std::vector< std::vector<int> > split_ivs_left;   // pre-compute the 0 1 ivs for each split in the left branch, before re-sorting
-    std::vector< std::vector<int> > split_ivs_right;   // pre-compute the 0 1 ivs for each split in the right branch, before re-sorting
+    std::vector< std::vector<int> > split_ivs_right;  // pre-compute the 0 1 ivs for each split in the right branch, before re-sorting
 
 public:
     Feature();

@@ -13,26 +13,17 @@
 #include <vector>
 #include "../utils/util.h"
 #include "../utils/encoder.h"
-
-
-#define GLOBAL_FEATURE_NUM 10
-#define MAX_IMPURITY 2.0
-#define MAX_VARIANCE 10000.0
-#define MAX_GLOBAL_SPLIT_NUM 1000
-#define MAX_DEPTH 5
-#define MAX_BINS 8
-#define PRUNE_SAMPLE_NUM 5
-#define PRUNE_VARIANCE_THRESHOLD 0.01
-#define SPDZ_PORT_NUM_DT 18000
-#define NUM_SPDZ_PARTIES 3
+#include "../include/common.h"
 
 class DecisionTree {
 
 public:
+    SolutionType solution_type;                      // denote basic solution and enhanced solution, 0 for basic and 1 for enhanced
+    OptimizationType optimization_type;              // denote optimization types, 0 non, 1 combining splits, 2 packing, 3 parallelism, 4 all
     int global_feature_num;                          // total features in the global dataset
     int local_feature_num;                           // local feature number in local dataset
     int internal_node_num;                           // total internal node number, leaf_num = internal_node_num + 1
-    int type;                                        // type = 0, classification; type = 1, regression    int classes_num;                                 //
+    int type;                                        // type = 0, classification; type = 1, regression
     int classes_num;                                 // number of classes if classification
     int max_depth;                                   // maximum tree depth
     int max_bins;                                    // maximum bins
@@ -68,6 +59,8 @@ public:
      * @param m_max_bins
      * @param m_prune_sample_num
      * @param m_prune_threshold
+     * @param m_solution_type
+     * @param m_optimization_type
      */
     DecisionTree(int m_global_feature_num,
             int m_local_feature_num,
@@ -77,7 +70,9 @@ public:
             int m_max_depth,
             int m_max_bins,
             int m_prune_sample_num,
-            float m_prune_threshold);
+            float m_prune_threshold,
+            int m_solution_type,
+            int m_optimization_type);
 
 
     /**
@@ -121,17 +116,14 @@ public:
 
 
     /**
-     * check whether specific conditions are satisfied
+     * check whether pruning conditions are satisfied
      *
      * @param client
      * @param node_index
-     * @param encrypted_label_vecs
-     * @param label
+     * @return
      */
-    bool check_pruning_conditions(Client & client, int node_index, EncodedNumber ** & encrypted_label_vecs, EncodedNumber & label);
-
-
     bool check_pruning_conditions_revise(Client & client, int node_index);
+
 
     /**
      * compute encrypted impurity gain for each feature and each split
@@ -144,8 +136,10 @@ public:
      * @param encrypted_right_sample_nums
      */
     void compute_encrypted_statistics(Client & client, int node_index,
-            EncodedNumber ** & encrypted_statistics, EncodedNumber ** encrypted_label_vecs,
-            EncodedNumber * & encrypted_left_sample_nums, EncodedNumber * & encrypted_right_sample_nums);
+            EncodedNumber ** & encrypted_statistics,
+            EncodedNumber ** encrypted_label_vecs,
+            EncodedNumber * & encrypted_left_sample_nums,
+            EncodedNumber * & encrypted_right_sample_nums);
 
 
     /**
@@ -173,6 +167,41 @@ public:
      * @param accuracy
      */
     void test_accuracy(Client & client, float & accuracy);
+
+
+    /**
+     * enhanced solution: private selection given the encrypted iv of the best split index
+     * return the encrypted split vector of the two branches
+     *
+     * @param best_feature_id
+     * @param selection_iv_size
+     * @param encrypted_selection_iv
+     * @param encrypted_left_split_iv
+     * @param encrypted_right_split_iv
+     */
+    void enhanced_private_selection(int best_feature_id, int selection_iv_size, EncodedNumber * encrypted_selection_iv,
+            EncodedNumber * & encrypted_left_split_iv, EncodedNumber * & encrypted_right_split_iv);
+
+
+    /**
+     * update the encrypted sample iv given the two encrypted vectors
+     *
+     * @param client
+     * @param encrypted_split_iv
+     * @param encrypted_sample_iv
+     * @param updated_encrypted_sample_iv
+     */
+    void enhanced_encrypted_sample_iv_update(Client & client, EncodedNumber * encrypted_split_iv, EncodedNumber * encrypted_sample_iv,
+            EncodedNumber * & updated_encrypted_sample_iv);
+
+
+    /**
+     * test accuracy of the enhanced solution
+     *
+     * @param client
+     * @param accuracy
+     */
+    void enhanced_test_accuracy(Client & client, float & accuracy);
 };
 
 #endif //COLLABORATIVEML_CART_TREE_H
