@@ -25,6 +25,7 @@
 #define PRUNE_VARIANCE_THRESHOLD 0.01
 #define SPDZ_PORT_NUM_DT 18000
 #define NUM_SPDZ_PARTIES 3
+#define NUM_TREES 1
 
 class DecisionTree {
 
@@ -104,6 +105,23 @@ public:
      * @param split
      */
     void init_datasets_with_indexes(Client & client, int new_indexes[], float split);
+
+
+    /**
+     * shuffle training data to build decision trees in forest
+     *
+     * @param client
+     */
+    void shuffle_train_data(Client & client);
+
+
+    /**
+     * shuffle training data according to new indexes received
+     *
+     * @param client
+     * @param new_indexes
+     */
+    void shuffle_train_data_with_indexes(Client & client, int new_indexes[]);
 
 
     /**

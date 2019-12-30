@@ -83,6 +83,7 @@ Feature::~Feature() {
 void Feature::set_feature_data(std::vector<float> values, int size) {
     float max = -10e8;
     float min = 10e8;
+    original_feature_values.reserve(size);
     for (int i = 0; i < size; i++) {
         original_feature_values.push_back(values[i]);
         if (values[i] > max) {
@@ -136,6 +137,7 @@ void Feature::find_splits() {
     if (!is_categorical) {
         // find splits using quantile method
         int n_sample_per_bin = n_samples / (num_splits + 1);
+        split_values.reserve(num_splits);
         for (int i = 0; i < num_splits; i++) {
             float split_value_i = (original_feature_values[sorted_indexes[(i + 1) * n_sample_per_bin]]
                                + original_feature_values[sorted_indexes[(i + 1) * n_sample_per_bin + 1]])/2;
@@ -147,6 +149,7 @@ void Feature::find_splits() {
         if (distinct_values.size() <= max_bins) {
             // the split values are same as the distinct values
             num_splits = distinct_values.size() - 1;
+            split_values.reserve(num_splits);
             for (int i = 0; i < num_splits; i++) {
                 split_values.push_back(distinct_values[i]);
             }
@@ -154,6 +157,7 @@ void Feature::find_splits() {
             // take the rest of the distinct values as others
             // TODO: might be inaccurate
             num_splits = max_bins - 1;
+            split_values.reserve(num_splits);
             for (int i = 0; i < num_splits; i++) {
                 split_values.push_back(distinct_values[i]);
             }
@@ -186,12 +190,16 @@ void Feature::sort_feature() {
 
 void Feature::compute_split_ivs() {
 
+    split_ivs_left.reserve(num_splits);
+    split_ivs_right.reserve(num_splits);
     for (int i = 0; i < num_splits; i++) {
         // read split value i
         float split_value_i = split_values[i];
         int n_samples = original_feature_values.size();
         std::vector<int> indicator_vec_left;
+        indicator_vec_left.reserve(n_samples);
         std::vector<int> indicator_vec_right;
+        indicator_vec_right.reserve(n_samples);
         for (int j = 0; j < n_samples; j++) {
             if (original_feature_values[j] <= split_value_i) {
                 indicator_vec_left.push_back(1);

@@ -228,6 +228,80 @@ void decision_tree(Client & client) {
 
 }
 
+void random_forest(Client & client) {
+    logger(stdout, "Begin random forest training\n");
+
+    int num_trees = NUM_TREES;
+    int m_global_feature_num = 35;
+    int m_local_feature_num = client.local_data[0].size();
+    int m_internal_node_num = 0;
+    int m_type = 0;
+    int m_classes_num = 2;
+    int m_max_depth = MAX_DEPTH;
+    int m_max_bins = MAX_BINS;
+    int m_prune_sample_num = PRUNE_SAMPLE_NUM;
+    float m_prune_threshold = PRUNE_VARIANCE_THRESHOLD;
+
+    // std::vector<DecisionTree> forest;
+    // forest.reserve(num_trees);
+    // for (int i = 0; i < num_trees; ++i) {
+    //     forest.emplace_back(m_global_feature_num, m_local_feature_num, m_internal_node_num, m_type, m_classes_num,
+    //         m_max_depth, m_max_bins, m_prune_sample_num, m_prune_threshold);
+    // }
+
+    DecisionTree *forest = new DecisionTree[num_trees];
+    for (int i = 0; i < num_trees; ++i) {
+        forest[i].global_feature_num = m_global_feature_num;
+        forest[i].local_feature_num = m_local_feature_num;
+        for (int j = 0; j < m_local_feature_num; j++) {forest[i].feature_types.push_back(0);} // default continuous variables
+        forest[i].internal_node_num = m_internal_node_num;
+        forest[i].type = m_type;
+        forest[i].classes_num = m_classes_num;
+        forest[i].max_depth = m_max_depth;
+        forest[i].max_bins = m_max_bins;
+        forest[i].prune_sample_num = m_prune_sample_num;
+        forest[i].prune_threshold = m_prune_threshold;
+
+        // the maximum nodes, complete binary tree
+        int maximum_nodes = pow(2, forest[i].max_depth + 1) - 1;
+        forest[i].tree_nodes = new TreeNode[maximum_nodes];
+        forest[i].features = new Feature[forest[i].local_feature_num];
+    }
+
+    logger(stdout, "Init %d trees in the random forest\n", num_trees);
+
+    // split datasets to training part and testing part
+    float split = 0.8;
+    if (client.client_id == 0) {
+        client.split_datasets(split);
+    } else {
+        int *new_indexes = new int[client.sample_num];
+        std::string recv_s;
+        client.recv_long_messages(client.channels[0].get(), recv_s);
+        deserialize_ids_from_string(new_indexes, recv_s);
+        client.split_datasets_with_indexes(new_indexes, split);
+    }
+    for (int i = 0; i < num_trees; ++i) {
+        if (client.client_id == 0) {
+            forest[i].shuffle_train_data(client);
+        } else {
+            int *new_indexes = new int[client.training_data.size()];
+            std::string recv_s;
+            client.recv_long_messages(client.channels[0].get(), recv_s);
+            deserialize_ids_from_string(new_indexes, recv_s);
+            forest[i].shuffle_train_data_with_indexes(client, new_indexes);
+        }
+        forest[i].init_features();
+        forest[i].init_root_node(client);
+        forest[i].build_tree_node(client, 0);
+    }
+
+    logger(stdout, "End random forest training\n");
+
+    float accuracy = 0.0;
+    // client.test_accuracy(forest, num_trees, accuracy);
+    logger(stdout, "Accuracy = %f\n", accuracy);
+}
 
 int main(int argc, char *argv[]) {
 
@@ -236,6 +310,8 @@ int main(int argc, char *argv[]) {
     bool has_label = (client_id == 0);
     std::string network_file = "/home/wuyuncheng/Documents/projects/CollaborativeML/data/networks/Parties.txt";
     std::string s1("/home/wuyuncheng/Documents/projects/CollaborativeML/data/datasets/");
+    // std::string network_file = "/home/sunxutao/projects/CollaborativeML/data/networks/Parties.txt";
+    // std::string s1("/home/sunxutao/projects/CollaborativeML/data/datasets/");
     std::string s2 = std::to_string(client_id);
     std::string data_file = s1 + "client_" + s2 + ".txt";
 
@@ -271,6 +347,7 @@ int main(int argc, char *argv[]) {
     }
 
     //logistic_regression(client);
+    // random_forest(client);
     decision_tree(client);
 
 

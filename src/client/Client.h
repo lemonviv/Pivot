@@ -10,6 +10,8 @@
 #include "../utils/encoder.h"
 #include <comm/Comm.hpp>
 
+class DecisionTree;
+
 /**
  * This class is the client in distributed collaborative machine learning
  */
@@ -20,7 +22,11 @@ public:
     int client_num;                                    // total clients in the system
     bool has_label;                                    // only one client has label, default client 0
     std::vector< std::vector<float> > local_data;      // local data
+    std::vector< std::vector<float> > training_data;   // local training data
+    std::vector< std::vector<float> > testing_data;    // local testing data
     std::vector<int> labels;                           // if has_label == true, then has labels
+    std::vector<int> training_labels;
+    std::vector<int> testing_labels;
     int sample_num;                                    // number of samples
     int feature_num;                                   // number of features
     std::vector< shared_ptr<CommParty> > channels;     // established communication channels with the other clients
@@ -62,6 +68,43 @@ public:
      * destructor
      */
     ~Client();
+
+
+    /**
+     * split dataset to training part and testing part
+     *
+     * @param split
+     */
+    void split_datasets(float split);
+
+
+    /**
+     * split dataset to training part and testing part according to new indexes received
+     *
+     * @param split
+     */
+    void split_datasets_with_indexes(int new_indexes[], float split);
+
+
+    /**
+     * predict a result given a sample id
+     *
+     * @param dt
+     * @param sample_id
+     * @param node_index_2_leaf_index_map
+     */
+    std::vector<int> compute_binary_vector(DecisionTree* dt, int sample_id, std::map<int, int> node_index_2_leaf_index_map);
+
+
+    /**
+     * test the accuracy on the test data
+     *
+     * @param random_forest
+     * @param num_trees
+     * @param accuracy
+     */
+    void test_accuracy(std::vector<DecisionTree>& random_forest, int num_trees, float &accuracy);
+
 
     /**
      * generate paillier keys (currently the client who owns labels)
