@@ -130,6 +130,9 @@ void DecisionTree::init_datasets(Client & client, float split) {
                 }
             }
             indicator_class_vecs.push_back(indicator_vec);
+
+            indicator_vec.clear();
+            indicator_vec.shrink_to_fit();
         }
 
     } else {
@@ -140,7 +143,14 @@ void DecisionTree::init_datasets(Client & client, float split) {
         }
         variance_stat_vecs.push_back(training_data_labels); // the first vector is the actual label vector
         variance_stat_vecs.push_back(label_square_vec);     // the second vector is the squared label vector
+
+        label_square_vec.clear();
+        label_square_vec.shrink_to_fit();
     }
+
+    delete [] new_indexes;
+    data_indexes.clear();
+    data_indexes.shrink_to_fit();
 
     logger(stdout, "End init dataset\n");
 }
@@ -377,6 +387,9 @@ bool DecisionTree::check_pruning_conditions_revise(Client & client, int node_ind
                 majority_label.set_float(n, majority_class_label, 2 * FLOAT_PRECISION);
                 djcs_t_aux_encrypt(client.m_pk, client.m_hr, majority_label, majority_label);
                 label = majority_label;
+
+                delete [] class_sample_nums;
+                delete [] decrypted_class_sample_nums;
 
             } else {
                 float inv_available_num = 1.0 / (float) available_num;
@@ -1322,7 +1335,9 @@ void DecisionTree::compute_encrypted_statistics(Client & client, int node_index,
 
             }
 
-
+            delete [] sorted_sample_iv;
+            delete [] left_sums;
+            delete [] right_sums;
         }
 
 
@@ -1400,7 +1415,7 @@ void DecisionTree::compute_encrypted_statistics(Client & client, int node_index,
 
 std::vector<int> DecisionTree::compute_binary_vector(int sample_id, std::map<int, int> node_index_2_leaf_index_map) {
 
-    vector<float> sample_values = testing_data[sample_id];
+    std::vector<float> sample_values = testing_data[sample_id];
     std::vector<int> binary_vector(internal_node_num + 1);
 
     // traverse the whole tree iteratively, and compute binary_vector
@@ -1582,11 +1597,17 @@ void DecisionTree::test_accuracy(Client &client, float &accuracy) {
                 correct_num += 1;
             }
 
+            delete [] encrypted_aggregation;
+            delete [] decrypted_label;
+
         } else {
             std::string s, response_s;
             client.recv_long_messages(client.channels[0].get(), s);
             client.decrypt_batch_piece(s, response_s, 0);
         }
+
+        delete [] encoded_binary_vector;
+        delete [] updated_label_vector;
 
     }
 

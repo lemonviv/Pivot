@@ -215,6 +215,7 @@ void decision_tree(Client & client, int solution_type, int optimization_type, in
         client.recv_long_messages(client.channels[0].get(), recv_s);
         deserialize_ids_from_string(new_indexes, recv_s);
         model.init_datasets_with_indexes(client, new_indexes, split);
+        delete [] new_indexes;
     }
 
     model.init_features();
