@@ -1270,15 +1270,18 @@ void DecisionTree::compute_encrypted_statistics(Client & client, int node_index,
      * splits of features are flatted, classes_num * 2 are for left and right
      */
 
+    omp_lock_t lock;
+    omp_init_lock(&lock);
 
-    //    omp_lock_t lock;
-//    omp_init_lock(&lock);
-
+    // TODO: this function is a little difficult to read, should refine the code and add more explanations
     if ((optimization_type == CombiningSplits) || (optimization_type == All)) {
 
         // combining splits optimization
-
+        omp_set_num_threads(NUM_OMP_THREADS);
+#pragma omp parallel for if((optimization_type == Parallelism) || (optimization_type == All))
         for (int j = 0; j < available_feature_num; j++) {
+
+            omp_set_lock(&lock);
 
             int feature_id = tree_nodes[node_index].available_feature_ids[j];
 
@@ -1301,14 +1304,14 @@ void DecisionTree::compute_encrypted_statistics(Client & client, int node_index,
             EncodedNumber total_sum;
             total_sum.set_integer(n, 0);
             djcs_t_aux_encrypt(client.m_pk, client.m_hr, total_sum, total_sum);
-            for (int idx = 0; idx < split_num + 1; idx++) {
+            for (int idx = 0; idx < split_num; idx++) {
                 left_sums[idx].set_integer(n, 0);
                 right_sums[idx].set_integer(n, 0);
                 djcs_t_aux_encrypt(client.m_pk, client.m_hr, left_sums[idx], left_sums[idx]);
                 djcs_t_aux_encrypt(client.m_pk, client.m_hr, right_sums[idx], right_sums[idx]);
             }
 
-            // compute statistics by one traverse
+            // compute sample iv statistics by one traverse
             int split_iterator = 0;
             for (int sample_idx = 0; sample_idx < sample_num; sample_idx++) {
                 djcs_t_aux_ee_add(client.m_pk, total_sum, total_sum, sorted_sample_iv[sample_idx]);
@@ -1319,37 +1322,121 @@ void DecisionTree::compute_encrypted_statistics(Client & client, int node_index,
 
                 int sorted_idx = sorted_indices[sample_idx];
                 float sorted_feature_value = features[feature_id].original_feature_values[sorted_idx];
-                if (sorted_feature_value <= features[feature_id].split_values[split_iterator]) {
-                    djcs_t_aux_ee_add(client.m_pk, left_sums[split_iterator], left_sums[split_iterator], sorted_sample_iv[sample_idx]);
-                } else {
+
+                // find the first split value that larger than the current feature value, usually only step by 1
+                // TODO: make sure this is correct?
+                if (sorted_feature_value > features[feature_id].split_values[split_iterator]) {
                     split_iterator += 1;
-                    if (split_iterator == split_num) {
-                        continue;
-                    } else {
-                        djcs_t_aux_ee_add(client.m_pk, left_sums[split_iterator], left_sums[split_iterator], sorted_sample_iv[sample_idx]);
-                    }
+                    if (split_iterator == split_num) continue;
+                }
+
+                djcs_t_aux_ee_add(client.m_pk, left_sums[split_iterator], left_sums[split_iterator], sorted_sample_iv[sample_idx]);
+            }
+
+            // compute the encrypted statistics for each class
+            EncodedNumber ** left_stats = new EncodedNumber*[split_num];
+            EncodedNumber ** right_stats = new EncodedNumber*[split_num];
+            EncodedNumber * sums_stats = new EncodedNumber[classes_num];
+            for (int k = 0; k < split_num; k++) {
+                left_stats[k] = new EncodedNumber[classes_num];
+                right_stats[k] = new EncodedNumber[classes_num];
+            }
+            for (int k = 0; k < split_num; k++) {
+                for (int c = 0; c < classes_num; c++) {
+                    left_stats[k][c].set_float(n, 0);
+                    right_stats[k][c].set_float(n, 0);
+                    djcs_t_aux_encrypt(client.m_pk, client.m_hr, left_stats[k][c], left_stats[k][c]);
+                    djcs_t_aux_encrypt(client.m_pk, client.m_hr, right_stats[k][c], right_stats[k][c]);
+                }
+            }
+            for (int c = 0; c < classes_num; c++) {
+                sums_stats[c].set_float(n, 0);
+                djcs_t_aux_encrypt(client.m_pk, client.m_hr, sums_stats[c], sums_stats[c]);
+            }
+
+            split_iterator = 0;
+            for (int sample_idx = 0; sample_idx < sample_num; sample_idx++) {
+                int sorted_idx = sorted_indices[sample_idx];
+                for (int c = 0; c < classes_num; c++) {
+                    djcs_t_aux_ee_add(client.m_pk, sums_stats[c], sums_stats[c], encrypted_label_vecs[c][sorted_idx]);
+                }
+
+                if (split_iterator == split_num) {
+                    continue;
+                }
+
+                float sorted_feature_value = features[feature_id].original_feature_values[sorted_idx];
+
+                // find the first split value that larger than the current feature value, usually only step by 1
+                if (sorted_feature_value > features[feature_id].split_values[split_iterator]) {
+                    split_iterator += 1;
+                    if (split_iterator == split_num) continue;
+                }
+
+                for (int c = 0; c < classes_num; c++) {
+                    djcs_t_aux_ee_add(client.m_pk, left_stats[split_iterator][c], left_stats[split_iterator][c], encrypted_label_vecs[c][sorted_idx]);
                 }
             }
 
-            for (int c = 0; c < classes_num; c++) {
+            // write the left sums to encrypted_left_sample_nums and update the right sums
+            EncodedNumber left_num_help, right_num_help, plain_constant_help;
+            left_num_help.set_integer(n, 0);
+            right_num_help.set_integer(n, 0);
+            plain_constant_help.set_integer(n, -1);
+            djcs_t_aux_encrypt(client.m_pk, client.m_hr, left_num_help, left_num_help);
+            djcs_t_aux_encrypt(client.m_pk, client.m_hr, right_num_help, right_num_help);
 
+            EncodedNumber * left_stat_help = new EncodedNumber[classes_num];
+            EncodedNumber * right_stat_help = new EncodedNumber[classes_num];
+            for (int c = 0; c < classes_num; c++) {
+                left_stat_help[c].set_float(n, 0);
+                right_stat_help[c].set_float(n, 0);
+                djcs_t_aux_encrypt(client.m_pk, client.m_hr, left_stat_help[c], left_stat_help[c]);
+                djcs_t_aux_encrypt(client.m_pk, client.m_hr, right_stat_help[c], right_stat_help[c]);
             }
+
+            // compute right sample num of the current split by total_sum + (-1) * left_sum_help
+            for (int k = 0; k < split_num; k++) {
+                djcs_t_aux_ee_add(client.m_pk, left_num_help, left_num_help, left_sums[k]);
+                encrypted_left_sample_nums[split_index] = left_num_help;
+                djcs_t_aux_ep_mul(client.m_pk, right_num_help, left_num_help, plain_constant_help);
+                djcs_t_aux_ee_add(client.m_pk, encrypted_right_sample_nums[split_index], total_sum, right_num_help);
+
+                for (int c = 0; c < classes_num; c++) {
+                    djcs_t_aux_ee_add(client.m_pk, left_stat_help[c], left_stat_help[c], left_stats[k][c]);
+                    djcs_t_aux_ep_mul(client.m_pk, right_stat_help[c], left_stat_help[c], plain_constant_help);
+                    djcs_t_aux_ee_add(client.m_pk, right_stat_help[c], right_stat_help[c], sums_stats[c]);
+                    encrypted_statistics[split_index][2 * c] = left_stat_help[c];
+                    encrypted_statistics[split_index][2 * c + 1] = right_stat_help[c];
+                }
+
+                split_index += 1; // update the global split index
+            }
+
+            omp_unset_lock(&lock);
 
             delete [] sorted_sample_iv;
             delete [] left_sums;
             delete [] right_sums;
+            for (int k = 0; k < split_num; k++) {
+                delete [] left_stats[k];
+                delete [] right_stats[k];
+            }
+            delete [] left_stats;
+            delete [] right_stats;
+            delete [] left_stat_help;
+            delete [] right_stat_help;
         }
+    }
+    else { // no combining splits optimization
 
-
-    } else { // no combining splits optimization
-
-//    omp_set_num_threads(NUM_OMP_THREADS);
-//#pragma omp parallel for if((optimization_type == Parallelism) || (optimization_type == All))
+        omp_set_num_threads(NUM_OMP_THREADS);
+#pragma omp parallel for if((optimization_type == Parallelism) || (optimization_type == All))
         for (int j = 0; j < available_feature_num; j++) {
 
             int feature_id = tree_nodes[node_index].available_feature_ids[j];
 
-//        omp_set_lock(&lock);
+            omp_set_lock(&lock);
 
             for (int s = 0; s < features[feature_id].num_splits; s++) {
 
@@ -1399,7 +1486,7 @@ void DecisionTree::compute_encrypted_statistics(Client & client, int node_index,
                 split_index ++;
             }
 
-//        omp_unset_lock(&lock);
+            omp_unset_lock(&lock);
         }
     }
 
@@ -1409,7 +1496,7 @@ void DecisionTree::compute_encrypted_statistics(Client & client, int node_index,
     parallel_time += (double)((parallel_2.tv_sec - parallel_1.tv_sec) * 1000 +
                               (double)(parallel_2.tv_usec - parallel_1.tv_usec) / 1000);
 
-    gmp_printf("Parallel encrypted statistic computation time: %'.3f ms\n", parallel_time);
+    gmp_printf("Encrypted statistic computation time: %'.3f ms\n", parallel_time);
 }
 
 
@@ -1583,14 +1670,6 @@ void DecisionTree::test_accuracy(Client &client, float &accuracy) {
 
             float decoded_label;
             decrypted_label->decode(decoded_label);
-
-            float rounded_decoded_label;
-            if (decoded_label >= 0.5) {
-                rounded_decoded_label = 1.0;
-            } else {
-                rounded_decoded_label = 0.0;
-            }
-
             logger(stdout, "decoded_label = %f while true label = %f\n", decoded_label, testingg_data_labels[i]);
 
             if (decoded_label == testingg_data_labels[i]) {
@@ -1608,11 +1687,9 @@ void DecisionTree::test_accuracy(Client &client, float &accuracy) {
 
         delete [] encoded_binary_vector;
         delete [] updated_label_vector;
-
     }
 
     logger(stdout, "correct_num = %d, testing_data_size = %d\n", correct_num, testingg_data_labels.size());
-
     accuracy = (float) correct_num / (float) testingg_data_labels.size();
 
     logger(stdout, "End test accuracy on testing dataset\n");
