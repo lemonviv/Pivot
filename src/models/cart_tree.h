@@ -111,8 +111,9 @@ public:
      * shuffle training data to build decision trees in forest
      *
      * @param client
+     * @param sample_rate
      */
-    void shuffle_train_data(Client & client);
+    void shuffle_train_data(Client & client, float sample_rate);
 
 
     /**
@@ -120,8 +121,9 @@ public:
      *
      * @param client
      * @param new_indexes
+     * @param sample_rate
      */
-    void shuffle_train_data_with_indexes(Client & client, int new_indexes[]);
+    void shuffle_train_data_with_indexes(Client & client, int new_indexes[], float sample_rate);
 
 
     /**

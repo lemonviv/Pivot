@@ -150,7 +150,7 @@ void DecisionTree::init_datasets_with_indexes(Client & client, int *new_indexes,
     logger(stdout, "End init dataset with indexes\n");
 }
 
-void DecisionTree::shuffle_train_data(Client & client) {
+void DecisionTree::shuffle_train_data(Client & client, float sample_rate) {
 
     logger(stdout, "Begin shuffle training dataset\n");
 
@@ -162,6 +162,10 @@ void DecisionTree::shuffle_train_data(Client & client) {
 
     auto rng = std::default_random_engine();
     std::shuffle(std::begin(data_indexes), std::end(data_indexes), rng);
+
+    // sample training data for the decision tree
+    int sampled_training_data_size = data_indexes.size() * sample_rate;
+    data_indexes.resize(sampled_training_data_size);
 
     // assign the training dataset and labels
     for (int i = 0; i < data_indexes.size(); i++) {
@@ -186,6 +190,8 @@ void DecisionTree::shuffle_train_data(Client & client) {
             client.send_long_messages(client.channels[i].get(), s);
         }
     }
+
+    delete [] new_indexes;
 
     // pre-compute indicator vectors or variance vectors for labels
     // here already assume that client_id == 0 (super client)
@@ -217,22 +223,20 @@ void DecisionTree::shuffle_train_data(Client & client) {
     logger(stdout, "End shuffle training dataset\n");
 }
 
-void DecisionTree::shuffle_train_data_with_indexes(Client & client, int *new_indexes) {
+void DecisionTree::shuffle_train_data_with_indexes(Client & client, int *new_indexes, float sample_rate) {
 
     logger(stdout, "Begin shuffle training dataset with indexes\n");
 
-    logger(stdout, "training_data.size() = %d\n", training_data.size());
+    int sampled_training_data_size = client.training_data.size() * sample_rate;
 
     // assign the training dataset and labels
-    for (int i = 0; i < client.training_data.size(); i++) {
+    for (int i = 0; i < sampled_training_data_size; i++) {
         logger(stdout, "new_indexes[%d] = %d\n", i, new_indexes[i]);
         training_data.push_back(client.training_data[new_indexes[i]]);
         if (client.has_label) {
             training_data_labels.push_back(client.training_labels[new_indexes[i]]);
         }
     }
-
-    logger(stdout, "training_data.size() = %d\n", training_data.size());
 
     logger(stdout, "End shuffle training dataset with indexes\n");
 }
@@ -298,9 +302,7 @@ void DecisionTree::init_root_node(Client & client) {
     tree_nodes[0].is_self_feature = -1;
     tree_nodes[0].left_child = -1;
     tree_nodes[0].right_child = -1;
-    logger(stdout, "flag1\n");
     tree_nodes[0].sample_iv = new EncodedNumber[training_data.size()];
-    logger(stdout, "flag2\n");
     // compute public key size in encoded number
     mpz_t n;
     mpz_init(n);
@@ -308,14 +310,10 @@ void DecisionTree::init_root_node(Client & client) {
 
     EncodedNumber tmp;
     tmp.set_integer(n, 1);
-    logger(stdout, "flag3\n");
     // init encrypted mask vector on the root node
     for (int i = 0; i < training_data.size(); i++) {
-        logger(stdout, "id: %d\n", i);
         djcs_t_aux_encrypt(client.m_pk, client.m_hr, tree_nodes[0].sample_iv[i], tmp);
-        logger(stdout, "finish id: %d\n", i);
     }
-    logger(stdout, "flag4\n");
     if (type == 0) {
         EncodedNumber max_impurity;
         max_impurity.set_float(n, MAX_IMPURITY);
@@ -325,7 +323,6 @@ void DecisionTree::init_root_node(Client & client) {
         max_variance.set_float(n, MAX_VARIANCE);
         djcs_t_aux_encrypt(client.m_pk, client.m_hr, tree_nodes[0].impurity, max_variance);
     }
-    logger(stdout, "flag5\n");
 
     mpz_clear(n);
     logger(stdout, "End init root node\n");

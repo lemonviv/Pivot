@@ -242,13 +242,6 @@ void random_forest(Client & client) {
     int m_prune_sample_num = PRUNE_SAMPLE_NUM;
     float m_prune_threshold = PRUNE_VARIANCE_THRESHOLD;
 
-    // std::vector<DecisionTree> forest;
-    // forest.reserve(num_trees);
-    // for (int i = 0; i < num_trees; ++i) {
-    //     forest.emplace_back(m_global_feature_num, m_local_feature_num, m_internal_node_num, m_type, m_classes_num,
-    //         m_max_depth, m_max_bins, m_prune_sample_num, m_prune_threshold);
-    // }
-
     DecisionTree *forest = new DecisionTree[num_trees];
     for (int i = 0; i < num_trees; ++i) {
         forest[i].global_feature_num = m_global_feature_num;
@@ -281,19 +274,19 @@ void random_forest(Client & client) {
         client.recv_long_messages(client.channels[0].get(), recv_s);
         deserialize_ids_from_string(new_indexes, recv_s);
         client.split_datasets_with_indexes(new_indexes, split);
-        //forest[0].init_datasets_with_indexes(client, new_indexes, split);
         delete [] new_indexes;
     }
 
+    float sample_rate = 0.8;
     for (int i = 0; i < num_trees; ++i) {
         if (client.client_id == 0) {
-            forest[i].shuffle_train_data(client);
+            forest[i].shuffle_train_data(client, sample_rate);
         } else {
             int *new_indexes = new int[client.training_data.size()];
             std::string recv_s;
             client.recv_long_messages(client.channels[0].get(), recv_s);
             deserialize_ids_from_string(new_indexes, recv_s);
-            forest[i].shuffle_train_data_with_indexes(client, new_indexes);
+            forest[i].shuffle_train_data_with_indexes(client, new_indexes, sample_rate);
 
             delete [] new_indexes;
         }
@@ -305,7 +298,7 @@ void random_forest(Client & client) {
     logger(stdout, "End random forest training\n");
 
     float accuracy = 0.0;
-    // client.test_accuracy(forest, num_trees, accuracy);
+    client.test_accuracy(forest, num_trees, accuracy);
     logger(stdout, "Accuracy = %f\n", accuracy);
 
     delete [] forest;

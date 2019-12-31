@@ -210,7 +210,6 @@ void Client::split_datasets(float split) {
 
     delete [] new_indexes;
 
-
     logger(stdout, "End split dataset\n");
 }
 
@@ -303,7 +302,7 @@ std::vector<int> Client::compute_binary_vector(DecisionTree* dt, int sample_id, 
     return binary_vector;
 }
 
-void Client::test_accuracy(std::vector<DecisionTree>& random_forest, int num_trees, float &accuracy) {
+void Client::test_accuracy(DecisionTree* random_forest, int num_trees, float &accuracy) {
     logger(stdout, "Begin test accuracy on testing dataset\n");
 
     // compute public key size in encoded number
@@ -317,18 +316,17 @@ void Client::test_accuracy(std::vector<DecisionTree>& random_forest, int num_tre
         float cumulated_label = 0;
         //  for each decision tree
         for (int tree_index = 0; tree_index < num_trees; ++tree_index) {
-            logger(stdout, "Processing tree[%d]:\n", tree_index);
+            // logger(stdout, "Processing tree[%d]:\n", tree_index);
 
             // step 1: organize the leaf label vector, compute the map
-            logger(stdout, "internal_node_num = %d\n", random_forest[tree_index].internal_node_num);
             EncodedNumber *label_vector = new EncodedNumber[random_forest[tree_index].internal_node_num + 1];
 
             std::map<int, int> node_index_2_leaf_index_map;
             int leaf_cur_index = 0;
-            for (int i = 0; i < pow(2, random_forest[tree_index].max_depth + 1) - 1; i++) {
-                if (random_forest[tree_index].tree_nodes[i].is_leaf == 1) {
-                    node_index_2_leaf_index_map.insert(std::make_pair(i, leaf_cur_index));
-                    label_vector[leaf_cur_index] = random_forest[tree_index].tree_nodes[i].label;  // record leaf label vector
+            for (int j = 0; j < pow(2, random_forest[tree_index].max_depth + 1) - 1; j++) {
+                if (random_forest[tree_index].tree_nodes[j].is_leaf == 1) {
+                    node_index_2_leaf_index_map.insert(std::make_pair(j, leaf_cur_index));
+                    label_vector[leaf_cur_index] = random_forest[tree_index].tree_nodes[j].label;  // record leaf label vector
                     leaf_cur_index ++;
                 }
             }
@@ -402,9 +400,12 @@ void Client::test_accuracy(std::vector<DecisionTree>& random_forest, int num_tre
                     rounded_decoded_label = 0.0;
                 }
 
-                logger(stdout, "Tree[%d] decoded_label = %f\n", tree_index, decoded_label);
+                // logger(stdout, "Tree[%d] decoded_label = %f\n", tree_index, decoded_label);
 
                 cumulated_label += rounded_decoded_label;
+
+                delete [] encrypted_aggregation;
+                delete [] decrypted_label;
 
             } else {
                 std::string s, response_s;
@@ -412,16 +413,20 @@ void Client::test_accuracy(std::vector<DecisionTree>& random_forest, int num_tre
                 decrypt_batch_piece(s, response_s, 0);
             }
 
+            delete [] encoded_binary_vector;
+            delete [] updated_label_vector;
             delete [] label_vector;
         }
-        cumulated_label /= num_trees;
-        if (cumulated_label >= 0.5) {
-            cumulated_label = 1.0;
-        } else {
-            cumulated_label = 0.0;
-        }
-        if (cumulated_label == testing_labels[i]) {
-            correct_num += 1;
+        if (client_id == 0) {
+            cumulated_label /= num_trees;
+            if (cumulated_label >= 0.5) {
+                cumulated_label = 1.0;
+            } else {
+                cumulated_label = 0.0;
+            }
+            if (cumulated_label == (float) testing_labels[i]) {
+                correct_num += 1;
+            }
         }
     }
     accuracy = (float) correct_num / (float) testing_labels.size();

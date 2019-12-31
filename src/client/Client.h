@@ -103,7 +103,7 @@ public:
      * @param num_trees
      * @param accuracy
      */
-    void test_accuracy(std::vector<DecisionTree>& random_forest, int num_trees, float &accuracy);
+    void test_accuracy(DecisionTree* random_forest, int num_trees, float &accuracy);
 
 
     /**
