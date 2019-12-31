@@ -34,6 +34,49 @@ TreeNode::TreeNode(int m_depth, int m_type, int m_sample_size, EncodedNumber *m_
 }
 
 
+TreeNode::TreeNode(const TreeNode &node) {
+    is_leaf = node.is_leaf;
+    depth = node.depth;
+    is_self_feature = node.is_self_feature;
+    best_client_id = node.best_client_id;
+    best_feature_id = node.best_feature_id;
+    best_split_id = node.best_split_id;
+    available_feature_ids = node.available_feature_ids;
+    available_global_feature_num = node.available_global_feature_num;
+    type = node.type;
+    sample_size = node.sample_size;
+    impurity = node.impurity;
+    sample_iv = new EncodedNumber[sample_size];
+    for (int i = 0; i < sample_size; i++) {
+        sample_iv[i] = node.sample_iv[i];
+    }
+    label = node.label;
+    left_child = node.left_child;
+    right_child = node.right_child;
+}
+
+TreeNode& TreeNode::operator=(TreeNode *node) {
+    is_leaf = node->is_leaf;
+    depth = node->depth;
+    is_self_feature = node->is_self_feature;
+    best_client_id = node->best_client_id;
+    best_feature_id = node->best_feature_id;
+    best_split_id = node->best_split_id;
+    available_feature_ids = node->available_feature_ids;
+    available_global_feature_num = node->available_global_feature_num;
+    type = node->type;
+    sample_size = node->sample_size;
+    impurity = node->impurity;
+    sample_iv = new EncodedNumber[sample_size];
+    for (int i = 0; i < sample_size; i++) {
+        sample_iv[i] = node->sample_iv[i];
+    }
+    label = node->label;
+    left_child = node->left_child;
+    right_child = node->right_child;
+}
+
+
 void TreeNode::print_node() {
 
     logger(stdout, "Node depth = %d\n", depth);
@@ -55,6 +98,8 @@ void TreeNode::print_node() {
 
 TreeNode::~TreeNode() {
     //should free EncodedNumber?
-    std::vector<int>().swap(available_feature_ids);
+    available_feature_ids.clear();
+    available_feature_ids.shrink_to_fit();
+
     delete [] sample_iv;
 }

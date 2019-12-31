@@ -98,7 +98,7 @@ Client::Client(int param_client_id, int param_client_num, int param_has_label,
             logger(stdout, "channel established\n");
 
             // add channel to the other client
-            channels.push_back(channel);
+            channels.push_back(std::move(channel));
         } else if (i > client_id) {
             // this party will be the sender in the protocol
             me = SocketPartyData(boost_ip::address::from_string(ips[client_id]), ports[client_id] + i - 1);
@@ -112,11 +112,11 @@ Client::Client(int param_client_id, int param_client_num, int param_has_label,
             logger(stdout, "channel established\n");
 
             // add channel to the other client
-            channels.push_back(channel);
+            channels.push_back(std::move(channel));
         } else {
             // self communication
             shared_ptr<CommParty> channel = NULL;
-            channels.push_back(channel);
+            channels.push_back(std::move(channel));
         }
     }
 
@@ -207,6 +207,9 @@ void Client::split_datasets(float split) {
             send_long_messages(channels[i].get(), s);
         }
     }
+
+    delete [] new_indexes;
+
 
     logger(stdout, "End split dataset\n");
 }
@@ -754,15 +757,24 @@ void Client::print_labels() {
 Client::~Client() {
 
     // free local data
-    std::vector< std::vector<float> >().swap(local_data);
+    local_data.clear();
+    local_data.shrink_to_fit();
 
     // free labels if has_label == true
     if (has_label) {
-        std::vector<int>().swap(labels);
+        labels.clear();
+        labels.shrink_to_fit();
     }
 
     // free channels
-    std::vector< shared_ptr<CommParty> >().swap(channels);
+    //std::vector< shared_ptr<CommParty> >().swap(channels);
+
+    for (int i = 0; i < channels.size(); i++) {
+        channels[i].reset();
+    }
+
+    channels.clear();
+    channels.shrink_to_fit();
 
     // free keys
     djcs_t_free_public_key(m_pk);

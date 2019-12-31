@@ -64,20 +64,26 @@ Feature& Feature::operator=(Feature *feature) {
 Feature::~Feature() {
 
     // free split_ivs
-    std::vector< std::vector<int> >().swap(split_ivs_left);
-    std::vector< std::vector<int> >().swap(split_ivs_right);
+    split_ivs_left.clear();
+    split_ivs_left.shrink_to_fit();
+
+    split_ivs_right.clear();
+    split_ivs_right.shrink_to_fit();
 
     // free sorted_indexes
-    std::vector<int>().swap(sorted_indexes);
+    sorted_indexes.clear();
+    sorted_indexes.shrink_to_fit();
 
     // free sorted_distinct_values
     // std::vector<float>().swap(sorted_distinct_values);
 
     // free original_feature_values
-    std::vector<float>().swap(original_feature_values);
+    original_feature_values.clear();
+    original_feature_values.shrink_to_fit();
 
     // free split_values
-    std::vector<float>().swap(split_values);
+    split_values.clear();
+    split_values.shrink_to_fit();
 }
 
 void Feature::set_feature_data(std::vector<float> values, int size) {
@@ -163,7 +169,8 @@ void Feature::find_splits() {
             }
         }
 
-        std::vector<float>().swap(distinct_values);
+        distinct_values.clear();
+        distinct_values.shrink_to_fit();
     }
 }
 
@@ -211,8 +218,12 @@ void Feature::compute_split_ivs() {
         }
         split_ivs_left.push_back(indicator_vec_left);
         split_ivs_right.push_back(indicator_vec_right);
-        std::vector<int>().swap(indicator_vec_left);
-        std::vector<int>().swap(indicator_vec_right);
+
+        indicator_vec_left.clear();
+        indicator_vec_left.shrink_to_fit();
+
+        indicator_vec_right.clear();
+        indicator_vec_right.shrink_to_fit();
     }
 }
 

@@ -19,7 +19,10 @@
 
 #include "../utils/spdz/spdz_util.h"
 
-DecisionTree::DecisionTree() {}
+DecisionTree::DecisionTree() {
+    logger(stdout, "Why debug here is a bug\n");
+    logger(stdout, "Default constructor of decision tree\n");
+}
 
 DecisionTree::DecisionTree(int m_global_feature_num, int m_local_feature_num, int m_internal_node_num, int m_type, int m_classes_num,
                            int m_max_depth, int m_max_bins, int m_prune_sample_num, float m_prune_threshold) {
@@ -173,11 +176,13 @@ void DecisionTree::shuffle_train_data(Client & client) {
         new_indexes[i] = data_indexes[i];
     }
 
+    logger(stdout, "new_indexes size = %d\n", data_indexes.size());
+
     // send the data_indexes to the other client, and the other client shuffles the training data in the same way
     for (int i = 0; i < client.client_num; i++) {
         if (i != client.client_id) {
             std::string s;
-            serialize_batch_ids(new_indexes, client.sample_num, s);
+            serialize_batch_ids(new_indexes, data_indexes.size(), s);
             client.send_long_messages(client.channels[i].get(), s);
         }
     }
@@ -216,13 +221,18 @@ void DecisionTree::shuffle_train_data_with_indexes(Client & client, int *new_ind
 
     logger(stdout, "Begin shuffle training dataset with indexes\n");
 
+    logger(stdout, "training_data.size() = %d\n", training_data.size());
+
     // assign the training dataset and labels
     for (int i = 0; i < client.training_data.size(); i++) {
+        logger(stdout, "new_indexes[%d] = %d\n", i, new_indexes[i]);
         training_data.push_back(client.training_data[new_indexes[i]]);
         if (client.has_label) {
             training_data_labels.push_back(client.training_labels[new_indexes[i]]);
         }
     }
+
+    logger(stdout, "training_data.size() = %d\n", training_data.size());
 
     logger(stdout, "End shuffle training dataset with indexes\n");
 }
@@ -236,23 +246,30 @@ void DecisionTree::init_features() {
         // 1. extract feature values of the i-th feature, compute samples_num
         // 2. check if distinct values number <= max_bins, if so, update splits_num as distinct number
         // 3. init feature, and assign to features[i]
-        std::vector<float> feature_values;
-        feature_values.reserve(training_data.size());
+        std::vector<float> feature_values(training_data.size());
         for (int j = 0; j < training_data.size(); j++) {
-            feature_values.push_back(training_data[j][i]);
+            feature_values[j] = training_data[j][i];
         }
+//        //feature_values.reserve(training_data.size());
+//        int size = training_data.size();
+//        logger(stdout, "size = %d\n", size);
+//        for (int j = 0; j < size; j++) {
+//            feature_values.push_back(training_data[j][i]);
+//        }
 
-        // features[i] = new Feature(i, feature_types[i], max_bins - 1, max_bins, feature_values, training_data.size());
-        features[i].id = i;
-        features[i].is_used = 0;
-        features[i].is_categorical = feature_types[i];
-        features[i].num_splits = max_bins - 1;
-        features[i].max_bins = max_bins;
-        features[i].set_feature_data(feature_values, training_data.size());
-        features[i].sort_feature();
-        features[i].find_splits();
-        features[i].compute_split_ivs();
-        std::vector<float>().swap(feature_values);
+        logger(stdout, "Debug here 1\n");
+        features[i] = new Feature(i, feature_types[i], max_bins - 1, max_bins, feature_values, training_data.size());
+
+//        features[i].id = i;
+//        features[i].is_used = 0;
+//        features[i].is_categorical = feature_types[i];
+//        features[i].num_splits = max_bins - 1;
+//        features[i].max_bins = max_bins;
+//        features[i].set_feature_data(feature_values, training_data.size());
+//        features[i].sort_feature();
+//        features[i].find_splits();
+//        features[i].compute_split_ivs();
+        //std::vector<float>().swap(feature_values);
     }
 
     logger(stdout, "End init features\n");
@@ -1221,9 +1238,14 @@ void DecisionTree::build_tree_node(Client & client, int node_index) {
         delete [] global_encrypted_statistics[i];
     }
 
-    std::vector<int>().swap(left_sample_nums_shares);
-    std::vector<int>().swap(right_sample_nums_shares);
-    std::vector< std::vector<float> >().swap(stats_shares);
+    left_sample_nums_shares.clear();
+    left_sample_nums_shares.shrink_to_fit();
+
+    right_sample_nums_shares.clear();
+    right_sample_nums_shares.shrink_to_fit();
+
+    stats_shares.clear();
+    stats_shares.shrink_to_fit();
 
     logger(stdout, "End build tree node %d\n", node_index);
 }
@@ -1519,28 +1541,39 @@ void DecisionTree::test_accuracy(Client &client, float &accuracy) {
 DecisionTree::~DecisionTree() {
 
     // free local data
-    std::vector< std::vector<float> >().swap(training_data);
-    std::vector< std::vector<float> >().swap(testing_data);
-    std::vector<int>().swap(feature_types);
-    std::vector<int>().swap(split_num_each_client);
+    training_data.clear();
+    training_data.shrink_to_fit();
+
+    testing_data.clear();
+    testing_data.shrink_to_fit();
+
+    feature_types.clear();
+    feature_types.shrink_to_fit();
+
+    split_num_each_client.clear();
+    split_num_each_client.shrink_to_fit();
 
     delete [] tree_nodes;
     delete [] features;
 
     // free labels if not empty
     if (training_data_labels.size() != 0) {
-        std::vector<float>().swap(training_data_labels);
+        training_data_labels.clear();
+        training_data_labels.shrink_to_fit();
     }
 
     if (testingg_data_labels.size() != 0) {
-        std::vector<float>().swap(testingg_data_labels);
+        testingg_data_labels.clear();
+        testingg_data_labels.shrink_to_fit();
     }
 
     if (indicator_class_vecs.size() != 0) {
-        std::vector< std::vector<int> >().swap(indicator_class_vecs);
+        indicator_class_vecs.clear();
+        indicator_class_vecs.shrink_to_fit();
     }
 
     if (variance_stat_vecs.size() != 0) {
-        std::vector< std::vector<float> >().swap(variance_stat_vecs);
+        variance_stat_vecs.clear();
+        variance_stat_vecs.shrink_to_fit();
     }
 }

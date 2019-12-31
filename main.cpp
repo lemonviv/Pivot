@@ -274,13 +274,17 @@ void random_forest(Client & client) {
     float split = 0.8;
     if (client.client_id == 0) {
         client.split_datasets(split);
+        //forest[0].init_datasets(client, split);
     } else {
         int *new_indexes = new int[client.sample_num];
         std::string recv_s;
         client.recv_long_messages(client.channels[0].get(), recv_s);
         deserialize_ids_from_string(new_indexes, recv_s);
         client.split_datasets_with_indexes(new_indexes, split);
+        //forest[0].init_datasets_with_indexes(client, new_indexes, split);
+        delete [] new_indexes;
     }
+
     for (int i = 0; i < num_trees; ++i) {
         if (client.client_id == 0) {
             forest[i].shuffle_train_data(client);
@@ -290,6 +294,8 @@ void random_forest(Client & client) {
             client.recv_long_messages(client.channels[0].get(), recv_s);
             deserialize_ids_from_string(new_indexes, recv_s);
             forest[i].shuffle_train_data_with_indexes(client, new_indexes);
+
+            delete [] new_indexes;
         }
         forest[i].init_features();
         forest[i].init_root_node(client);
@@ -301,6 +307,8 @@ void random_forest(Client & client) {
     float accuracy = 0.0;
     // client.test_accuracy(forest, num_trees, accuracy);
     logger(stdout, "Accuracy = %f\n", accuracy);
+
+    delete [] forest;
 }
 
 int main(int argc, char *argv[]) {
@@ -347,8 +355,8 @@ int main(int argc, char *argv[]) {
     }
 
     //logistic_regression(client);
-    // random_forest(client);
-    decision_tree(client);
+    random_forest(client);
+    //decision_tree(client);
 
 
 //    test_share_decrypt(client);
