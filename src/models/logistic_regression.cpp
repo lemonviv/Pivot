@@ -791,15 +791,20 @@ LogisticRegression::~LogisticRegression() {
     // delete [] local_weights;
 
     // free local data
-    std::vector< std::vector<float> >().swap(training_data);
-    std::vector< std::vector<float> >().swap(testing_data);
+    training_data.clear();
+    training_data.shrink_to_fit();
+
+    testing_data.clear();
+    testing_data.shrink_to_fit();
 
     // free labels if not empty
     if (training_data_labels.size() != 0) {
-        std::vector<int>().swap(training_data_labels);
+        training_data_labels.clear();
+        training_data_labels.shrink_to_fit();
     }
 
     if (testingg_data_labels.size() != 0) {
-        std::vector<int>().swap(testingg_data_labels);
+        testingg_data_labels.clear();
+        testingg_data_labels.shrink_to_fit();
     }
 }

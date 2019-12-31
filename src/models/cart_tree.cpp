@@ -190,7 +190,8 @@ void DecisionTree::init_features() {
 
         features[i] = new Feature(i, feature_types[i], max_bins - 1, max_bins, feature_values, training_data.size());
 
-        std::vector<float>().swap(feature_values);
+        feature_values.clear();
+        feature_values.shrink_to_fit();
     }
 
     logger(stdout, "End init features\n");
@@ -1218,9 +1219,14 @@ void DecisionTree::build_tree_node(Client & client, int node_index) {
         delete [] global_encrypted_statistics[i];
     }
 
-    std::vector<int>().swap(left_sample_nums_shares);
-    std::vector<int>().swap(right_sample_nums_shares);
-    std::vector< std::vector<float> >().swap(stats_shares);
+    left_sample_nums_shares.clear();
+    left_sample_nums_shares.shrink_to_fit();
+
+    right_sample_nums_shares.clear();
+    right_sample_nums_shares.shrink_to_fit();
+
+    stats_shares.clear();
+    stats_shares.shrink_to_fit();
 
     logger(stdout, "End build tree node %d\n", node_index);
 }
@@ -1597,28 +1603,39 @@ void DecisionTree::test_accuracy(Client &client, float &accuracy) {
 DecisionTree::~DecisionTree() {
 
     // free local data
-    std::vector< std::vector<float> >().swap(training_data);
-    std::vector< std::vector<float> >().swap(testing_data);
-    std::vector<int>().swap(feature_types);
-    std::vector<int>().swap(split_num_each_client);
+    training_data.clear();
+    training_data.shrink_to_fit();
+
+    testing_data.clear();
+    testing_data.shrink_to_fit();
+
+    feature_types.clear();
+    feature_types.shrink_to_fit();
+
+    split_num_each_client.clear();
+    split_num_each_client.shrink_to_fit();
 
     delete [] tree_nodes;
     delete [] features;
 
     // free labels if not empty
     if (training_data_labels.size() != 0) {
-        std::vector<float>().swap(training_data_labels);
+        training_data_labels.clear();
+        training_data_labels.shrink_to_fit();
     }
 
     if (testingg_data_labels.size() != 0) {
-        std::vector<float>().swap(testingg_data_labels);
+        testingg_data_labels.clear();
+        testingg_data_labels.shrink_to_fit();
     }
 
     if (indicator_class_vecs.size() != 0) {
-        std::vector< std::vector<int> >().swap(indicator_class_vecs);
+        indicator_class_vecs.clear();
+        indicator_class_vecs.shrink_to_fit();
     }
 
     if (variance_stat_vecs.size() != 0) {
-        std::vector< std::vector<float> >().swap(variance_stat_vecs);
+        variance_stat_vecs.clear();
+        variance_stat_vecs.shrink_to_fit();
     }
 }

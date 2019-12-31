@@ -35,6 +35,21 @@ public:
     ~TreeNode();
 
     void print_node();
+
+    /**
+     * copy constructor
+     *
+     * @param node
+     */
+    TreeNode(const TreeNode &node);
+
+    /**
+     * assignment constructor
+     *
+     * @param node
+     * @return
+     */
+    TreeNode &operator=(TreeNode *node);
 };
 
 struct PredictionObj {
