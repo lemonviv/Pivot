@@ -117,7 +117,7 @@ void initialise_fields(const string& dir_prefix)
     string filename = "/home/wuyuncheng/Documents/projects/VFL-SPDZ/Player-Data/3-128-128/Params-Data";
 
     //string filename = dir_prefix + "Params-Data";
-    cout << "loading params from: " << filename << endl;
+    logger(stdout, "loading params for SPDZ from %s\n", filename.c_str());
 
     ifstream inpf(filename.c_str());
     if (inpf.fail()) { throw file_error(filename.c_str()); }
@@ -164,7 +164,7 @@ std::vector<float> receive_result(std::vector<int>& sockets, int n_parties, int 
 
 std::vector<float> receive_result_dt(std::vector<int>& sockets, int n_parties, int size, int & best_split_index) {
 
-    cout << "Receive result from the SPDZ engine" << endl;
+    logger(stdout, "Receive result from the SPDZ engine\n");
     std::vector<gfp> output_values(size);
     octetStream os;
     for (int i = 0; i < n_parties; i++)

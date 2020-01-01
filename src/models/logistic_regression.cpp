@@ -375,7 +375,7 @@ void LogisticRegression::train(Client client) {
     }
 
     const clock_t end_time = clock();
-    std::cout << "time difference = " << float( end_time - begin_time ) /  CLOCKS_PER_SEC << std::endl;
+    logger(stdout, "time difference = %f\n", float(end_time - begin_time) / CLOCKS_PER_SEC);
 
     // share decrypt the local weights
     EncodedNumber *decrypted_weights = new EncodedNumber[feature_num];

@@ -202,6 +202,32 @@ public:
      * @param accuracy
      */
     void enhanced_test_accuracy(Client & client, float & accuracy);
+
+
+    /**
+     * private select the split iv for a private split num
+     *
+     * @param client
+     * @param result_iv
+     * @param selection_iv
+     * @param split_iv_matrix
+     * @param sample_num
+     * @param split_num
+     */
+    void private_split_selection(Client & client, EncodedNumber * & result_iv,
+            EncodedNumber * selection_iv, std::vector< std::vector<int> > split_iv_matrix, int sample_num, int split_num);
+
+    /**
+     * update the encrypted mask vector
+     *
+     * @param client
+     * @param i_star
+     * @param left_selection_result
+     * @param right_selection_result
+     * @param node_index
+     */
+    void update_sample_iv(Client & client, int i_star, EncodedNumber * left_selection_result,
+            EncodedNumber * right_selection_result, int node_index);
 };
 
 #endif //COLLABORATIVEML_CART_TREE_H
