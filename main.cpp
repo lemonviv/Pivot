@@ -10,6 +10,7 @@
 #include "src/models/cart_tree.h"
 #include "src/models/feature.h"
 #include "src/models/tree_node.h"
+#include "src/models/random_forest.h"
 
 #include "tests/test_encoder.h"
 #include "tests/test_djcs_t_aux.h"
@@ -231,7 +232,7 @@ void decision_tree(Client & client) {
 void random_forest(Client & client) {
     logger(stdout, "Begin random forest training\n");
 
-    int num_trees = NUM_TREES;
+    int m_tree_num = NUM_TREES;
     int m_global_feature_num = 35;
     int m_local_feature_num = client.local_data[0].size();
     int m_internal_node_num = 0;
@@ -242,66 +243,29 @@ void random_forest(Client & client) {
     int m_prune_sample_num = PRUNE_SAMPLE_NUM;
     float m_prune_threshold = PRUNE_VARIANCE_THRESHOLD;
 
-    DecisionTree *forest = new DecisionTree[num_trees];
-    for (int i = 0; i < num_trees; ++i) {
-        forest[i].global_feature_num = m_global_feature_num;
-        forest[i].local_feature_num = m_local_feature_num;
-        for (int j = 0; j < m_local_feature_num; j++) {forest[i].feature_types.push_back(0);} // default continuous variables
-        forest[i].internal_node_num = m_internal_node_num;
-        forest[i].type = m_type;
-        forest[i].classes_num = m_classes_num;
-        forest[i].max_depth = m_max_depth;
-        forest[i].max_bins = m_max_bins;
-        forest[i].prune_sample_num = m_prune_sample_num;
-        forest[i].prune_threshold = m_prune_threshold;
-
-        // the maximum nodes, complete binary tree
-        int maximum_nodes = pow(2, forest[i].max_depth + 1) - 1;
-        forest[i].tree_nodes = new TreeNode[maximum_nodes];
-        forest[i].features = new Feature[forest[i].local_feature_num];
-    }
-
-    logger(stdout, "Init %d trees in the random forest\n", num_trees);
+    RandomForest model(m_tree_num, m_global_feature_num, m_local_feature_num, m_internal_node_num, m_type, m_classes_num,
+                           m_max_depth, m_max_bins, m_prune_sample_num, m_prune_threshold);
 
     // split datasets to training part and testing part
     float split = 0.8;
     if (client.client_id == 0) {
-        client.split_datasets(split);
-        //forest[0].init_datasets(client, split);
+        model.init_datasets(client, split);
     } else {
         int *new_indexes = new int[client.sample_num];
         std::string recv_s;
         client.recv_long_messages(client.channels[0].get(), recv_s);
         deserialize_ids_from_string(new_indexes, recv_s);
-        client.split_datasets_with_indexes(new_indexes, split);
+        model.init_datasets_with_indexes(client, new_indexes, split);
         delete [] new_indexes;
     }
 
     float sample_rate = 0.8;
-    for (int i = 0; i < num_trees; ++i) {
-        if (client.client_id == 0) {
-            forest[i].shuffle_train_data(client, sample_rate);
-        } else {
-            int *new_indexes = new int[client.training_data.size()];
-            std::string recv_s;
-            client.recv_long_messages(client.channels[0].get(), recv_s);
-            deserialize_ids_from_string(new_indexes, recv_s);
-            forest[i].shuffle_train_data_with_indexes(client, new_indexes, sample_rate);
-
-            delete [] new_indexes;
-        }
-        forest[i].init_features();
-        forest[i].init_root_node(client);
-        forest[i].build_tree_node(client, 0);
-    }
-
-    logger(stdout, "End random forest training\n");
+    model.build_forest(client, sample_rate);
 
     float accuracy = 0.0;
-    client.test_accuracy(forest, num_trees, accuracy);
+    model.test_accuracy(client, accuracy);
     logger(stdout, "Accuracy = %f\n", accuracy);
 
-    delete [] forest;
 }
 
 int main(int argc, char *argv[]) {

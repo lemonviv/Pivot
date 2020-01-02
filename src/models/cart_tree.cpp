@@ -150,96 +150,6 @@ void DecisionTree::init_datasets_with_indexes(Client & client, int *new_indexes,
     logger(stdout, "End init dataset with indexes\n");
 }
 
-void DecisionTree::shuffle_train_data(Client & client, float sample_rate) {
-
-    logger(stdout, "Begin shuffle training dataset\n");
-
-    // store the indexes of the training dataset for random batch selection
-    std::vector<int> data_indexes;
-    for (int i = 0; i < client.training_data.size(); i++) {
-        data_indexes.push_back(i);
-    }
-
-    auto rng = std::default_random_engine();
-    std::shuffle(std::begin(data_indexes), std::end(data_indexes), rng);
-
-    // sample training data for the decision tree
-    int sampled_training_data_size = data_indexes.size() * sample_rate;
-    data_indexes.resize(sampled_training_data_size);
-
-    // assign the training dataset and labels
-    for (int i = 0; i < data_indexes.size(); i++) {
-        training_data.push_back(client.training_data[data_indexes[i]]);
-        if (client.has_label) {
-            training_data_labels.push_back(client.training_labels[data_indexes[i]]);
-        }
-    }
-
-    int *new_indexes = new int[data_indexes.size()];
-    for (int i = 0; i < data_indexes.size(); i++) {
-        new_indexes[i] = data_indexes[i];
-    }
-
-    logger(stdout, "new_indexes size = %d\n", data_indexes.size());
-
-    // send the data_indexes to the other client, and the other client shuffles the training data in the same way
-    for (int i = 0; i < client.client_num; i++) {
-        if (i != client.client_id) {
-            std::string s;
-            serialize_batch_ids(new_indexes, data_indexes.size(), s);
-            client.send_long_messages(client.channels[i].get(), s);
-        }
-    }
-
-    delete [] new_indexes;
-
-    // pre-compute indicator vectors or variance vectors for labels
-    // here already assume that client_id == 0 (super client)
-    if (type == 0) {
-
-        // classification, compute binary vectors and store
-        for (int i = 0; i < classes_num; i++) {
-            std::vector<int> indicator_vec;
-            for (int j = 0; j < training_data_labels.size(); j++) {
-                if (training_data_labels[j] == (float) i) {
-                    indicator_vec.push_back(1);
-                } else {
-                    indicator_vec.push_back(0);
-                }
-            }
-            indicator_class_vecs.push_back(indicator_vec);
-        }
-
-    } else {
-        // regression, compute variance necessary stats
-        std::vector<float> label_square_vec;
-        for (int j = 0; j < training_data_labels.size(); j++) {
-            label_square_vec.push_back(training_data_labels[j] * training_data_labels[j]);
-        }
-        variance_stat_vecs.push_back(training_data_labels); // the first vector is the actual label vector
-        variance_stat_vecs.push_back(label_square_vec);     // the second vector is the squared label vector
-    }
-
-    logger(stdout, "End shuffle training dataset\n");
-}
-
-void DecisionTree::shuffle_train_data_with_indexes(Client & client, int *new_indexes, float sample_rate) {
-
-    logger(stdout, "Begin shuffle training dataset with indexes\n");
-
-    int sampled_training_data_size = client.training_data.size() * sample_rate;
-
-    // assign the training dataset and labels
-    for (int i = 0; i < sampled_training_data_size; i++) {
-        logger(stdout, "new_indexes[%d] = %d\n", i, new_indexes[i]);
-        training_data.push_back(client.training_data[new_indexes[i]]);
-        if (client.has_label) {
-            training_data_labels.push_back(client.training_labels[new_indexes[i]]);
-        }
-    }
-
-    logger(stdout, "End shuffle training dataset with indexes\n");
-}
 
 void DecisionTree::init_features() {
 
@@ -254,25 +164,16 @@ void DecisionTree::init_features() {
         for (int j = 0; j < training_data.size(); j++) {
             feature_values[j] = training_data[j][i];
         }
-//        //feature_values.reserve(training_data.size());
-//        int size = training_data.size();
-//        logger(stdout, "size = %d\n", size);
-//        for (int j = 0; j < size; j++) {
-//            feature_values.push_back(training_data[j][i]);
-//        }
 
-        logger(stdout, "Debug here 1\n");
-        features[i] = new Feature(i, feature_types[i], max_bins - 1, max_bins, feature_values, training_data.size());
-
-//        features[i].id = i;
-//        features[i].is_used = 0;
-//        features[i].is_categorical = feature_types[i];
-//        features[i].num_splits = max_bins - 1;
-//        features[i].max_bins = max_bins;
-//        features[i].set_feature_data(feature_values, training_data.size());
-//        features[i].sort_feature();
-//        features[i].find_splits();
-//        features[i].compute_split_ivs();
+        features[i].id = i;
+        features[i].is_used = 0;
+        features[i].is_categorical = feature_types[i];
+        features[i].num_splits = max_bins - 1;
+        features[i].max_bins = max_bins;
+        features[i].set_feature_data(feature_values, training_data.size());
+        features[i].sort_feature();
+        features[i].find_splits();
+        features[i].compute_split_ivs();
         //std::vector<float>().swap(feature_values);
     }
 
