@@ -7,6 +7,8 @@
 #include <sstream>
 #include <string>
 #include <fstream>
+#include <random>
+#include <stack>
 #include <infra/ConfigFile.hpp>
 #include "libhcs.h"
 #include "gmp.h"

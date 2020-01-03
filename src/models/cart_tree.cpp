@@ -210,10 +210,12 @@ void DecisionTree::init_features() {
 
 void DecisionTree::init_root_node(Client & client) {
 
+    logger(stdout, "Begin init root node\n");
     // Note that for the root node, every client can init the encrypted sample mask vector
     // but the label vectors need to be received from the super client
     // assume that the global feature number is known beforehand
     tree_nodes[0].is_leaf = -1;
+    tree_nodes[0].available_feature_ids.reserve(local_feature_num);
     for (int i = 0; i < local_feature_num; i++) {
         tree_nodes[0].available_feature_ids.push_back(i);
     }
@@ -253,6 +255,7 @@ void DecisionTree::init_root_node(Client & client) {
     }
 
     mpz_clear(n);
+    logger(stdout, "End init root node\n");
 }
 
 
@@ -919,7 +922,6 @@ void DecisionTree::build_tree_node(Client & client, int node_index) {
                     (optimization_type == Parallelism || optimization_type == All));
         }
     }
-
 
     logger(stdout, "Conversion to secret shares succeed\n");
 

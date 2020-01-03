@@ -115,6 +115,7 @@ void initialise_fields(const string& dir_prefix)
     bigint p;
 
     string filename = "/home/wuyuncheng/Documents/projects/VFL-SPDZ/Player-Data/3-128-128/Params-Data";
+    // string filename = "/home/sunxutao/projects/VFL-SPDZ/Player-Data/3-128-128/Params-Data";
 
     //string filename = dir_prefix + "Params-Data";
     logger(stdout, "loading params for SPDZ from %s\n", filename.c_str());

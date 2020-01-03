@@ -11,6 +11,8 @@
 #include <comm/Comm.hpp>
 #include "../include/common.h"
 
+class DecisionTree;
+
 /**
  * This class is the client in distributed collaborative machine learning
  */
@@ -63,6 +65,7 @@ public:
      * destructor
      */
     ~Client();
+
 
     /**
      * generate paillier keys (currently the client who owns labels)
