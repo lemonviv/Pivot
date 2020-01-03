@@ -20,12 +20,12 @@ RandomForest::RandomForest() {
 }
 
 RandomForest::RandomForest(int m_tree_num, int m_global_feature_num, int m_local_feature_num, int m_internal_node_num, int m_type, int m_classes_num,
-                           int m_max_depth, int m_max_bins, int m_prune_sample_num, float m_prune_threshold) {
+                           int m_max_depth, int m_max_bins, int m_prune_sample_num, float m_prune_threshold, int solution_type, int optimization_type) {
     num_trees = m_tree_num;
     forest.reserve(num_trees);
     for (int i = 0; i < num_trees; ++i) {
         forest.emplace_back(m_global_feature_num, m_local_feature_num, m_internal_node_num, m_type, m_classes_num,
-                           m_max_depth, m_max_bins, m_prune_sample_num, m_prune_threshold);
+                           m_max_depth, m_max_bins, m_prune_sample_num, m_prune_threshold, solution_type, optimization_type);
     }
     logger(stdout, "Init %d trees in the random forest\n", num_trees);
 }

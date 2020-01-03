@@ -232,7 +232,7 @@ void decision_tree(Client & client, int solution_type, int optimization_type, in
     logger(stdout, "Accuracy = %f\n", accuracy);
 }
 
-void random_forest(Client & client) {
+void random_forest(Client & client, int solution_type, int optimization_type) {
     logger(stdout, "Begin random forest training\n");
 
     int m_tree_num = NUM_TREES;
@@ -247,7 +247,7 @@ void random_forest(Client & client) {
     float m_prune_threshold = PRUNE_VARIANCE_THRESHOLD;
 
     RandomForest model(m_tree_num, m_global_feature_num, m_local_feature_num, m_internal_node_num, m_type, m_classes_num,
-                           m_max_depth, m_max_bins, m_prune_sample_num, m_prune_threshold);
+                           m_max_depth, m_max_bins, m_prune_sample_num, m_prune_threshold, solution_type, optimization_type);
 
     // split datasets to training part and testing part
     float split = 0.8;
@@ -336,8 +336,8 @@ int main(int argc, char *argv[]) {
     }
 
     //logistic_regression(client);
-    decision_tree(client, solution_type, optimization_type, max_tree_depth);
-    random_forest(client);
+    //decision_tree(client, solution_type, optimization_type, max_tree_depth);
+    random_forest(client, solution_type, optimization_type);
 
 
 //    test_share_decrypt(client);

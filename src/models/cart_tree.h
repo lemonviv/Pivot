@@ -71,8 +71,8 @@ public:
             int m_max_bins,
             int m_prune_sample_num,
             float m_prune_threshold,
-            int m_solution_type,
-            int m_optimization_type);
+            int m_solution_type = 0,
+            int m_optimization_type = 0);
 
 
     /**

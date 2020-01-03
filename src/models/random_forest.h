@@ -35,6 +35,8 @@ public:
      * @param m_max_bins
      * @param m_prune_sample_num
      * @param m_prune_threshold
+     * @param solution_type
+     * @param optimization_type
      */
     RandomForest(int m_tree_num,
             int m_global_feature_num,
@@ -45,7 +47,9 @@ public:
             int m_max_depth,
             int m_max_bins,
             int m_prune_sample_num,
-            float m_prune_threshold);
+            float m_prune_threshold,
+            int solution_type,
+            int optimization_type);
 
 
     /**
