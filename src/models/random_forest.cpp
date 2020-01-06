@@ -43,7 +43,9 @@ void RandomForest::init_datasets(Client & client, float split) {
         data_indexes.push_back(i);
     }
 
-    auto rng = std::default_random_engine();
+    std::random_device rd;
+    std::default_random_engine rng(rd());
+    //auto rng = std::default_random_engine();
     std::shuffle(std::begin(data_indexes), std::end(data_indexes), rng);
 
     // select the former training data size as training data, and the latter as testing data
@@ -115,7 +117,9 @@ void RandomForest::shuffle_and_assign_training_data(int tree_id, Client & client
         data_indexes.push_back(i);
     }
 
-    auto rng = std::default_random_engine();
+    std::random_device rd;
+    std::default_random_engine rng(rd());
+    //auto rng = std::default_random_engine();
     std::shuffle(std::begin(data_indexes), std::end(data_indexes), rng);
 
     // sample training data for the decision tree

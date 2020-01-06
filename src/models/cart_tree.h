@@ -161,7 +161,7 @@ public:
 
 
     /**
-     * test the accuracy on the test data
+     * test accuracy
      *
      * @param client
      * @param accuracy
@@ -170,29 +170,12 @@ public:
 
 
     /**
-     * enhanced solution: private selection given the encrypted iv of the best split index
-     * return the encrypted split vector of the two branches
-     *
-     * @param best_feature_id
-     * @param selection_iv_size
-     * @param encrypted_selection_iv
-     * @param encrypted_left_split_iv
-     * @param encrypted_right_split_iv
-     */
-    void enhanced_private_selection(int best_feature_id, int selection_iv_size, EncodedNumber * encrypted_selection_iv,
-            EncodedNumber * & encrypted_left_split_iv, EncodedNumber * & encrypted_right_split_iv);
-
-
-    /**
-     * update the encrypted sample iv given the two encrypted vectors
+     * test the accuracy on the test data
      *
      * @param client
-     * @param encrypted_split_iv
-     * @param encrypted_sample_iv
-     * @param updated_encrypted_sample_iv
+     * @param accuracy
      */
-    void enhanced_encrypted_sample_iv_update(Client & client, EncodedNumber * encrypted_split_iv, EncodedNumber * encrypted_sample_iv,
-            EncodedNumber * & updated_encrypted_sample_iv);
+    void test_accuracy_basic(Client & client, float & accuracy);
 
 
     /**
@@ -201,7 +184,7 @@ public:
      * @param client
      * @param accuracy
      */
-    void enhanced_test_accuracy(Client & client, float & accuracy);
+    void test_accuracy_enhanced(Client & client, float & accuracy);
 
 
     /**
@@ -228,6 +211,13 @@ public:
      */
     void update_sample_iv(Client & client, int i_star, EncodedNumber * left_selection_result,
             EncodedNumber * right_selection_result, int node_index);
+
+//    void test_indicator_vector_correctness();
+//
+//    void test_sample_iv_update_correctness(Client & client, int node_index, int i_star);
+//
+//    void test_encrypted_statistics_correctness(Client & client, EncodedNumber * stats, int size, int split_index);
+
 };
 
 #endif //COLLABORATIVEML_CART_TREE_H

@@ -49,6 +49,21 @@ void send_public_parameters(int type, int global_split_num, int classes_num, std
 }
 
 
+void send_public_values(std::vector<int> values, std::vector<int>& sockets, int n_parties) {
+    octetStream os;
+    int size = values.size();
+    vector<gfp> parameters(size);
+    for (int i = 0; i < size; i++) {
+        parameters[i].assign(values[i]);
+        parameters[i].pack(os);
+    }
+
+    for (int i = 0; i < n_parties; i++) {
+        os.Send(sockets[i]);
+    }
+}
+
+
 std::vector<int> setup_sockets(int n_parties, int my_client_id, const std::string host_name, int port_base) {
 
     // Setup connections from this client to each party socket

@@ -88,6 +88,8 @@ public:
      * @return
      */
     std::vector<float> compute_distinct_values();
+
+    void test_split_correctness();
 };
 
 

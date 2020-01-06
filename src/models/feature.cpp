@@ -257,3 +257,15 @@ void Feature::compute_split_ivs() {
     }
 }
 
+void Feature::test_split_correctness() {
+    for (int i = 0; i < num_splits; i++) {
+        int left_sum = 0, right_sum = 0;
+        for (int j = 0; j < split_ivs_left[0].size(); j++) {
+            if (split_ivs_left[i][j] == 1) left_sum += 1;
+            if (split_ivs_right[i][j] == 1) right_sum += 1;
+        }
+        int total_sum = left_sum + right_sum;
+        logger(stdout, "left_sum = %d, right_sum = %d, total_sum = %d\n",
+                left_sum, right_sum, total_sum);
+    }
+}

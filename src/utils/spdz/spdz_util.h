@@ -42,6 +42,15 @@ void send_private_batch_shares(std::vector<float> shares, std::vector<int>& sock
 void send_public_parameters(int type, int global_split_num, int classes_num, std::vector<int>& sockets, int n_parties);
 
 /**
+ * send public values
+ *
+ * @param values
+ * @param sockets
+ * @param n_parties
+ */
+void send_public_values(std::vector<int> values, std::vector<int>& sockets, int n_parties);
+
+/**
  * setup sockets to communicate with spdz parties
  *
  * @param n_parties

@@ -210,6 +210,7 @@ void decision_tree(Client & client, int solution_type, int optimization_type, in
     float split = SPLIT_PERCENTAGE;
     if (client.client_id == 0) {
         model.init_datasets(client, split);
+        //model.test_indicator_vector_correctness();
     } else {
         int *new_indexes = new int[client.sample_num];
         std::string recv_s;
@@ -219,6 +220,7 @@ void decision_tree(Client & client, int solution_type, int optimization_type, in
         delete [] new_indexes;
     }
 
+    logger(stdout, "Training data size = %d\n", model.training_data.size());
     model.init_features();
     model.init_root_node(client);
     model.build_tree_node(client, 0);
@@ -336,8 +338,8 @@ int main(int argc, char *argv[]) {
     }
 
     //logistic_regression(client);
-    //decision_tree(client, solution_type, optimization_type, max_tree_depth);
-    random_forest(client, solution_type, optimization_type);
+    decision_tree(client, solution_type, optimization_type, max_tree_depth);
+    //random_forest(client, solution_type, optimization_type);
 
 
 //    test_share_decrypt(client);

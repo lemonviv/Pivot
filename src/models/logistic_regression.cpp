@@ -129,7 +129,9 @@ void LogisticRegression::train(Client client) {
         // step 1: random select a batch with batch size and encode the batch samples
         int *batch_ids = new int[batch_size];
         if (client.client_id == 0) {
-            auto rng = std::default_random_engine();
+            std::random_device rd;
+            std::default_random_engine rng(rd());
+            //auto rng = std::default_random_engine();
             std::shuffle(std::begin(data_indexes), std::end(data_indexes), rng);
             for (int i = 0; i < batch_size; i++) {
                 batch_ids[i] = data_indexes[i];
@@ -418,7 +420,9 @@ void LogisticRegression::init_datasets(Client client, float split) {
             data_indexes.push_back(i);
     }
 
-    auto rng = std::default_random_engine();
+    std::random_device rd;
+    std::default_random_engine rng(rd());
+    //auto rng = std::default_random_engine();
     std::shuffle(std::begin(data_indexes), std::end(data_indexes), rng);
 
     // select the former training data size as training data, and the latter as testing data
