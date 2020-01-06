@@ -301,6 +301,7 @@ void RandomForest::test_accuracy(Client & client, float & accuracy) {
     // for each sample
     for (int i = 0; i < testing_data.size(); ++i) {
         float cumulated_label = 0;
+        std::map<float, int> results;
         //  for each decision tree
         for (int tree_index = 0; tree_index < num_trees; ++tree_index) {
             // logger(stdout, "Processing tree[%d]:\n", tree_index);
@@ -376,16 +377,11 @@ void RandomForest::test_accuracy(Client & client, float & accuracy) {
                 float decoded_label;
                 decrypted_label->decode(decoded_label);
 
-                float rounded_decoded_label;
-                if (decoded_label >= 0.5) {
-                    rounded_decoded_label = 1.0;
+                if (results.find(decoded_label) == results.end()) {
+                    results[decoded_label] = 1;
                 } else {
-                    rounded_decoded_label = 0.0;
+                    ++results[decoded_label];
                 }
-
-                // logger(stdout, "Tree[%d] decoded_label = %f\n", tree_index, decoded_label);
-
-                cumulated_label += rounded_decoded_label;
 
                 delete [] encrypted_aggregation;
                 delete [] decrypted_label;
@@ -400,13 +396,16 @@ void RandomForest::test_accuracy(Client & client, float & accuracy) {
             delete [] label_vector;
         }
         if (client.client_id == 0) {
-            cumulated_label /= num_trees;
-            if (cumulated_label >= 0.5) {
-                cumulated_label = 1.0;
-            } else {
-                cumulated_label = 0.0;
+            float mode = 0;
+            int maximum_votes = 0;
+            // find the mode in result map
+            for (auto it = results.begin(); it != results.end(); ++it) {
+                if (it->second > maximum_votes) {
+                    maximum_votes = it->second;
+                    mode = it->first;
+                }
             }
-            if (cumulated_label == (float) testing_data_labels[i]) {
+            if (mode == (float) testing_data_labels[i]) {
                 correct_num += 1;
             }
         }
