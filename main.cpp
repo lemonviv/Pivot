@@ -186,16 +186,16 @@ void logistic_regression(Client client) {
     logger(stdout, "Testing accuracy = %f \n", accuracy);
 }
 
-void decision_tree(Client & client, int solution_type, int optimization_type, int max_tree_depth) {
+void decision_tree(Client & client, int solution_type, int optimization_type) {
 
     logger(stdout, "Begin decision tree training\n");
 
     int m_global_feature_num = GLOBAL_FEATURE_NUM;
     int m_local_feature_num = client.local_data[0].size();
     int m_internal_node_num = 0;
-    int m_type = 0;
-    int m_classes_num = 3;
-    int m_max_depth = max_tree_depth;
+    int m_type = TREE_TYPE;
+    int m_classes_num = CLASSES_NUM;
+    int m_max_depth = MAX_DEPTH;
     int m_max_bins = MAX_BINS;
     int m_prune_sample_num = PRUNE_SAMPLE_NUM;
     float m_prune_threshold = PRUNE_VARIANCE_THRESHOLD;
@@ -238,11 +238,11 @@ void random_forest(Client & client, int solution_type, int optimization_type) {
     logger(stdout, "Begin random forest training\n");
 
     int m_tree_num = NUM_TREES;
-    int m_global_feature_num = 35;
+    int m_global_feature_num = GLOBAL_FEATURE_NUM;
     int m_local_feature_num = client.local_data[0].size();
     int m_internal_node_num = 0;
-    int m_type = 0;
-    int m_classes_num = 2;
+    int m_type = TREE_TYPE;
+    int m_classes_num = CLASSES_NUM;
     int m_max_depth = MAX_DEPTH;
     int m_max_bins = MAX_BINS;
     int m_prune_sample_num = PRUNE_SAMPLE_NUM;
@@ -252,7 +252,7 @@ void random_forest(Client & client, int solution_type, int optimization_type) {
                            m_max_depth, m_max_bins, m_prune_sample_num, m_prune_threshold, solution_type, optimization_type);
 
     // split datasets to training part and testing part
-    float split = 0.8;
+    float split = SPLIT_PERCENTAGE;
     if (client.client_id == 0) {
         model.init_datasets(client, split);
     } else {
@@ -264,7 +264,7 @@ void random_forest(Client & client, int solution_type, int optimization_type) {
         delete [] new_indexes;
     }
 
-    float sample_rate = 0.8;
+    float sample_rate = RF_SAMPLE_RATE;
     model.build_forest(client, sample_rate);
 
     float accuracy = 0.0;
@@ -338,8 +338,8 @@ int main(int argc, char *argv[]) {
     }
 
     //logistic_regression(client);
-    decision_tree(client, solution_type, optimization_type, max_tree_depth);
-    random_forest(client, solution_type, optimization_type);
+    decision_tree(client, solution_type, optimization_type);
+    //random_forest(client, solution_type, optimization_type);
 
 
 //    test_share_decrypt(client);

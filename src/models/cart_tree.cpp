@@ -313,6 +313,7 @@ bool DecisionTree::check_pruning_conditions_revise(Client & client, int node_ind
         if ((tree_nodes[node_index].depth == max_depth) || (tree_nodes[node_index].available_global_feature_num == 0)) {
             // case 1
             is_satisfied = 1;
+            logger(stdout, "Pruning condition case 1 satisfied\n");
         } else {
 
             // communicate with SPDZ parties, to receive the label
@@ -321,6 +322,7 @@ bool DecisionTree::check_pruning_conditions_revise(Client & client, int node_ind
             // case 2
             if ((int) available_num < prune_sample_num) {
                 is_satisfied = 1;
+                logger(stdout, "Pruning condition case 2 satisfied\n");
             } else {
                 // case 3
                 if (type == 0) {
@@ -329,6 +331,7 @@ bool DecisionTree::check_pruning_conditions_revise(Client & client, int node_ind
                     decrypted_conditions[1].decode(impurity);
                     if (impurity == 0.0) {
                         is_satisfied = 1;
+                        logger(stdout, "Pruning condition case 3 satisfied\n");
                     }
                 } else {
                     // check if variance is less than a threshold
@@ -336,6 +339,7 @@ bool DecisionTree::check_pruning_conditions_revise(Client & client, int node_ind
                     decrypted_conditions[1].decode(variance);
                     if (variance <= prune_threshold) {
                         is_satisfied = 1;
+                        logger(stdout, "Pruning condition case 3 satisfied\n");
                     }
                 }
             }
@@ -354,8 +358,6 @@ bool DecisionTree::check_pruning_conditions_revise(Client & client, int node_ind
 
         // pack pruning condition result pb string and sends to the other clients
         if (is_satisfied) {
-
-            logger(stdout, "Pruning condition satisfied\n");
 
             // compute label information
             // TODO: here should find majority class as label for classification, should modify latter
@@ -386,7 +388,7 @@ bool DecisionTree::check_pruning_conditions_revise(Client & client, int node_ind
                 for (int j = 0; j < indicator_class_vecs.size(); j++) {
                     long x;
                     decrypted_class_sample_nums[j].decode(x);
-                    logger(stdout, "x = %d\n", x);
+                    logger(stdout, "class %d num = %d\n", j, x);
                     if (majority_class_sample_num < x) {
                         majority_class_label = (float) j;
                         majority_class_sample_num = x;
@@ -482,7 +484,7 @@ bool DecisionTree::check_pruning_conditions_revise(Client & client, int node_ind
 
 void DecisionTree::build_tree_node(Client & client, int node_index) {
 
-    logger(stdout, "******************* Begin build tree node %d *******************\n", node_index);
+    logger(stdout, "******************* Begin build tree node %d, tree depth = %d *******************\n", node_index, tree_nodes[node_index].depth);
 
     /** recursively build a decision tree
      *
@@ -1026,11 +1028,7 @@ void DecisionTree::build_tree_node(Client & client, int node_index) {
     }
 
     if (i_star == client.client_id) {
-
-        logger(stdout, "i_star = %d\n", i_star);
-
         // compute locally and broadcast
-
         // find the j_* feature and s_* split
         int j_star = -1;
         int s_star = -1;

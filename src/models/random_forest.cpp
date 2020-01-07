@@ -204,6 +204,7 @@ void RandomForest::shuffle_and_assign_training_data_with_indexes(int tree_id, Cl
 void RandomForest::build_forest(Client & client, float sample_rate) {
     logger(stdout, "Begin build forest\n");
     for (int i = 0; i < num_trees; ++i) {
+        logger(stdout, "------------------- build the %d-th tree ----------------------\n", i);
         if (client.client_id == 0) {
             shuffle_and_assign_training_data(i, client, sample_rate);
         } else {
