@@ -194,7 +194,7 @@ void decision_tree(Client & client, int solution_type, int optimization_type, in
     int m_local_feature_num = client.local_data[0].size();
     int m_internal_node_num = 0;
     int m_type = 0;
-    int m_classes_num = 2;
+    int m_classes_num = 3;
     int m_max_depth = max_tree_depth;
     int m_max_bins = MAX_BINS;
     int m_prune_sample_num = PRUNE_SAMPLE_NUM;
@@ -339,7 +339,7 @@ int main(int argc, char *argv[]) {
 
     //logistic_regression(client);
     decision_tree(client, solution_type, optimization_type, max_tree_depth);
-    //random_forest(client, solution_type, optimization_type);
+    random_forest(client, solution_type, optimization_type);
 
 
 //    test_share_decrypt(client);

@@ -100,5 +100,8 @@ TreeNode::~TreeNode() {
     //should free EncodedNumber?
     available_feature_ids.clear();
     available_feature_ids.shrink_to_fit();
-    delete [] sample_iv;
+
+    if (sample_size > 0) {
+        delete [] sample_iv;
+    }
 }
