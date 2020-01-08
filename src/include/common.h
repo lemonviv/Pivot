@@ -11,7 +11,7 @@
 #define MAX_VARIANCE 10000.0
 #define MAX_GLOBAL_SPLIT_NUM 1000
 #define MAX_DEPTH 6
-#define MAX_BINS 32
+#define MAX_BINS 16
 #define CLASSES_NUM 3
 #define TREE_TYPE 0  // 0: classification tree, 1: regression tree
 #define PRUNE_SAMPLE_NUM 5

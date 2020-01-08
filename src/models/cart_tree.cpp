@@ -1173,12 +1173,7 @@ void DecisionTree::build_tree_node(Client & client, int node_index) {
     tree_node_time += (double)((tree_node_2.tv_sec - tree_node_1.tv_sec) * 1000 + (double)(tree_node_2.tv_usec - tree_node_1.tv_usec) / 1000);
     logger(stdout, "Build a tree node time: %'.3f ms\n", tree_node_time);
 
-    /** step 9: recursively build the next child tree nodes */
-    internal_node_num += 1;
-    build_tree_node(client, left_child_index);
-    build_tree_node(client, right_child_index);
-
-    /** free memory used */
+    /** free memory used before recursive function call to save memory */
     mpz_clear(n);
     delete [] encrypted_labels;
     delete [] encrypted_left_branch_sample_nums;
@@ -1213,10 +1208,15 @@ void DecisionTree::build_tree_node(Client & client, int node_index) {
     client_split_nums.clear();
     client_split_nums.shrink_to_fit();
 
+    /** step 9: recursively build the next child tree nodes */
+    internal_node_num += 1;
+    build_tree_node(client, left_child_index);
+    build_tree_node(client, right_child_index);
+
     logger(stdout, "End build tree node %d\n", node_index);
 }
 
-// TODO: this function could be optimized
+
 void DecisionTree::compute_encrypted_statistics(Client & client, int node_index,
         EncodedNumber ** & encrypted_statistics,
         EncodedNumber ** encrypted_label_vecs,
@@ -1674,15 +1674,15 @@ void DecisionTree::test_accuracy_basic(Client &client, float &accuracy) {
     logger(stdout, "correct_num = %d, testing_data_size = %d\n", correct_num, testingg_data_labels.size());
     accuracy = (float) correct_num / (float) testingg_data_labels.size();
 
-    mpz_clear(n);
-    delete [] label_vector;
-
-    logger(stdout, "End test accuracy with basic solution on testing dataset\n");
-
     gettimeofday(&testing_2, NULL);
     testing_time += (double)((testing_2.tv_sec - testing_1.tv_sec) * 1000 + (double)(testing_2.tv_usec - testing_1.tv_usec) / 1000);
     logger(stdout, "Total testing computation time: %'.3f ms\n", testing_time);
     logger(stdout, "Average testing computation time: %'.3f ms\n", testing_time / testingg_data_labels.size());
+
+    mpz_clear(n);
+    delete [] label_vector;
+
+    logger(stdout, "End test accuracy with basic solution on testing dataset\n");
 }
 
 
@@ -1906,11 +1906,16 @@ void DecisionTree::test_accuracy_enhanced(Client &client, float &accuracy) {
                 i, predicted_labels[i], i, testingg_data_labels[i]);
         if (rounded_comparison(predicted_labels[i], testingg_data_labels[i])) {
             correct_num += 1;
-        } else continue;
+        }
     }
 
     logger(stdout, "correct_num = %d, testing_data_size = %d\n", correct_num, testingg_data_labels.size());
     accuracy = (float) correct_num / (float) testingg_data_labels.size();
+
+    gettimeofday(&testing_2, NULL);
+    testing_time += (double)((testing_2.tv_sec - testing_1.tv_sec) * 1000 + (double)(testing_2.tv_usec - testing_1.tv_usec) / 1000);
+    logger(stdout, "Total testing computation time: %'.3f ms\n", testing_time);
+    logger(stdout, "Average testing computation time: %'.3f ms\n", testing_time / testingg_data_labels.size());
 
     mpz_clear(n);
     predicted_labels.clear();
@@ -1925,11 +1930,6 @@ void DecisionTree::test_accuracy_enhanced(Client &client, float &accuracy) {
     }
 
     logger(stdout, "End test accuracy with enhanced solution on testing dataset\n");
-
-    gettimeofday(&testing_2, NULL);
-    testing_time += (double)((testing_2.tv_sec - testing_1.tv_sec) * 1000 + (double)(testing_2.tv_usec - testing_1.tv_usec) / 1000);
-    logger(stdout, "Total testing computation time: %'.3f ms\n", testing_time);
-    logger(stdout, "Average testing computation time: %'.3f ms\n", testing_time / testingg_data_labels.size());
 }
 
 
@@ -1962,13 +1962,13 @@ void DecisionTree::private_split_selection(Client &client, EncodedNumber *&resul
             }
         }
     }
+
     mpz_clear(n);
 }
 
 
 void DecisionTree::update_sample_iv(Client &client, int i_star, EncodedNumber *left_selection_result,
                                     EncodedNumber *right_selection_result, int node_index) {
-
     // 1. send left_selection_result and right_selection_result to the other clients
     // 2. convert sample_iv into secret shares
     // 3. aggregate the shares
@@ -1978,10 +1978,10 @@ void DecisionTree::update_sample_iv(Client &client, int i_star, EncodedNumber *l
     mpz_t n;
     mpz_init(n);
     mpz_sub_ui(n, client.m_pk->g, 1);
+
     int sample_num = tree_nodes[node_index].sample_size;
 
     if (client.client_id == i_star) {
-
         // step 1
         std::string left_selection_str, right_selection_str;
         serialize_batch_sums(left_selection_result, sample_num, left_selection_str);
@@ -2069,9 +2069,7 @@ void DecisionTree::update_sample_iv(Client &client, int i_star, EncodedNumber *l
         delete [] decrypted_sample_iv_shares;
         delete [] aggregated_updated_sample_iv_left;
         delete [] aggregated_updated_sample_iv_right;
-
     } else {
-
         // step 1
         std::string recv_left_selection_str, recv_right_selection_str;
         client.recv_long_messages(client.channels[i_star].get(), recv_left_selection_str);
@@ -2127,6 +2125,7 @@ void DecisionTree::update_sample_iv(Client &client, int i_star, EncodedNumber *l
         delete [] updated_sample_iv_left;
         delete [] updated_sample_iv_right;
     }
+
     mpz_clear(n);
 }
 
