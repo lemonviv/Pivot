@@ -24,6 +24,7 @@
 #define SPDZ_PORT_NUM_DT_ENHANCED 19000
 #define MAXIMUM_RAND_VALUE 1000000
 #define ROUNDED_PRECISION 1e-3
+#define MAX_PACKING_CAPACITY 6
 
 enum SolutionType {Basic, Enhanced};
 enum OptimizationType {Non, CombiningSplits, Packing, Parallelism, All};

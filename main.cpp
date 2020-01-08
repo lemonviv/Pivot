@@ -195,6 +195,7 @@ void decision_tree(Client & client, int solution_type, int optimization_type) {
     int m_internal_node_num = 0;
     int m_type = TREE_TYPE;
     int m_classes_num = CLASSES_NUM;
+    if (m_type == 1) {m_classes_num = 2;}
     int m_max_depth = MAX_DEPTH;
     int m_max_bins = MAX_BINS;
     int m_prune_sample_num = PRUNE_SAMPLE_NUM;
@@ -243,6 +244,7 @@ void random_forest(Client & client, int solution_type, int optimization_type) {
     int m_internal_node_num = 0;
     int m_type = TREE_TYPE;
     int m_classes_num = CLASSES_NUM;
+    if (m_type == 1) m_classes_num = 2;
     int m_max_depth = MAX_DEPTH;
     int m_max_bins = MAX_BINS;
     int m_prune_sample_num = PRUNE_SAMPLE_NUM;
