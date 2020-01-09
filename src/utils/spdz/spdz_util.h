@@ -31,15 +31,25 @@
 void send_private_batch_shares(std::vector<float> shares, std::vector<int>& sockets, int n_parties);
 
 /**
+ * send the private shares for packing (usually large number) to the spdz parties
+ *
+ * @param shares
+ * @param sockets
+ * @param n_parties
+ */
+void send_private_batch_shares_packing(std::vector<float> shares, std::vector<int>& sockets, int n_parties);
+
+/**
  * send public parameters in decision tree
  *
  * @param type
  * @param global_split_num
  * @param classes_num
+ * @param used_classes_num to judge whether packed in the computation
  * @param sockets
  * @param n_parties
  */
-void send_public_parameters(int type, int global_split_num, int classes_num, std::vector<int>& sockets, int n_parties);
+void send_public_parameters(int type, int global_split_num, int classes_num, int used_classes_num, std::vector<int>& sockets, int n_parties);
 
 /**
  * send public values

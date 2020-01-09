@@ -11,7 +11,7 @@
 #define MAX_VARIANCE 10000.0
 #define MAX_GLOBAL_SPLIT_NUM 1000
 #define MAX_DEPTH 6
-#define MAX_BINS 16
+#define MAX_BINS 8
 #define CLASSES_NUM 3
 #define TREE_TYPE 0  // 0: classification tree, 1: regression tree
 #define PRUNE_SAMPLE_NUM 5
@@ -24,7 +24,8 @@
 #define SPDZ_PORT_NUM_DT_ENHANCED 19000
 #define MAXIMUM_RAND_VALUE 1000000
 #define ROUNDED_PRECISION 1e-3
-#define MAX_PACKING_CAPACITY 6
+#define MAX_PACKING_CAPACITY 6.0
+#define RADIX_FOR_PACKING 2000 // should make sure that the dot product is less than this number, otherwise would be biased
 
 enum SolutionType {Basic, Enhanced};
 enum OptimizationType {Non, CombiningSplits, Packing, Parallelism, All};

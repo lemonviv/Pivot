@@ -30,18 +30,41 @@ void send_private_batch_shares(std::vector<float> shares, std::vector<int>& sock
 }
 
 
-void send_public_parameters(int type, int global_split_num, int classes_num, std::vector<int>& sockets, int n_parties) {
+void send_private_batch_shares_packing(std::vector<float> shares, std::vector<int>& sockets, int n_parties) {
+    int number_inputs = shares.size();
+
+    // store the base
+    long base = pow(2, SPDZ_FIXED_PRECISION);
+    gfp helper;
+    helper.assign(base);
+
+    // init the values
+    vector<gfp> input_values_gfp(number_inputs);
+    for (int i = 0; i < number_inputs; i++) {
+        long aa = round(shares[i]);
+        input_values_gfp[i].assign(aa);
+        input_values_gfp[i].mul(helper);
+    }
+
+    // run the computation
+    send_private_inputs(input_values_gfp, sockets, n_parties);
+}
+
+
+void send_public_parameters(int type, int global_split_num, int classes_num, int used_classes_num, std::vector<int>& sockets, int n_parties) {
 
     octetStream os;
 
-    vector<gfp> parameters(3);
+    vector<gfp> parameters(4);
     parameters[0].assign(type);
     parameters[1].assign(global_split_num);
     parameters[2].assign(classes_num);
+    parameters[3].assign(used_classes_num);
 
     parameters[0].pack(os);
     parameters[1].pack(os);
     parameters[2].pack(os);
+    parameters[3].pack(os);
 
     for (int i = 0; i < n_parties; i++) {
         os.Send(sockets[i]);

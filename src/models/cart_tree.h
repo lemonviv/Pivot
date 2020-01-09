@@ -152,6 +152,17 @@ public:
 
 
     /**
+     * pack the label vectors into packed_labels
+     *
+     * @param client
+     * @param packed_labels
+     * @param capacity
+     * @param radix
+     */
+    void pack_plain_vectors(Client & client, EncodedNumber * & packed_labels, int capacity, int radix);
+
+
+    /**
      * predict a result given a sample id
      *
      * @param sample_id
@@ -211,6 +222,7 @@ public:
      */
     void update_sample_iv(Client & client, int i_star, EncodedNumber * left_selection_result,
             EncodedNumber * right_selection_result, int node_index);
+
 
 //    void test_indicator_vector_correctness();
 //
