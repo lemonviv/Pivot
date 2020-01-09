@@ -202,7 +202,16 @@ void DecisionTree::init_features() {
             feature_values.push_back(training_data[j][i]);
         }
 
-        features[i] = new Feature(i, feature_types[i], max_bins - 1, max_bins, feature_values, training_data.size());
+        features[i].id = i;
+        features[i].is_used = 0;
+        features[i].is_categorical = feature_types[i];
+        features[i].num_splits = max_bins - 1;
+        features[i].max_bins = max_bins;
+        features[i].set_feature_data(feature_values, training_data.size());
+        features[i].sort_feature();
+        features[i].find_splits();
+        features[i].compute_split_ivs();
+
         //features[i].test_split_correctness();
         feature_values.clear();
         feature_values.shrink_to_fit();
