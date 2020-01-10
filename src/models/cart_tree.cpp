@@ -18,6 +18,7 @@
 #include <stack>
 #include "omp.h"
 #include <chrono>
+#include "../utils/score.h"
 
 #include "../utils/spdz/spdz_util.h"
 
@@ -937,7 +938,7 @@ void DecisionTree::build_tree_node(Client & client, int node_index) {
                 float x;
                 decrypted_global_statistics[i][j].decode(x);
                 tmp.push_back(x);
-                logger(stdout, "statistics share[%d][%d] = %f\n", i, j, x);
+                //logger(stdout, "statistics share[%d][%d] = %f\n", i, j, x);
             }
             stats_shares.push_back(tmp);
         }
@@ -976,7 +977,7 @@ void DecisionTree::build_tree_node(Client & client, int node_index) {
             for (int j = 0; j < 2 * used_classes_num; j++) {
                 float r_stat = static_cast<float> (rand()) / static_cast<float> (RAND_MAX);
                 tmp.push_back(0 - r_stat);
-                logger(stdout, "statistics share[%d][%d] = %f\n", i, j, r_stat);
+                //logger(stdout, "statistics share[%d][%d] = %f\n", i, j, r_stat);
 
                 EncodedNumber a_stat;
                 a_stat.set_float(n, r_stat);
@@ -1743,7 +1744,11 @@ void DecisionTree::test_accuracy_basic(Client &client, float &accuracy) {
         }
     }
 
-    int correct_num = 0;
+    // init predicted_label_vector
+    std::vector<float> predicted_label_vector;
+    for (int i = 0; i < testing_data.size(); i++) {
+        predicted_label_vector.push_back(0.0);
+    }
 
     // for each sample
     for (int i = 0; i < testing_data.size(); i++) {
@@ -1797,13 +1802,9 @@ void DecisionTree::test_accuracy_basic(Client &client, float &accuracy) {
 
             EncodedNumber *decrypted_label = new EncodedNumber[1];
             client.share_batch_decrypt(encrypted_aggregation, decrypted_label, 1);
-            float decoded_label;
-            decrypted_label->decode(decoded_label);
-            logger(stdout, "decoded_label = %f while true label = %f\n", decoded_label, testingg_data_labels[i]);
-
-            if (decoded_label == testingg_data_labels[i]) {
-                correct_num += 1;
-            }
+            //float decoded_label;
+            decrypted_label->decode(predicted_label_vector[i]);
+            logger(stdout, "decoded_label = %f while true label = %f\n", predicted_label_vector[i], testingg_data_labels[i]);
 
             delete [] encrypted_aggregation;
             delete [] decrypted_label;
@@ -1819,8 +1820,21 @@ void DecisionTree::test_accuracy_basic(Client &client, float &accuracy) {
         delete [] updated_label_vector;
     }
 
-    logger(stdout, "correct_num = %d, testing_data_size = %d\n", correct_num, testingg_data_labels.size());
-    accuracy = (float) correct_num / (float) testingg_data_labels.size();
+    // compute accuracy by the super client
+    if (client.client_id == 0) {
+        if (type == 0) {
+            int correct_num = 0;
+            for (int i = 0; i < testing_data.size(); i++) {
+                if (predicted_label_vector[i] == testingg_data_labels[i]) {
+                    correct_num += 1;
+                }
+            }
+            logger(stdout, "correct_num = %d, testing_data_size = %d\n", correct_num, testingg_data_labels.size());
+            accuracy = (float) correct_num / (float) testingg_data_labels.size();
+        } else {
+            accuracy = mean_squared_error(predicted_label_vector, testingg_data_labels);
+        }
+    }
 
     gettimeofday(&testing_2, NULL);
     testing_time += (double)((testing_2.tv_sec - testing_1.tv_sec) * 1000 + (double)(testing_2.tv_usec - testing_1.tv_usec) / 1000);
@@ -2048,17 +2062,22 @@ void DecisionTree::test_accuracy_enhanced(Client &client, float &accuracy) {
 
     // 6. Super client receive the revealed labels and compare to the ground truth labels
     std::vector<float> predicted_labels = receive_result(sockets, NUM_SPDZ_PARTIES, testing_data.size());
-    int correct_num = 0;
-    for (int i = 0; i < testing_data.size(); i++) {
-        logger(stdout, "predicted_labels[%d] = %f, testing_data_labels[%d] = %f\n",
-                i, predicted_labels[i], i, testingg_data_labels[i]);
-        if (rounded_comparison(predicted_labels[i], testingg_data_labels[i])) {
-            correct_num += 1;
-        }
-    }
 
-    logger(stdout, "correct_num = %d, testing_data_size = %d\n", correct_num, testingg_data_labels.size());
-    accuracy = (float) correct_num / (float) testingg_data_labels.size();
+    if (type == 0) {
+        int correct_num = 0;
+        for (int i = 0; i < testing_data.size(); i++) {
+            logger(stdout, "predicted_labels[%d] = %f, testing_data_labels[%d] = %f\n",
+                   i, predicted_labels[i], i, testingg_data_labels[i]);
+            if (rounded_comparison(predicted_labels[i], testingg_data_labels[i])) {
+                correct_num += 1;
+            }
+        }
+
+        logger(stdout, "correct_num = %d, testing_data_size = %d\n", correct_num, testingg_data_labels.size());
+        accuracy = (float) correct_num / (float) testingg_data_labels.size();
+    } else {
+        accuracy = mean_squared_error(predicted_labels, testingg_data_labels);
+    }
 
     gettimeofday(&testing_2, NULL);
     testing_time += (double)((testing_2.tv_sec - testing_1.tv_sec) * 1000 + (double)(testing_2.tv_usec - testing_1.tv_usec) / 1000);

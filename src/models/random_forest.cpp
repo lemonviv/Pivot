@@ -12,7 +12,7 @@
 #include <sys/inotify.h>
 #include <map>
 #include <stack>
-
+#include "../utils/score.h"
 #include "../utils/spdz/spdz_util.h"
 
 RandomForest::RandomForest() {
@@ -299,6 +299,11 @@ void RandomForest::test_accuracy(Client & client, float & accuracy) {
     mpz_sub_ui(n, client.m_pk->g, 1);
 
     int correct_num = 0;
+    std::vector<float> predicted_label_vector;
+    for (int i = 0; i < testing_data.size(); i++) {
+        predicted_label_vector.push_back(0.0);
+    }
+
     // for each sample
     for (int i = 0; i < testing_data.size(); ++i) {
         float cumulated_label = 0;
@@ -396,24 +401,49 @@ void RandomForest::test_accuracy(Client & client, float & accuracy) {
             delete [] updated_label_vector;
             delete [] label_vector;
         }
+
         if (client.client_id == 0) {
-            float mode = 0;
-            int maximum_votes = 0;
-            // find the mode in result map
-            for (auto it = results.begin(); it != results.end(); ++it) {
-                if (it->second > maximum_votes) {
-                    maximum_votes = it->second;
-                    mode = it->first;
+
+            if (forest[0].type == 0) { // classification, find the mode class label
+                float mode = 0;
+                int maximum_votes = 0;
+                // find the mode in result map
+                for (auto it = results.begin(); it != results.end(); ++it) {
+                    if (it->second > maximum_votes) {
+                        maximum_votes = it->second;
+                        mode = it->first;
+                    }
                 }
-            }
-            if (mode == (float) testing_data_labels[i]) {
-                correct_num += 1;
+                predicted_label_vector[i] = mode;
+            } else { // regression, compute the average label
+                float label = 0;
+                int count = 0;
+                for (auto it = results.begin(); it != results.end(); ++it) {
+                    count = count + it->second;
+                    label = label + it->first * it->second;
+                }
+                predicted_label_vector[i] = (label / count);
             }
         }
     }
-    logger(stdout, "correct_num: %d\n", correct_num);
-    logger(stdout, "size: %d\n", testing_data_labels.size());
-    accuracy = (float) correct_num / (float) testing_data_labels.size();
+
+    // compute accuracy by the super client
+    if (client.client_id == 0) {
+        if (forest[0].type == 0) {
+            int correct_num = 0;
+            for (int i = 0; i < testing_data.size(); i++) {
+                if (predicted_label_vector[i] == testing_data_labels[i]) {
+                    correct_num += 1;
+                }
+            }
+            logger(stdout, "correct_num = %d, testing_data_size = %d\n", correct_num, testing_data_labels.size());
+            accuracy = (float) correct_num / (float) testing_data_labels.size();
+        } else {
+            accuracy = mean_squared_error(predicted_label_vector, testing_data_labels);
+        }
+    }
+
+    mpz_clear(n);
     logger(stdout, "End test accuracy on testing dataset\n");
 }
 

@@ -29,6 +29,7 @@ set(SOURCE_FILES main.cpp
         src/include/protobuf/keys.pb.h src/include/protobuf/keys.pb.cc
         src/include/protobuf/cart.pb.h src/include/protobuf/cart.pb.cc
         src/utils/spdz/spdz_util.h src/utils/spdz/spdz_util.cpp
+        src/utils/score.h src/utils/score.cpp
         src/models/feature.h src/models/feature.cpp
         src/models/tree_node.h src/models/tree_node.cpp
         src/models/cart_tree.h src/models/cart_tree.cpp
