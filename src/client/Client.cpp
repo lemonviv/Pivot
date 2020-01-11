@@ -580,19 +580,14 @@ Client::~Client() {
         labels.shrink_to_fit();
     }
 
-    logger(stdout, "begin to clear client channels\n");
-
     // free channels
     // std::vector< shared_ptr<CommParty> >().swap(channels); //cause segmentation fault
     for (int i = 0; i < channels.size(); i++) {
-        logger(stdout, "channels[%d].use_count = %d\n", i, channels[i].use_count());
         channels[i].reset();
     }
 
     channels.clear();
     channels.shrink_to_fit();
-
-    logger(stdout, "end to clear client channels\n");
 
     // free keys
     djcs_t_free_public_key(m_pk);

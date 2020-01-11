@@ -293,11 +293,6 @@ std::vector<int> RandomForest::compute_binary_vector(int tree_id, int sample_id,
 void RandomForest::test_accuracy(Client & client, float & accuracy) {
     logger(stdout, "Begin test accuracy on testing dataset\n");
 
-    // compute public key size in encoded number
-    mpz_t n;
-    mpz_init(n);
-    mpz_sub_ui(n, client.m_pk->g, 1);
-
     std::vector<float> predicted_label_vector;
     for (int i = 0; i < testing_data.size(); i++) {
         predicted_label_vector.push_back(0.0);
@@ -330,7 +325,7 @@ void RandomForest::test_accuracy(Client & client, float & accuracy) {
             if (client.client_id == client.client_num - 1) {
 
                 for (int j = 0; j < binary_vector.size(); j++) {
-                    encoded_binary_vector[j].set_integer(n, binary_vector[j]);
+                    encoded_binary_vector[j].set_integer(client.m_pk->n[0], binary_vector[j]);
                     djcs_t_aux_ep_mul(client.m_pk, updated_label_vector[j], label_vector[j], encoded_binary_vector[j]);
                 }
                 // send to the next client
@@ -345,7 +340,7 @@ void RandomForest::test_accuracy(Client & client, float & accuracy) {
                 int recv_size; // should be same as binary_vector.size()
                 deserialize_sums_from_string(updated_label_vector, recv_size, recv_s);
                 for (int j = 0; j < binary_vector.size(); j++) {
-                    encoded_binary_vector[j].set_integer(n, binary_vector[j]);
+                    encoded_binary_vector[j].set_integer(client.m_pk->n[0], binary_vector[j]);
                     djcs_t_aux_ep_mul(client.m_pk, updated_label_vector[j], updated_label_vector[j], encoded_binary_vector[j]);
                 }
 
@@ -361,7 +356,7 @@ void RandomForest::test_accuracy(Client & client, float & accuracy) {
                 int final_recv_size;
                 deserialize_sums_from_string(updated_label_vector, final_recv_size, final_recv_s);
                 for (int j = 0; j < binary_vector.size(); j++) {
-                    encoded_binary_vector[j].set_integer(n, binary_vector[j]);
+                    encoded_binary_vector[j].set_integer(client.m_pk->n[0], binary_vector[j]);
                     djcs_t_aux_ep_mul(client.m_pk, updated_label_vector[j], updated_label_vector[j], encoded_binary_vector[j]);
                 }
             }
@@ -369,7 +364,7 @@ void RandomForest::test_accuracy(Client & client, float & accuracy) {
             if (client.client_id == 0) {
 
                 EncodedNumber *encrypted_aggregation = new EncodedNumber[1];
-                encrypted_aggregation[0].set_float(n, 0, 2 * FLOAT_PRECISION);
+                encrypted_aggregation[0].set_float(client.m_pk->n[0], 0, 2 * FLOAT_PRECISION);
                 djcs_t_aux_encrypt(client.m_pk, client.m_hr, encrypted_aggregation[0], encrypted_aggregation[0]);
                 for (int j = 0; j < binary_vector.size(); j++) {
                     djcs_t_aux_ee_add(client.m_pk, encrypted_aggregation[0], encrypted_aggregation[0], updated_label_vector[j]);
@@ -441,7 +436,6 @@ void RandomForest::test_accuracy(Client & client, float & accuracy) {
         }
     }
 
-    mpz_clear(n);
     logger(stdout, "End test accuracy on testing dataset\n");
 }
 
@@ -449,10 +443,6 @@ void RandomForest::test_accuracy(Client & client, float & accuracy) {
 void RandomForest::test_accuracy_with_spdz(Client &client, float &accuracy) {
 
     logger(stdout, "Begin test accuracy on testing dataset\n");
-    // compute public key size in encoded number
-    mpz_t n;
-    mpz_init(n);
-    mpz_sub_ui(n, client.m_pk->g, 1);
 
     std::vector<float> predicted_label_vector;
     for (int i = 0; i < testing_data.size(); i++) {
@@ -486,7 +476,7 @@ void RandomForest::test_accuracy_with_spdz(Client &client, float &accuracy) {
             if (client.client_id == client.client_num - 1) {
 
                 for (int j = 0; j < binary_vector.size(); j++) {
-                    encoded_binary_vector[j].set_integer(n, binary_vector[j]);
+                    encoded_binary_vector[j].set_integer(client.m_pk->n[0], binary_vector[j]);
                     djcs_t_aux_ep_mul(client.m_pk, updated_label_vector[j], label_vector[j], encoded_binary_vector[j]);
                 }
                 // send to the next client
@@ -501,7 +491,7 @@ void RandomForest::test_accuracy_with_spdz(Client &client, float &accuracy) {
                 int recv_size; // should be same as binary_vector.size()
                 deserialize_sums_from_string(updated_label_vector, recv_size, recv_s);
                 for (int j = 0; j < binary_vector.size(); j++) {
-                    encoded_binary_vector[j].set_integer(n, binary_vector[j]);
+                    encoded_binary_vector[j].set_integer(client.m_pk->n[0], binary_vector[j]);
                     djcs_t_aux_ep_mul(client.m_pk, updated_label_vector[j], updated_label_vector[j], encoded_binary_vector[j]);
                 }
 
@@ -517,7 +507,7 @@ void RandomForest::test_accuracy_with_spdz(Client &client, float &accuracy) {
                 int final_recv_size;
                 deserialize_sums_from_string(updated_label_vector, final_recv_size, final_recv_s);
                 for (int j = 0; j < binary_vector.size(); j++) {
-                    encoded_binary_vector[j].set_integer(n, binary_vector[j]);
+                    encoded_binary_vector[j].set_integer(client.m_pk->n[0], binary_vector[j]);
                     djcs_t_aux_ep_mul(client.m_pk, updated_label_vector[j], updated_label_vector[j], encoded_binary_vector[j]);
                 }
             }
@@ -525,7 +515,7 @@ void RandomForest::test_accuracy_with_spdz(Client &client, float &accuracy) {
             if (client.client_id == 0) {
 
                 EncodedNumber *encrypted_aggregation = new EncodedNumber[1];
-                encrypted_aggregation[0].set_float(n, 0, 2 * FLOAT_PRECISION);
+                encrypted_aggregation[0].set_float(client.m_pk->n[0], 0, 2 * FLOAT_PRECISION);
                 djcs_t_aux_encrypt(client.m_pk, client.m_hr, encrypted_aggregation[0], encrypted_aggregation[0]);
                 for (int j = 0; j < binary_vector.size(); j++) {
                     djcs_t_aux_ee_add(client.m_pk, encrypted_aggregation[0], encrypted_aggregation[0], updated_label_vector[j]);
@@ -560,7 +550,7 @@ void RandomForest::test_accuracy_with_spdz(Client &client, float &accuracy) {
             } else { // regression, compute the average label
                 float label = 0;
                 EncodedNumber * encrypted_label_aggregation = new EncodedNumber[1];
-                encrypted_label_aggregation[0].set_float(n, 0.0);
+                encrypted_label_aggregation[0].set_float(client.m_pk->n[0], 0.0);
                 djcs_t_aux_encrypt(client.m_pk, client.m_hr, encrypted_label_aggregation[0], encrypted_label_aggregation[0]);
                 for (int tree_index = 0; tree_index < num_trees; tree_index++) {
                     djcs_t_aux_ee_add(client.m_pk, encrypted_label_aggregation[0], encrypted_label_aggregation[0], prediction_trees[tree_index]);
@@ -616,7 +606,6 @@ void RandomForest::test_accuracy_with_spdz(Client &client, float &accuracy) {
         }
     }
 
-    mpz_clear(n);
     logger(stdout, "End test accuracy on testing dataset\n");
 }
 
