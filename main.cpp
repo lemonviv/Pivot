@@ -1,6 +1,8 @@
 #include <iostream>
 #include <string>
 #include <random>
+#include <ios>
+#include <fstream>
 #include "src/utils/util.h"
 #include "src/utils/encoder.h"
 #include "src/utils/djcs_t_aux.h"
@@ -271,8 +273,12 @@ void random_forest(Client & client, int solution_type, int optimization_type) {
 
     float accuracy = 0.0;
     model.test_accuracy(client, accuracy);
-    //model.test_accuracy_with_spdz(client, accuracy);
-    logger(stdout, "Accuracy = %f\n", accuracy);
+
+    if (client.client_id == 0) {
+        logger(stdout, "Accuracy = %f\n", accuracy);
+        std::ofstream result_log("result.log", std::ios_base::app | std::ios_base::out);
+        result_log << accuracy << std::endl;
+    }
 }
 
 
