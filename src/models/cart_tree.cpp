@@ -1356,6 +1356,9 @@ void DecisionTree::build_tree_node(Client & client, int node_index) {
     client_split_nums.clear();
     client_split_nums.shrink_to_fit();
 
+    // sample_iv of the current node will never used again, so free the memory
+    delete [] tree_nodes[node_index].sample_iv;
+
     /** step 9: recursively build the next child tree nodes */
     internal_node_num += 1;
     build_tree_node(client, left_child_index);
@@ -1848,10 +1851,7 @@ void DecisionTree::test_accuracy_basic(Client &client, float &accuracy) {
 }
 
 
-bool rounded_comparison(float a, float b) {
-    if ((a >= b - ROUNDED_PRECISION) && (a <= b + ROUNDED_PRECISION)) return true;
-    else return false;
-}
+
 
 
 void DecisionTree::test_accuracy_enhanced(Client &client, float &accuracy) {

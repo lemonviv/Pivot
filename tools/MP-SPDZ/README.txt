@@ -26,3 +26,7 @@ To communicate with MP-SPDZ programs, the following steps should be done.
     (1) ./CollaborativeML 0 3 1 0
     (2) ./CollaborativeML 1 3 1 0
     (3) ./CollaborativeML 2 3 1 0
+8. For random forest with classification, should run additional majority find program in SPDZ
+    (1) ./semi-party.x -F -N 3 -I -p 0 vfl_mode_computation
+    (2) ./semi-party.x -F -N 3 -I -p 1 vfl_mode_computation
+    (3) ./semi-party.x -F -N 3 -I -p 2 vfl_mode_computation

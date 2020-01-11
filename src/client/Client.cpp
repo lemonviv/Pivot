@@ -16,6 +16,7 @@
 #include "../utils/util.h"
 #include "../utils/pb_converter.h"
 #include "../include/protobuf/keys.pb.h"
+#include "../utils/djcs_t_aux.h"
 #include "omp.h"
 
 
@@ -377,6 +378,70 @@ void Client::decrypt_batch_piece(std::string s, std::string & response_s, int sr
     send_long_messages(channels[src_client_id].get(), response_s);
 
     delete [] ciphers;
+}
+
+
+void Client::ciphers_conversion_to_shares(EncodedNumber *src_ciphers, std::vector<float> & shares, int size, int precision) {
+
+    if (client_id == 0) {
+        EncodedNumber * aggregated_encrypted_shares = new EncodedNumber[size];
+        for (int i = 0; i < size; i++) {
+            aggregated_encrypted_shares[i] = src_ciphers[i];
+        }
+
+        // receive and aggregate encrypted shares
+        for (int c = 0; c < client_num; c++) {
+            if (c != client_id) {
+                EncodedNumber * recv_encrypted_shares = new EncodedNumber[size];
+                int recv_size = 0;
+                std::string recv_str_encrypted_shares;
+                recv_long_messages(channels[c].get(), recv_str_encrypted_shares);
+                deserialize_sums_from_string(recv_encrypted_shares, recv_size, recv_str_encrypted_shares);
+                if (recv_size != size) {
+                    logger(stdout, "Ciphers conversion to shares: recv_size not equal to real size\n");
+                }
+                for (int i = 0; i < size; i++) {
+                    djcs_t_aux_ee_add(m_pk, aggregated_encrypted_shares[i], aggregated_encrypted_shares[i], recv_encrypted_shares[i]);
+                }
+                delete [] recv_encrypted_shares;
+            }
+        }
+
+        // call share decryption and set shares
+        EncodedNumber * decrypted_shares = new EncodedNumber[size];
+        share_batch_decrypt(aggregated_encrypted_shares, decrypted_shares, size);
+
+        // decode
+        for (int i = 0; i < size; i++) {
+            float x;
+            decrypted_shares[i].decode(x);
+            shares.push_back(x);
+        }
+
+        delete [] decrypted_shares;
+        delete [] aggregated_encrypted_shares;
+    } else {
+        // generate secret shares
+        EncodedNumber * encrypted_shares = new EncodedNumber[size];
+        for (int i = 0; i < size; i++) {
+            float s = static_cast<float> (rand()) / static_cast<float> (RAND_MAX);
+            shares.push_back(0 - s);
+            encrypted_shares[i].set_float(m_pk->n[0], s, precision);
+            djcs_t_aux_encrypt(m_pk, m_hr, encrypted_shares[i], encrypted_shares[i]);
+        }
+
+        // serialize encrypted_shares and send to client 0
+        std::string str_encrypted_shares;
+        serialize_batch_sums(encrypted_shares, size, str_encrypted_shares);
+        send_long_messages(channels[0].get(), str_encrypted_shares);
+
+        // receive share decryption string and decrypt
+        std::string recv_str_share_decryption, response_str_share_decryption;
+        recv_long_messages(channels[0].get(), recv_str_share_decryption);
+        decrypt_batch_piece(recv_str_share_decryption, response_str_share_decryption, 0);
+
+        delete [] encrypted_shares;
+    }
 }
 
 

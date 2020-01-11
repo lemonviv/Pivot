@@ -156,7 +156,7 @@ void initialise_fields(const string& dir_prefix)
     // string filename = "/home/sunxutao/projects/VFL-SPDZ/Player-Data/3-128-128/Params-Data";
 
     //string filename = dir_prefix + "Params-Data";
-    logger(stdout, "loading params for SPDZ from %s\n", filename.c_str());
+    //logger(stdout, "loading params for SPDZ from %s\n", filename.c_str());
 
     ifstream inpf(filename.c_str());
     if (inpf.fail()) { throw file_error(filename.c_str()); }
@@ -235,4 +235,34 @@ std::vector<float> receive_result_dt(std::vector<int>& sockets, int n_parties, i
     best_split_index = index_aa.get_si();
 
     return res_shares;
+}
+
+
+std::vector<float> receive_mode(std::vector<int>& sockets, int n_parties, int size) {
+    //logger(stdout, "Receive mode from the SPDZ engine\n");
+    std::vector<gfp> output_values(size);
+    octetStream os;
+    for (int i = 0; i < n_parties; i++)
+    {
+        os.reset_write_head();
+        os.Receive(sockets[i]);
+        for (int j = 0; j < size; j++)
+        {
+            gfp value;
+            value.unpack(os);
+            output_values[j] += value;
+        }
+    }
+
+    std::vector<float> modes(size);
+    for (int i = 0; i < size; i++) {
+        gfp val = output_values[i];
+        bigint aa;
+        to_signed_bigint(aa, val);
+        long t = aa.get_si();
+        //cout<< "i = " << i << ", t = " << t <<endl;
+        modes[i] = static_cast<float>(t * pow(2, -SPDZ_FIXED_PRECISION));
+    }
+
+    return modes;
 }

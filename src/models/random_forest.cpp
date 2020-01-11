@@ -298,7 +298,6 @@ void RandomForest::test_accuracy(Client & client, float & accuracy) {
     mpz_init(n);
     mpz_sub_ui(n, client.m_pk->g, 1);
 
-    int correct_num = 0;
     std::vector<float> predicted_label_vector;
     for (int i = 0; i < testing_data.size(); i++) {
         predicted_label_vector.push_back(0.0);
@@ -306,7 +305,6 @@ void RandomForest::test_accuracy(Client & client, float & accuracy) {
 
     // for each sample
     for (int i = 0; i < testing_data.size(); ++i) {
-        float cumulated_label = 0;
         std::map<float, int> results;
         //  for each decision tree
         for (int tree_index = 0; tree_index < num_trees; ++tree_index) {
@@ -433,6 +431,181 @@ void RandomForest::test_accuracy(Client & client, float & accuracy) {
             int correct_num = 0;
             for (int i = 0; i < testing_data.size(); i++) {
                 if (predicted_label_vector[i] == testing_data_labels[i]) {
+                    correct_num += 1;
+                }
+            }
+            logger(stdout, "correct_num = %d, testing_data_size = %d\n", correct_num, testing_data_labels.size());
+            accuracy = (float) correct_num / (float) testing_data_labels.size();
+        } else {
+            accuracy = mean_squared_error(predicted_label_vector, testing_data_labels);
+        }
+    }
+
+    mpz_clear(n);
+    logger(stdout, "End test accuracy on testing dataset\n");
+}
+
+
+void RandomForest::test_accuracy_with_spdz(Client &client, float &accuracy) {
+
+    logger(stdout, "Begin test accuracy on testing dataset\n");
+    // compute public key size in encoded number
+    mpz_t n;
+    mpz_init(n);
+    mpz_sub_ui(n, client.m_pk->g, 1);
+
+    std::vector<float> predicted_label_vector;
+    for (int i = 0; i < testing_data.size(); i++) {
+        predicted_label_vector.push_back(0.0);
+    }
+
+    // for each sample
+    for (int i = 0; i < testing_data.size(); ++i) {
+        EncodedNumber * prediction_trees = new EncodedNumber[num_trees];
+        //  for each decision tree
+        for (int tree_index = 0; tree_index < num_trees; ++tree_index) {
+            // logger(stdout, "Processing tree[%d]:\n", tree_index);
+
+            // step 1: organize the leaf label vector, compute the map
+            EncodedNumber *label_vector = new EncodedNumber[forest[tree_index].internal_node_num + 1];
+
+            std::map<int, int> node_index_2_leaf_index_map;
+            int leaf_cur_index = 0;
+            for (int j = 0; j < pow(2, forest[tree_index].max_depth + 1) - 1; j++) {
+                if (forest[tree_index].tree_nodes[j].is_leaf == 1) {
+                    node_index_2_leaf_index_map.insert(std::make_pair(j, leaf_cur_index));
+                    label_vector[leaf_cur_index] = forest[tree_index].tree_nodes[j].label;  // record leaf label vector
+                    leaf_cur_index ++;
+                }
+            }
+            // compute binary vector for the current sample
+            std::vector<int> binary_vector = compute_binary_vector(tree_index, i, node_index_2_leaf_index_map);
+            EncodedNumber *encoded_binary_vector = new EncodedNumber[binary_vector.size()];
+            EncodedNumber *updated_label_vector = new EncodedNumber[binary_vector.size()];
+            // update in Robin cycle, from the last client to client 0
+            if (client.client_id == client.client_num - 1) {
+
+                for (int j = 0; j < binary_vector.size(); j++) {
+                    encoded_binary_vector[j].set_integer(n, binary_vector[j]);
+                    djcs_t_aux_ep_mul(client.m_pk, updated_label_vector[j], label_vector[j], encoded_binary_vector[j]);
+                }
+                // send to the next client
+                std::string send_s;
+                serialize_batch_sums(updated_label_vector, binary_vector.size(), send_s);
+                client.send_long_messages(client.channels[client.client_id - 1].get(), send_s);
+
+            } else if (client.client_id > 0) {
+
+                std::string recv_s;
+                client.recv_long_messages(client.channels[client.client_id + 1].get(), recv_s);
+                int recv_size; // should be same as binary_vector.size()
+                deserialize_sums_from_string(updated_label_vector, recv_size, recv_s);
+                for (int j = 0; j < binary_vector.size(); j++) {
+                    encoded_binary_vector[j].set_integer(n, binary_vector[j]);
+                    djcs_t_aux_ep_mul(client.m_pk, updated_label_vector[j], updated_label_vector[j], encoded_binary_vector[j]);
+                }
+
+                std::string resend_s;
+                serialize_batch_sums(updated_label_vector, binary_vector.size(), resend_s);
+                client.send_long_messages(client.channels[client.client_id - 1].get(), resend_s);
+
+            } else {
+
+                // the super client update the last, and aggregate before calling share decryption
+                std::string final_recv_s;
+                client.recv_long_messages(client.channels[client.client_id + 1].get(), final_recv_s);
+                int final_recv_size;
+                deserialize_sums_from_string(updated_label_vector, final_recv_size, final_recv_s);
+                for (int j = 0; j < binary_vector.size(); j++) {
+                    encoded_binary_vector[j].set_integer(n, binary_vector[j]);
+                    djcs_t_aux_ep_mul(client.m_pk, updated_label_vector[j], updated_label_vector[j], encoded_binary_vector[j]);
+                }
+            }
+            // aggregate and call share decryption
+            if (client.client_id == 0) {
+
+                EncodedNumber *encrypted_aggregation = new EncodedNumber[1];
+                encrypted_aggregation[0].set_float(n, 0, 2 * FLOAT_PRECISION);
+                djcs_t_aux_encrypt(client.m_pk, client.m_hr, encrypted_aggregation[0], encrypted_aggregation[0]);
+                for (int j = 0; j < binary_vector.size(); j++) {
+                    djcs_t_aux_ee_add(client.m_pk, encrypted_aggregation[0], encrypted_aggregation[0], updated_label_vector[j]);
+                }
+
+                prediction_trees[tree_index] = encrypted_aggregation[0];
+                delete [] encrypted_aggregation;
+
+            }
+            delete [] encoded_binary_vector;
+            delete [] updated_label_vector;
+            delete [] label_vector;
+        }
+
+        if (client.client_id == 0) {
+            if (forest[0].type == 0) { // classification, find the mode class label
+                // convert prediction_trees to secret shares and compute by the SPDZ parties
+                std::vector<float> shares;
+                client.ciphers_conversion_to_shares(prediction_trees, shares, num_trees, 2 * FLOAT_PRECISION);
+                // communicate with spdz parties and receive mode
+                string prep_data_prefix = get_prep_dir(NUM_SPDZ_PARTIES, 128, gf2n::default_degree());
+                initialise_fields(prep_data_prefix);
+                bigint::init_thread();
+                std::vector<int> sockets = setup_sockets(NUM_SPDZ_PARTIES, client.client_id, "localhost", SPDZ_PORT_NUM_RF_CLASSIFICATION_PREDICTION);
+                for (int jj = 0; jj < num_trees; jj++) {
+                    std::vector<float> x;
+                    x.push_back(shares[jj]);
+                    send_private_batch_shares(x, sockets, NUM_SPDZ_PARTIES);
+                }
+                std::vector<float> mode = receive_mode(sockets, NUM_SPDZ_PARTIES, 1);
+                predicted_label_vector[i] = mode[0];
+            } else { // regression, compute the average label
+                float label = 0;
+                EncodedNumber * encrypted_label_aggregation = new EncodedNumber[1];
+                encrypted_label_aggregation[0].set_float(n, 0.0);
+                djcs_t_aux_encrypt(client.m_pk, client.m_hr, encrypted_label_aggregation[0], encrypted_label_aggregation[0]);
+                for (int tree_index = 0; tree_index < num_trees; tree_index++) {
+                    djcs_t_aux_ee_add(client.m_pk, encrypted_label_aggregation[0], encrypted_label_aggregation[0], prediction_trees[tree_index]);
+                }
+
+                EncodedNumber *decrypted_label = new EncodedNumber[1];
+                client.share_batch_decrypt(encrypted_label_aggregation, decrypted_label, 1);
+                decrypted_label->decode(label);
+
+                predicted_label_vector[i] = (label / num_trees);
+
+                delete [] encrypted_label_aggregation;
+                delete [] decrypted_label;
+            }
+        } else {
+            if (forest[0].type == 0) {
+                std::vector<float> shares;
+                client.ciphers_conversion_to_shares(prediction_trees, shares, num_trees, 2 * FLOAT_PRECISION);
+                // communicate with spdz parties
+                string prep_data_prefix = get_prep_dir(NUM_SPDZ_PARTIES, 128, gf2n::default_degree());
+                initialise_fields(prep_data_prefix);
+                bigint::init_thread();
+                std::vector<int> sockets = setup_sockets(NUM_SPDZ_PARTIES, client.client_id, "localhost", SPDZ_PORT_NUM_RF_CLASSIFICATION_PREDICTION);
+                for (int jj = 0; jj < num_trees; jj++) {
+                    std::vector<float> x;
+                    x.push_back(shares[jj]);
+                    send_private_batch_shares(x, sockets, NUM_SPDZ_PARTIES);
+                }
+                std::vector<float> mode = receive_mode(sockets, NUM_SPDZ_PARTIES, 1);
+                predicted_label_vector[i] = mode[0];
+            } else {
+                std::string s, response_s;
+                client.recv_long_messages(client.channels[0].get(), s);
+                client.decrypt_batch_piece(s, response_s, 0);
+            }
+        }
+        delete [] prediction_trees;
+    }
+
+    // compute accuracy by the super client
+    if (client.client_id == 0) {
+        if (forest[0].type == 0) {
+            int correct_num = 0;
+            for (int i = 0; i < testing_data.size(); i++) {
+                if (rounded_comparison(predicted_label_vector[i], testing_data_labels[i])) {
                     correct_num += 1;
                 }
             }

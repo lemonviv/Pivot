@@ -112,4 +112,15 @@ std::vector<float> receive_result(std::vector<int>& sockets, int n_parties, int 
 std::vector<float> receive_result_dt(std::vector<int>& sockets, int n_parties, int size, int & best_split_index);
 
 
+/**
+ * receive mode from spdz
+ *
+ * @param sockets
+ * @param n_parties
+ * @param size
+ * @return
+ */
+std::vector<float> receive_mode(std::vector<int>& sockets, int n_parties, int size);
+
+
 #endif //COLLABORATIVEML_SPDZ_UTIL_H

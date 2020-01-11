@@ -8,5 +8,6 @@
 #include <vector>
 
 float mean_squared_error(std::vector<float> a, std::vector<float> b);
+bool rounded_comparison(float a, float b);
 
 #endif //COLLABORATIVEML_SCORE_H

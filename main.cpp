@@ -271,6 +271,7 @@ void random_forest(Client & client, int solution_type, int optimization_type) {
 
     float accuracy = 0.0;
     model.test_accuracy(client, accuracy);
+    //model.test_accuracy_with_spdz(client, accuracy);
     logger(stdout, "Accuracy = %f\n", accuracy);
 }
 

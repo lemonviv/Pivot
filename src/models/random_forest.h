@@ -3,7 +3,7 @@
 
 #include "cart_tree.h"
 
-#define NUM_TREES 10
+#define NUM_TREES 5
 
 class RandomForest {
 
@@ -125,6 +125,15 @@ public:
      * @param accuracy
      */
     void test_accuracy(Client & client, float & accuracy);
+
+
+    /**
+     * test the accuracy on the test data, using spdz to find the majority class for classification
+     *
+     * @param client
+     * @param accuracy
+     */
+    void test_accuracy_with_spdz(Client & client, float & accuracy);
 };
 
 #endif //COLLABORATIVEML_RANDOM_FOREST_H

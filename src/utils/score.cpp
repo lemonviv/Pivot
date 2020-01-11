@@ -5,6 +5,7 @@
 #include <cmath>
 #include "score.h"
 #include "util.h"
+#include "../include/common.h"
 
 float mean_squared_error(std::vector<float> a, std::vector<float> b) {
     if (a.size() != b.size()) {
@@ -19,4 +20,9 @@ float mean_squared_error(std::vector<float> a, std::vector<float> b) {
 
     float mean_squared_error = squared_error / num;
     return mean_squared_error;
+}
+
+bool rounded_comparison(float a, float b) {
+    if ((a >= b - ROUNDED_PRECISION) && (a <= b + ROUNDED_PRECISION)) return true;
+    else return false;
 }

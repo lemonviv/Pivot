@@ -131,19 +131,19 @@ public:
 
 
     /**
-     * conversion from homomorphic encryption to secret shares
-     * for input to SCALE-MAMBA library, Robin circle computation
-     * or directly send encrypted random numbers to the super client,
-     * super client call the decryption to get the final random piece.
-     * When size = 1, is a prediction request
+     * This function converts the ciphertexts to secret shares, provide a building block
+     * for the machine learning algorithms. The default setting is: the super client provides
+     * the src_ciphers, while at the end of the function, every client receive a secret share
+     * vector. Jointly compute by all the clients
      *
-     * @param path
+     * should consider template for both float and int types
+     *
      * @param src_ciphers
-     * @param dest_shares
+     * @param shares
      * @param size
+     * @param precision: default precision of src_ciphers
      */
-    void djcs_t_2_secret_shares_batch(std::string path,
-            EncodedNumber *src_ciphers, EncodedNumber *& dest_shares, int size = 1);
+    void ciphers_conversion_to_shares(EncodedNumber * src_ciphers, std::vector<float> & shares, int size = 1, int precision = FLOAT_PRECISION);
 
 
     /**
@@ -231,7 +231,6 @@ public:
      * @param s
      */
     void print_recv_message(const string &s);
-
 
     /**
      * print for debugging
