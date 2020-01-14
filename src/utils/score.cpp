@@ -26,3 +26,31 @@ bool rounded_comparison(float a, float b) {
     if ((a >= b - ROUNDED_PRECISION) && (a <= b + ROUNDED_PRECISION)) return true;
     else return false;
 }
+
+
+std::vector<float> softmax(std::vector<float> inputs) {
+
+    float sum = 0.0;
+    for (int i = 0; i < inputs.size(); i++) {
+        sum += inputs[i];
+    }
+
+    std::vector<float> probs;
+    for (int i = 0; i < inputs.size(); i++) {
+        probs.push_back(inputs[i]/sum);
+    }
+
+    return probs;
+}
+
+
+float argmax(std::vector<float> inputs) {
+    float index = 0, max = -1;
+    for (int i = 0; i < inputs.size(); i++) {
+        if (max < inputs[i]) {
+            max = inputs[i];
+            index = i;
+        }
+    }
+    return index;
+}

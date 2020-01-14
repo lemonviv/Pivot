@@ -33,7 +33,8 @@ set(SOURCE_FILES main.cpp
         src/models/feature.h src/models/feature.cpp
         src/models/tree_node.h src/models/tree_node.cpp
         src/models/cart_tree.h src/models/cart_tree.cpp
-        src/models/random_forest.h src/models/random_forest.cpp)
+        src/models/random_forest.h src/models/random_forest.cpp
+        src/models/gbdt.h src/models/gbdt.cpp)
 
 set(SPDZ_HOME "/home/wuyuncheng/Documents/projects/VFL-SPDZ/")
 

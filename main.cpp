@@ -13,6 +13,7 @@
 #include "src/models/feature.h"
 #include "src/models/tree_node.h"
 #include "src/models/random_forest.h"
+#include "src/models/gbdt.h"
 
 #include "tests/test_encoder.h"
 #include "tests/test_djcs_t_aux.h"
@@ -282,6 +283,48 @@ void random_forest(Client & client, int solution_type, int optimization_type) {
 }
 
 
+void gbdt(Client & client, int solution_type, int optimization_type) {
+
+    logger(stdout, "Begin GBDT training\n");
+    int m_tree_num = NUM_TREES;
+    int m_global_feature_num = GLOBAL_FEATURE_NUM;
+    int m_local_feature_num = client.local_data[0].size();
+    int m_internal_node_num = 0;
+    int m_type = TREE_TYPE;
+    int m_classes_num = CLASSES_NUM;
+    if (m_type == 1) m_classes_num = 2;
+    int m_max_depth = MAX_DEPTH;
+    int m_max_bins = MAX_BINS;
+    int m_prune_sample_num = PRUNE_SAMPLE_NUM;
+    float m_prune_threshold = PRUNE_VARIANCE_THRESHOLD;
+
+    GBDT model(m_tree_num, m_global_feature_num, m_local_feature_num, m_internal_node_num, m_type, m_classes_num,
+                       m_max_depth, m_max_bins, m_prune_sample_num, m_prune_threshold, solution_type, optimization_type);
+
+    logger(stdout, "Correct init gbdt\n");
+
+    float split = SPLIT_PERCENTAGE;
+    if (client.client_id == 0) {
+        model.init_datasets(client, split);
+        //model.test_indicator_vector_correctness();
+    } else {
+        int *new_indexes = new int[client.sample_num];
+        std::string recv_s;
+        client.recv_long_messages(client.channels[0].get(), recv_s);
+        deserialize_ids_from_string(new_indexes, recv_s);
+        model.init_datasets_with_indexes(client, new_indexes, split);
+        delete [] new_indexes;
+    }
+
+    model.build_gbdt(client);
+
+    float accuracy = 0.0;
+    model.test_accuracy(client, accuracy);
+    //model.test_accuracy_with_spdz(client, accuracy);
+    logger(stdout, "Accuracy = %f\n", accuracy);
+}
+
+
 int main(int argc, char *argv[]) {
 
     int client_num = TOTAL_CLIENT_NUM;
@@ -347,9 +390,9 @@ int main(int argc, char *argv[]) {
     }
 
     //logistic_regression(client);
-    decision_tree(client, solution_type, optimization_type);
+    //decision_tree(client, solution_type, optimization_type);
     //random_forest(client, solution_type, optimization_type);
-
+    gbdt(client, solution_type, optimization_type);
 
 //    test_share_decrypt(client);
 

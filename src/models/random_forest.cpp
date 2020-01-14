@@ -79,6 +79,7 @@ void RandomForest::init_datasets(Client & client, float split) {
         }
     }
     logger(stdout, "End init dataset\n");
+    delete [] new_indexes;
 }
 
 

@@ -3,8 +3,6 @@
 
 #include "cart_tree.h"
 
-#define NUM_TREES 5
-
 class RandomForest {
 
 public:
