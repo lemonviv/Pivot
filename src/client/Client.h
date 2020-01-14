@@ -162,6 +162,17 @@ public:
 
 
     /**
+     * Multiply two ciphertext vectors with the help of secret shares
+     *
+     * @param cipher_vec1
+     * @param cipher_vec2
+     * @param res
+     * @param size
+     */
+    void cipher_vectors_multiplication(EncodedNumber * cipher_vec1, EncodedNumber * cipher_vec2, EncodedNumber * & res, int size = 1);
+
+
+    /**
      * Before sending the partial sums to the super client, add random shares
      * to each element in the batch, and write these shares to designated file
      *

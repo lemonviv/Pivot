@@ -653,6 +653,20 @@ void DecisionTree::build_tree_node(Client & client, int node_index) {
                     djcs_t_aux_ep_mul(client.m_pk, encrypted_labels[i * sample_num + j], tree_nodes[node_index].sample_iv[j], tmp);
                 }
             }
+            // TODO: simulate the running time when using GBDT model
+            if (GBDT_FLAG == 1) {
+                for (int i = 0; i < used_classes_num; i++) {
+                    EncodedNumber * tmp = new EncodedNumber[sample_num];
+                    for (int j = 0; j < sample_num; j++) {
+                        tmp[j].set_float(client.m_pk->n[0], variance_stat_vecs[i][j]);
+                        djcs_t_aux_encrypt(client.m_pk, client.m_hr, tmp[j], tmp[j]);
+                    }
+                    EncodedNumber * res = new EncodedNumber[sample_num];
+                    client.cipher_vectors_multiplication(tree_nodes[node_index].sample_iv, tmp, res, sample_num);
+                    delete [] tmp;
+                    delete [] res;
+                }
+            }
         }
 
         gettimeofday(&encrypted_label_2, NULL);
