@@ -42,8 +42,8 @@ if DECISION_TREE:
     train_avg.reset(); test_avg.reset()
     for _ in range(NUM_EXPS):
         clf = tree.DecisionTreeClassifier(criterion=CRITERION, max_depth=MAX_DEPTH,
-                    min_samples_split=MIN_SAMPLES_SPLIT, min_samples_leaf=MIN_SAMPLES_LEAF,
-                    min_impurity_decrease=MIN_IMPURITY_DECREASE)
+                min_samples_split=MIN_SAMPLES_SPLIT, min_samples_leaf=MIN_SAMPLES_LEAF,
+                min_impurity_decrease=MIN_IMPURITY_DECREASE)
         clf.fit(X_train, y_train)
         train_acc = clf.score(X_train, y_train)
         test_acc = clf.score(X_test, y_test)
@@ -65,8 +65,8 @@ if RANDOM_FOREST:
     train_avg.reset(); test_avg.reset()
     for _ in range(NUM_EXPS):
         clf = RandomForestClassifier(n_estimators=NUM_TREE, criterion=CRITERION, max_depth=MAX_DEPTH,
-                                     min_samples_split=MIN_SAMPLES_SPLIT, min_samples_leaf=MIN_SAMPLES_LEAF,
-                                     min_impurity_decrease=MIN_IMPURITY_DECREASE)
+                min_samples_split=MIN_SAMPLES_SPLIT, min_samples_leaf=MIN_SAMPLES_LEAF,
+                min_impurity_decrease=MIN_IMPURITY_DECREASE)
         clf.fit(X_train, y_train)
         train_acc = clf.score(X_train, y_train)
         test_acc = clf.score(X_test, y_test)
@@ -91,10 +91,10 @@ VALIDATION_FRACTION = 0.1       # proportion of training for early stopping
 if GBDT:
     train_avg.reset(); test_avg.reset()
     for _ in range(NUM_EXPS):
-        clf = GradientBoostingClassifier(loss=LOSS, learning_rate=LEARNING_RATE, n_estimators=N_ESTIMATORS,
-                                         subsample=SUBSAMPLE, criterion=CRITERION, min_samples_split=MIN_SAMPLES_SPLIT,
-                                         min_samples_leaf=MIN_SAMPLES_LEAF, min_impurity_decrease=MIN_IMPURITY_DECREASE,
-                                         validation_fraction=VALIDATION_FRACTION, verbose=True)
+        clf = GradientBoostingClassifier(loss=LOSS, learning_rate=LEARNING_RATE,  n_estimators=N_ESTIMATORS,
+                subsample=SUBSAMPLE, criterion=CRITERION, min_samples_split=MIN_SAMPLES_SPLIT,
+                min_samples_leaf=MIN_SAMPLES_LEAF, min_impurity_decrease=MIN_IMPURITY_DECREASE,
+                validation_fraction=VALIDATION_FRACTION, verbose=True)
 
         clf.fit(X_train, y_train)
         train_acc = clf.score(X_train, y_train)
