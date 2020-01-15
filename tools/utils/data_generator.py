@@ -32,7 +32,6 @@ CLASS_SEP = 1.              # factor multiplying the hypercube size, default val
 HYPERCUBE = True            # default value recommended
 
 
-
 if IS_REGRESSION:
     # regression data generation
     # X: N*M; y: N; if COEF==True: COEF: N
