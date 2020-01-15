@@ -30,3 +30,24 @@ To communicate with MP-SPDZ programs, the following steps should be done.
     (1) ./semi-party.x -F -N 3 -I -p 0 vfl_mode_computation
     (2) ./semi-party.x -F -N 3 -I -p 1 vfl_mode_computation
     (3) ./semi-party.x -F -N 3 -I -p 2 vfl_mode_computation
+
+About data_spliter:
+    Compile:
+        g++ -o data_spliter data_spliter.cc
+    Usage:
+        ./data_spliter /path/to/data
+    Output:
+        three data sets (client_0.txt, client_1.txt, client2.txt)
+        Only client_0.txt will include the labels
+    Implement:
+        (1) read data from the data file and store in a vector<vector<string>> table
+        (2) calculate the number of samples and the number of attributes (including label)
+        (3) set up three files named "client_0.txt", "client_1.txt" and " client_2.txt"
+        (4) Attributes of the data in the table will be splitted to three parts,
+            the first part will be transferred to client_2.txt,
+            the second part will be transferred to client_1.txt,
+            the third part including the labels will be transferred to client_0.txt
+
+About run.sh
+    Usage:
+        ./run.sh -p <client_id> -n <num_experiments>

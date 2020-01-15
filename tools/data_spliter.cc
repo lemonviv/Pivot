@@ -21,7 +21,7 @@ int main(int argc, char* argv[]) {
     string data;
     vector<string> sample;
     while (getline(ss, data, ',')) {
-      if (data == "0") data = "0.00001"; // temporarily fix zero value issue
+      // if (data == "0") data = "0.00001"; // temporarily fix zero value issue
       sample.push_back(data);
     }
     table.push_back(sample);
@@ -35,7 +35,7 @@ int main(int argc, char* argv[]) {
   ofstream out1(f1), out2(f2), out3(f3);
   int n_attr_per_client = n_attributes / 3;
   for (auto entry : table) {
-    out1 << "1.0,"; // x0
+    // out1 << "1.0,"; // x0 for regression
     for (int i = 0; i < n_attributes; ++i) {
       if (i < n_attr_per_client) {
         out3 << entry[i];
@@ -52,14 +52,11 @@ int main(int argc, char* argv[]) {
           out2 << ",";
         }
       } else {
-        if (i == n_attributes - 1) { // deal with label
-          if (entry[i] == "g") {
-            out1 << "1" << endl;
-          } else if (entry[i] == "b") {
-            out1 << "0" << endl;
-          }
+	out1 << entry[i];
+        if (i == n_attributes - 1) {
+          out1 << endl;
         } else {
-          out1 << entry[i] << ",";
+          out1 << ",";
         }
       }
     }
