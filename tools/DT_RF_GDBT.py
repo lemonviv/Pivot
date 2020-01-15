@@ -38,7 +38,7 @@ MIN_SAMPLES_SPLIT = 2
 MIN_SAMPLES_LEAF = 1
 MIN_IMPURITY_DECREASE = 1e-5
 
-# hyper-parameters for classification
+# hyper-parameters for classification/regression
 if IS_CLASSIFICATION: CRITERION = 'gini'        # 'gini' or 'entropy'
 else: CRITERION = 'mse'                         # “mse”, “friedman_mse”, “mae”
 
@@ -75,11 +75,9 @@ MIN_SAMPLES_SPLIT = 2
 MIN_SAMPLES_LEAF = 1
 MIN_IMPURITY_DECREASE = 1e-5
 
-# hyper-parameters for classification
-if IS_CLASSIFICATION:
-    CRITERION = 'gini'
-else:
-    CRITERION = 'mse'
+# hyper-parameters for classification/regression
+if IS_CLASSIFICATION: CRITERION = 'gini'
+else: CRITERION = 'mse'
 
 if RANDOM_FOREST:
     train_avg.reset(); test_avg.reset()
@@ -110,20 +108,19 @@ if RANDOM_FOREST:
 
 ###########################            GDBT hyper-parameters              ###########################
 LEARNING_RATE = 0.1
-N_ESTIMATORS = 100              # number of boosting stages to perform
+N_ESTIMATORS = 100                      # number of boosting stages to perform
 SUBSAMPLE = 0.8
-CRITERION = 'friedman_mse'      # 'friedman_mse' or 'mse
+CRITERION = 'friedman_mse'              # 'friedman_mse' or 'mse
 MIN_SAMPLES_SPLIT = 2
 MIN_SAMPLES_LEAF = 1
 MAX_DEPTH = 8
 MIN_IMPURITY_DECREASE = 1e-5
-VALIDATION_FRACTION = 0.1       # proportion of training for early stopping
-VERBOSE = True                  # verbose output
+VALIDATION_FRACTION = 0.1               # proportion of training for early stopping
+VERBOSE = True                          # verbose output
 
-if IS_CLASSIFICATION:
-    LOSS = 'deviance'           # (= logistic regression); 'exponential' for AdaBoost
-else:
-    LOSS = 'ls'
+# hyper-parameters for classification/regression
+if IS_CLASSIFICATION: LOSS = 'deviance' # (= logistic regression); 'exponential' for AdaBoost
+else: LOSS = 'ls'
 
 if GBDT:
     train_avg.reset(); test_avg.reset()
