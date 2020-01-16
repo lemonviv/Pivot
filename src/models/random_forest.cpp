@@ -221,6 +221,7 @@ void RandomForest::build_forest(Client & client, float sample_rate) {
         forest[i].init_features();
         forest[i].init_root_node(client);
         forest[i].build_tree_node(client, 0);
+        forest[i].intermediate_memory_free();
     }
 
     logger(stdout, "End build forest\n");

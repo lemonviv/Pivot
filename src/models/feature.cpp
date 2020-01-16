@@ -64,26 +64,36 @@ Feature& Feature::operator=(Feature *feature) {
 Feature::~Feature() {
 
     // free split_ivs
-    split_ivs_left.clear();
-    split_ivs_left.shrink_to_fit();
+    if (split_ivs_left.size() != 0) {
+        split_ivs_left.clear();
+        split_ivs_left.shrink_to_fit();
+    }
 
-    split_ivs_right.clear();
-    split_ivs_right.shrink_to_fit();
+    if (split_ivs_right.size() != 0) {
+        split_ivs_right.clear();
+        split_ivs_right.shrink_to_fit();
+    }
 
     // free sorted_indexes
-    sorted_indexes.clear();
-    sorted_indexes.shrink_to_fit();
+    if (sorted_indexes.size() != 0) {
+        sorted_indexes.clear();
+        sorted_indexes.shrink_to_fit();
+    }
 
     // free sorted_distinct_values
     // std::vector<float>().swap(sorted_distinct_values);
 
     // free original_feature_values
-    original_feature_values.clear();
-    original_feature_values.shrink_to_fit();
+    if (original_feature_values.size() != 0) {
+        original_feature_values.clear();
+        original_feature_values.shrink_to_fit();
+    }
 
     // free split_values
-    split_values.clear();
-    split_values.shrink_to_fit();
+    if (split_values.size() != 0) {
+        split_values.clear();
+        split_values.shrink_to_fit();
+    }
 }
 
 void Feature::set_feature_data(std::vector<float> values, int size) {

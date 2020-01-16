@@ -270,6 +270,8 @@ void GBDT::build_gbdt(Client &client) {
             for (int i = 0; i < training_data.size(); i++) {
                 cur_predicted_labels[class_id][i] += predicted_training_labels[i];
             }
+
+            forest[real_tree_id].intermediate_memory_free();
         }
     }
 

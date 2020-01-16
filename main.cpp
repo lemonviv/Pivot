@@ -391,8 +391,8 @@ int main(int argc, char *argv[]) {
 
     //logistic_regression(client);
     //decision_tree(client, solution_type, optimization_type);
-    //random_forest(client, solution_type, optimization_type);
-    gbdt(client, solution_type, optimization_type);
+    random_forest(client, solution_type, optimization_type);
+    //gbdt(client, solution_type, optimization_type);
 
 //    test_share_decrypt(client);
 

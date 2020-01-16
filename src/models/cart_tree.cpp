@@ -2344,20 +2344,98 @@ void DecisionTree::update_sample_iv(Client &client, int i_star, EncodedNumber *l
 //}
 
 
+void DecisionTree::intermediate_memory_free() {
+
+    if (training_data.size() != 0) {
+        training_data.clear();
+        training_data.shrink_to_fit();
+    }
+
+    if (training_data_labels.size() != 0) {
+        training_data_labels.clear();
+        training_data_labels.shrink_to_fit();
+    }
+
+    if (feature_types.size() != 0) {
+        feature_types.clear();
+        feature_types.shrink_to_fit();
+    }
+
+    if (split_num_each_client.size() != 0) {
+        split_num_each_client.clear();
+        split_num_each_client.shrink_to_fit();
+    }
+
+    if (training_data_labels.size() != 0) {
+        training_data_labels.clear();
+        training_data_labels.shrink_to_fit();
+    }
+
+    if (testingg_data_labels.size() != 0) {
+        testingg_data_labels.clear();
+        testingg_data_labels.shrink_to_fit();
+    }
+
+    if (indicator_class_vecs.size() != 0) {
+        indicator_class_vecs.clear();
+        indicator_class_vecs.shrink_to_fit();
+    }
+
+    if (variance_stat_vecs.size() != 0) {
+        variance_stat_vecs.clear();
+        variance_stat_vecs.shrink_to_fit();
+    }
+
+    for (int i = 0; i < local_feature_num; i++) {
+        // free split_ivs
+        if (features[i].split_ivs_left.size() != 0) {
+            features[i].split_ivs_left.clear();
+            features[i].split_ivs_left.shrink_to_fit();
+        }
+
+        if (features[i].split_ivs_right.size() != 0) {
+            features[i].split_ivs_right.clear();
+            features[i].split_ivs_right.shrink_to_fit();
+        }
+
+        // free sorted_indexes
+        if (features[i].sorted_indexes.size() != 0) {
+            features[i].sorted_indexes.clear();
+            features[i].sorted_indexes.shrink_to_fit();
+        }
+
+        // free original_feature_values
+        if (features[i].original_feature_values.size() != 0) {
+            features[i].original_feature_values.clear();
+            features[i].original_feature_values.shrink_to_fit();
+        }
+    }
+
+}
+
+
 DecisionTree::~DecisionTree() {
 
     // free local data
-    training_data.clear();
-    training_data.shrink_to_fit();
+    if (training_data.size() != 0) {
+        training_data.clear();
+        training_data.shrink_to_fit();
+    }
 
-    testing_data.clear();
-    testing_data.shrink_to_fit();
+    if (testing_data.size() != 0) {
+        testing_data.clear();
+        testing_data.shrink_to_fit();
+    }
 
-    feature_types.clear();
-    feature_types.shrink_to_fit();
+    if (feature_types.size() != 0) {
+        feature_types.clear();
+        feature_types.shrink_to_fit();
+    }
 
-    split_num_each_client.clear();
-    split_num_each_client.shrink_to_fit();
+    if (split_num_each_client.size() != 0) {
+        split_num_each_client.clear();
+        split_num_each_client.shrink_to_fit();
+    }
 
     delete [] tree_nodes;
     delete [] features;
