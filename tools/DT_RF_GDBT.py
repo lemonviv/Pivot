@@ -18,7 +18,7 @@ def get_args():
                         help='whether to train with GDBT (default: False)')
 
     parser.add_argument('--data_path', default='utils/data/air_quality.data', type=str, help='path to dataset')
-    parser.add_argument('--is_classification', action='store_false', default=True,
+    parser.add_argument('--is_classification', action='store_true', default=False,
                         help='whether train as a classification task (default: False)')
     parser.add_argument('--eval_metric', default='rmse', type=str, help='evaluation metric for regression tasks')
 
