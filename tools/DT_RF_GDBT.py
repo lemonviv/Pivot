@@ -1,3 +1,5 @@
+import argparse
+from random import randint
 from utils import load_from_csv
 from utils import AverageMeter, eval_criterion
 
@@ -5,149 +7,140 @@ from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
 from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
 from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor
 
-# Global hyper-parameters
-'''
-NUM_EXPS:       number of experiment repeats, report mean value
-DATASET:        the name of the dataset for evaluation
-DECISION_TREE:  flags whether to train with decision tree
-RANDOM_FOREST:  flags whether to train with Random Forest
-GBDT:           flags whether to train with GBDT
-'''
-NUM_EXPS = 10
-DECISION_TREE = False
-RANDOM_FOREST = False
-GBDT = True
+def get_args():
+    parser = argparse.ArgumentParser(description='Train with DecisionTree, RandomForest and GradientBoosting')
+    parser.add_argument('--num_exps', type=int, default=10, help='number of experiment repeats, report mean value')
+    parser.add_argument('--decision_tree', action='store_true', default=False,
+                        help='whether to train with DecisionTree (default: False)')
+    parser.add_argument('--random_forest', action='store_true', default=False,
+                        help='whether to train with RandomForest (default: False)')
+    parser.add_argument('--gdbt', action='store_true', default=False,
+                        help='whether to train with GDBT (default: False)')
+
+    parser.add_argument('--data_path', default='utils/data/air_quality.data', type=str, help='path to dataset')
+    parser.add_argument('--is_classification', action='store_false', default=True,
+                        help='whether train as a classification task (default: False)')
+    parser.add_argument('--eval_metric', default='rmse', type=str, help='evaluation metric for regression tasks')
+
+    # DT/RF/GDBT shared hyper-parameters
+    parser.add_argument('--max_depth', type=int, default=8, help='maximum depth of the tree')
+    parser.add_argument('--min_samples_split', type=int, default=2,
+                        help='minimum number of samples required to split an internal node')
+    parser.add_argument('--min_samples_leaf', type=int, default=1,
+                        help='minimum number of samples required to be at a leaf node')
+    parser.add_argument('--min_impurity_decrease', default=1e-5, type=float,
+                        help='node split if induces a decrease of the impurity greater than or equal to this value')
+
+    # DT hyper-parameters
+    parser.add_argument('--criterion', default='gini', type=str,
+                        help='function to measure quality of split, e.g. gini for classification, mse for regression')
+
+    # RF/GDBT shared hyper-parameters
+    parser.add_argument('--n_estimators', type=int, default=50, help='number of trees in the model')
+
+    # GDBT hyper-parameters
+    parser.add_argument('--learning_rate', default=0.1, type=float,
+                        help='learning rate shrinks the contribution of each tree by learning_rate')
+    parser.add_argument('--subsample', default=1.0, type=float,
+                        help='fraction of samples to be used for fitting the individual base learners')
+    parser.add_argument('--validation_fraction', default=0.1, type=float,
+                        help='proportion of training data to set aside as validation set for early stopping')
+    parser.add_argument('--loss', default='deviance', type=str,
+                        help='loss function to be optimized. ‘ls’ refers to least squares regression')
+    parser.add_argument('--verbose', action='store_false', default=True,
+                        help='whether to train with DecisionTree (default: True)')
+
+    return parser.parse_args()
+
+args = get_args()
 
 # loading dataset
-DATA_DIR = 'utils/data/'
-DATASET = 'air_quality.data'
-X_train, y_train, X_test, y_test = load_from_csv(DATA_DIR+DATASET)
-IS_CLASSIFICATION = False
-if not IS_CLASSIFICATION:
-    EVAL_METRIC = 'rmse'             # evaluation metric for regression
-
+X_train, y_train, X_test, y_test = load_from_csv(args.data_path)
 print(f'Data shape: \ntrain\t x {X_train.shape},\ty {y_train.shape}\n'
       f'test\t x {X_test.shape},\ty {y_test.shape}\n')
 
+def train_eval(clf):
+    clf.fit(X_train, y_train)
 
-train_avg, test_avg = AverageMeter(), AverageMeter()
-###########################         Decision Tree hyper-parameters          ###########################
-# shared hyper-parameters
-MAX_DEPTH = 8
-MIN_SAMPLES_SPLIT = 2
-MIN_SAMPLES_LEAF = 1
-MIN_IMPURITY_DECREASE = 1e-5
+    if args.is_classification:
+        train_perf = clf.score(X_train, y_train)
+        test_perf = clf.score(X_test, y_test)
+    else:
+        train_perf = eval_criterion(y_train, clf.predict(X_train), metric=args.eval_metric)
+        test_perf = eval_criterion(y_test, clf.predict(X_test), metric=args.eval_metric)
 
-# hyper-parameters for classification/regression
-if IS_CLASSIFICATION: CRITERION = 'gini'        # 'gini' or 'entropy'
-else: CRITERION = 'mse'                         # “mse”, “friedman_mse”, “mae”
+    return train_perf, test_perf
 
-if DECISION_TREE:
-    train_avg.reset(); test_avg.reset()
-    for _ in range(NUM_EXPS):
-        if IS_CLASSIFICATION:
-            clf = DecisionTreeClassifier(criterion=CRITERION, max_depth=MAX_DEPTH,
-                    min_samples_split=MIN_SAMPLES_SPLIT, min_samples_leaf=MIN_SAMPLES_LEAF,
-                    min_impurity_decrease=MIN_IMPURITY_DECREASE)
+# Decision Tree
+if args.decision_tree:
+    assert args.criterion in ['gini', 'entropy'] if args.is_classification else \
+        args.criterion in ['mse', 'friedman_mse', 'mae']
+
+    train_avg, test_avg = AverageMeter(), AverageMeter()
+    for _ in range(args.num_exps):
+        if args.is_classification:
+            clf = DecisionTreeClassifier(criterion=args.criterion, max_depth=args.max_depth,
+                     min_samples_split=args.min_samples_split, min_samples_leaf=args.min_samples_leaf,
+                     min_impurity_decrease=args.min_impurity_decrease, random_state=randint(0, 1000000))
         else:
-            clf = DecisionTreeRegressor(criterion=CRITERION, max_depth=MAX_DEPTH,
-                    min_samples_split=MIN_SAMPLES_SPLIT, min_samples_leaf=MIN_SAMPLES_LEAF,
-                    min_impurity_decrease=MIN_IMPURITY_DECREASE)
-
-        clf.fit(X_train, y_train)
-
-        if IS_CLASSIFICATION:
-            train_perf = clf.score(X_train, y_train)
-            test_perf = clf.score(X_test, y_test)
-        else:
-            train_perf = eval_criterion(y_train, clf.predict(X_train), metric=EVAL_METRIC)
-            test_perf = eval_criterion(y_test, clf.predict(X_test), metric=EVAL_METRIC)
+            clf = DecisionTreeRegressor(criterion=args.criterion, max_depth=args.max_depth,
+                    min_samples_split=args.min_samples_split, min_samples_leaf=args.min_samples_leaf,
+                    min_impurity_decrease=args.min_impurity_decrease, random_state=randint(0, 1000000))
+        train_perf, test_perf = train_eval(clf)
+        print(train_perf, test_perf)
 
         train_avg.update(train_perf)
         test_avg.update(test_perf)
 
-    print(f'Decision Tree\t {NUM_EXPS}-Avg train_perf:\t{train_avg.avg:4f}, test_perf:\t{test_avg.avg:4f}')
+    print(f'Decision Tree\t {args.num_exps}-Avg train_perf:\t{train_avg.avg:4f}, test_perf:\t{test_avg.avg:4f}')
 
-###########################         Random Forest hyper-parameters          ###########################
-NUM_TREE = 50
-MAX_DEPTH = 8
-MIN_SAMPLES_SPLIT = 2
-MIN_SAMPLES_LEAF = 1
-MIN_IMPURITY_DECREASE = 1e-5
+# Random Forest
+if args.random_forest:
+    assert args.criterion in ['gini', 'entropy'] if args.is_classification else \
+        args.criterion in ['mse', 'mae']
 
-# hyper-parameters for classification/regression
-if IS_CLASSIFICATION: CRITERION = 'gini'
-else: CRITERION = 'mse'
-
-if RANDOM_FOREST:
-    train_avg.reset(); test_avg.reset()
-    for _ in range(NUM_EXPS):
-        if IS_CLASSIFICATION:
-            clf = RandomForestClassifier(n_estimators=NUM_TREE, criterion=CRITERION, max_depth=MAX_DEPTH,
-                    min_samples_split=MIN_SAMPLES_SPLIT, min_samples_leaf=MIN_SAMPLES_LEAF,
-                    min_impurity_decrease=MIN_IMPURITY_DECREASE)
+    train_avg, test_avg = AverageMeter(), AverageMeter()
+    for _ in range(args.num_exps):
+        if args.is_classification:
+            clf = RandomForestClassifier(n_estimators=args.n_estimators, criterion=args.criterion,
+                    max_depth=args.max_depth, min_samples_split=args.min_samples_split,
+                    min_samples_leaf=args.min_samples_leaf, min_impurity_decrease=args.min_impurity_decrease,
+                    random_state=randint(0, 1000000))
         else:
-            clf = RandomForestRegressor(n_estimators=NUM_TREE, criterion=CRITERION, max_depth=MAX_DEPTH,
-                    min_samples_split=MIN_SAMPLES_SPLIT, min_samples_leaf=MIN_SAMPLES_LEAF,
-                    min_impurity_decrease=MIN_IMPURITY_DECREASE)
-
-        clf.fit(X_train, y_train)
-
-        if IS_CLASSIFICATION:
-            train_perf = clf.score(X_train, y_train)
-            test_perf = clf.score(X_test, y_test)
-        else:
-            train_perf = eval_criterion(y_train, clf.predict(X_train), metric=EVAL_METRIC)
-            test_perf = eval_criterion(y_test, clf.predict(X_test), metric=EVAL_METRIC)
+            clf = RandomForestRegressor(n_estimators=args.n_estimators, criterion=args.criterion,
+                    max_depth=args.max_depth, min_samples_split=args.min_samples_split,
+                    min_samples_leaf=args.min_samples_leaf, min_impurity_decrease=args.min_impurity_decrease,
+                    random_state=randint(0, 1000000))
+        train_perf, test_perf = train_eval(clf)
 
         train_avg.update(train_perf)
         test_avg.update(test_perf)
 
-    print(f'Random Forest\t {NUM_EXPS}-Avg train_perf:\t{train_avg.avg:4f}, test_perf:\t{test_avg.avg:4f}')
+    print(f'Random Forest\t {args.num_exps}-Avg train_perf:\t{train_avg.avg:4f}, test_perf:\t{test_avg.avg:4f}')
 
+# GDBT
+if args.gdbt:
+    assert args.criterion in ['friedman_mse']
+    assert args.loss in ['deviance', 'exponential'] if args.is_classification else \
+        args.loss in ['ls', 'lad', 'huber', 'quantile']
 
-###########################            GDBT hyper-parameters              ###########################
-LEARNING_RATE = 0.1
-N_ESTIMATORS = 100                      # number of boosting stages to perform
-SUBSAMPLE = 0.8
-CRITERION = 'friedman_mse'              # 'friedman_mse' or 'mse
-MIN_SAMPLES_SPLIT = 2
-MIN_SAMPLES_LEAF = 1
-MAX_DEPTH = 8
-MIN_IMPURITY_DECREASE = 1e-5
-VALIDATION_FRACTION = 0.1               # proportion of training for early stopping
-VERBOSE = True                          # verbose output
-
-# hyper-parameters for classification/regression
-if IS_CLASSIFICATION: LOSS = 'deviance' # (= logistic regression); 'exponential' for AdaBoost
-else: LOSS = 'ls'
-
-if GBDT:
-    train_avg.reset(); test_avg.reset()
-    for _ in range(NUM_EXPS):
-        if IS_CLASSIFICATION:
-            clf = GradientBoostingClassifier(loss=LOSS, learning_rate=LEARNING_RATE,  n_estimators=N_ESTIMATORS,
-                    subsample=SUBSAMPLE, criterion=CRITERION, min_samples_split=MIN_SAMPLES_SPLIT, max_depth=MAX_DEPTH,
-                    min_samples_leaf=MIN_SAMPLES_LEAF, min_impurity_decrease=MIN_IMPURITY_DECREASE,
-                    validation_fraction=VALIDATION_FRACTION, verbose=True)
+    train_avg, test_avg = AverageMeter(), AverageMeter()
+    for _ in range(args.num_exps):
+        if args.is_classification:
+            clf = GradientBoostingClassifier(loss=args.loss, learning_rate=args.learning_rate,
+                     n_estimators=args.n_estimators, subsample=args.subsample,
+                     criterion=args.criterion, min_samples_split=args.min_samples_split, max_depth=args.max_depth,
+                     min_samples_leaf=args.min_samples_leaf, min_impurity_decrease=args.min_impurity_decrease,
+                     validation_fraction=args.validation_fraction, verbose=True, random_state=randint(0, 1000000))
         else:
-            clf = GradientBoostingRegressor(loss=LOSS, learning_rate=LEARNING_RATE, n_estimators=N_ESTIMATORS,
-                     subsample=SUBSAMPLE, criterion=CRITERION,
-                     min_samples_split=MIN_SAMPLES_SPLIT, max_depth=MAX_DEPTH,
-                     min_samples_leaf=MIN_SAMPLES_LEAF,
-                     min_impurity_decrease=MIN_IMPURITY_DECREASE,
-                     validation_fraction=VALIDATION_FRACTION, verbose=True)
-
-        clf.fit(X_train, y_train)
-
-        if IS_CLASSIFICATION:
-            train_perf = clf.score(X_train, y_train)
-            test_perf = clf.score(X_test, y_test)
-        else:
-            train_perf = eval_criterion(y_train, clf.predict(X_train), metric=EVAL_METRIC)
-            test_perf = eval_criterion(y_test, clf.predict(X_test), metric=EVAL_METRIC)
+            clf = GradientBoostingRegressor(loss=args.loss, learning_rate=args.learning_rate,
+                    n_estimators=args.n_estimators, subsample=args.subsample, criterion=args.criterion,
+                    min_samples_split=args.min_samples_split, max_depth=args.max_depth,
+                    min_samples_leaf=args.min_samples_leaf, min_impurity_decrease=args.min_impurity_decrease,
+                    validation_fraction=args.validation_fraction, verbose=True, random_state=randint(0, 1000000))
+        train_perf, test_perf = train_eval(clf)
 
         train_avg.update(train_perf)
         test_avg.update(test_perf)
 
-    print(f'GBDT\t {NUM_EXPS}-Avg train_perf:\t{train_avg.avg:4f}, test_perf:\t{test_avg.avg:4f}')
+    print(f'GDBT\t {args.num_exps}-Avg train_perf:\t{train_avg.avg:4f}, test_perf:\t{test_avg.avg:4f}')
