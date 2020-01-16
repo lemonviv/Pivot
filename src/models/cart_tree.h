@@ -224,6 +224,15 @@ public:
             EncodedNumber * right_selection_result, int node_index);
 
 
+    /**
+     * this function is called after a tree is trained in the ensemble models
+     * basically, the training data and testing data related information,
+     * as well as feature helper information can be freed. When the whole program
+     * is terminated, the corresponding destructor should check whether these
+     * information has already been freed.
+     */
+    void intermediate_memory_free();
+
 //    void test_indicator_vector_correctness();
 //
 //    void test_sample_iv_update_correctness(Client & client, int node_index, int i_star);

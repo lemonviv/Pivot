@@ -97,9 +97,11 @@ void TreeNode::print_node() {
 
 
 TreeNode::~TreeNode() {
-    //should free EncodedNumber?
-    available_feature_ids.clear();
-    available_feature_ids.shrink_to_fit();
+
+    if (available_feature_ids.size() != 0) {
+        available_feature_ids.clear();
+        available_feature_ids.shrink_to_fit();
+    }
 
     //if (sample_iv != NULL) {
     //    delete [] sample_iv;
