@@ -20,7 +20,7 @@ def get_args():
     parser.add_argument('--data_path', default='utils/data/air_quality.data', type=str, help='path to dataset')
     parser.add_argument('--is_classification', action='store_true', default=False,
                         help='whether train as a classification task (default: False)')
-    parser.add_argument('--eval_metric', default='rmse', type=str, help='evaluation metric for regression tasks')
+    parser.add_argument('--eval_metric', default='l2', type=str, help='evaluation metric for regression tasks')
 
     # DT/RF/GDBT shared hyper-parameters
     parser.add_argument('--max_depth', type=int, default=8, help='maximum depth of the tree')
@@ -39,11 +39,11 @@ def get_args():
     parser.add_argument('--n_estimators', type=int, default=50, help='number of trees in the model')
 
     # GDBT hyper-parameters
-    parser.add_argument('--learning_rate', default=0.1, type=float,
+    parser.add_argument('--learning_rate', default=1.0, type=float,
                         help='learning rate shrinks the contribution of each tree by learning_rate')
     parser.add_argument('--subsample', default=1.0, type=float,
                         help='fraction of samples to be used for fitting the individual base learners')
-    parser.add_argument('--validation_fraction', default=0.1, type=float,
+    parser.add_argument('--validation_fraction', default=0.0, type=float,
                         help='proportion of training data to set aside as validation set for early stopping')
     parser.add_argument('--loss', default='deviance', type=str,
                         help='loss function to be optimized. ‘ls’ refers to least squares regression')
