@@ -264,6 +264,7 @@ void EncodedNumber::compute_decode_threshold(mpz_t max_int)
     mpz_init(t);
     mpz_fdiv_q_ui(t, n, 3);
     mpz_sub_ui(max_int, t, 1);  // this is max int
+    mpz_clear(t);
 }
 
 
@@ -313,6 +314,7 @@ void fixed_pointed_decode(float & value, mpz_t res, int exponent) {
         } else {
             value = (float) (v * pow(10, exponent));
         }
+        delete [] t;
     }
 }
 
@@ -352,6 +354,9 @@ void fixed_pointed_decode_truncated(float & value, mpz_t res, int exponent, int 
 
     long v = ::atol(r);
     value = (float) (v * pow(10, real_exponent));
+
+    delete [] t;
+    delete [] r;
 }
 
 
@@ -377,6 +382,7 @@ void decrypt_temp(djcs_t_public_key *pk, djcs_t_auth_server **au, int required_c
     mpz_set(rop.value, t);
 
     mpz_clear(t);
+    free(dec);
 }
 
 

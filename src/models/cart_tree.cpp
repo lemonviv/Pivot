@@ -141,7 +141,7 @@ void DecisionTree::init_datasets(Client & client, float split) {
         for (int i = 0; i < classes_num; i++) {
             logger(stdout, "Class %d sample num = %d\n", i, sample_num_per_class[i]);
         }
-
+        delete [] sample_num_per_class;
     } else {
         // regression, compute variance necessary stats
         std::vector<float> label_square_vec;
@@ -2351,10 +2351,10 @@ void DecisionTree::intermediate_memory_free() {
         training_data.shrink_to_fit();
     }
 
-    if (training_data_labels.size() != 0) {
-        training_data_labels.clear();
-        training_data_labels.shrink_to_fit();
-    }
+//    if (training_data_labels.size() != 0) {
+//        training_data_labels.clear();
+//        training_data_labels.shrink_to_fit();
+//    }
 
     if (feature_types.size() != 0) {
         feature_types.clear();
@@ -2364,11 +2364,6 @@ void DecisionTree::intermediate_memory_free() {
     if (split_num_each_client.size() != 0) {
         split_num_each_client.clear();
         split_num_each_client.shrink_to_fit();
-    }
-
-    if (training_data_labels.size() != 0) {
-        training_data_labels.clear();
-        training_data_labels.shrink_to_fit();
     }
 
     if (testingg_data_labels.size() != 0) {

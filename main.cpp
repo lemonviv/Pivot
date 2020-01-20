@@ -328,7 +328,10 @@ void gbdt(Client & client, int solution_type, int optimization_type) {
 int main(int argc, char *argv[]) {
 
     int client_num = TOTAL_CLIENT_NUM;
-    int client_id = atoi(argv[1]);
+    int client_id;
+    if (argv[1] != NULL) {
+        client_id = atoi(argv[1]);
+    }
     bool has_label = (client_id == 0);
     std::string network_file = "/home/wuyuncheng/Documents/projects/CollaborativeML/data/networks/Parties.txt";
     std::string s1("/home/wuyuncheng/Documents/projects/CollaborativeML/data/datasets/");
@@ -340,22 +343,34 @@ int main(int argc, char *argv[]) {
     int max_tree_depth = MAX_DEPTH;
 
     if (argc > 2) {
-        client_num = atoi(argv[2]);
+        if (argv[2] != NULL) {
+            client_num = atoi(argv[2]);
+        }
     }
     if (argc > 3) {
-        solution_type = atoi(argv[3]);
+        if (argv[3] != NULL) {
+            solution_type = atoi(argv[3]);
+        }
     }
     if (argc > 4) {
-        optimization_type = atoi(argv[4]);
+        if (argv[4] != NULL) {
+            optimization_type = atoi(argv[4]);
+        }
     }
     if (argc > 5) {
-        network_file = argv[5];
+        if (argv[5] != NULL) {
+            network_file = argv[5];
+        }
     }
     if (argc > 6) {
-        data_file = argv[6];
+        if (argv[6] != NULL) {
+            data_file = argv[6];
+        }
     }
     if (argc > 7) {
-        max_tree_depth = atoi(argv[7]);
+        if (argv[7] != NULL) {
+            max_tree_depth = atoi(argv[7]);
+        }
     }
 
     //test_pb();
@@ -390,8 +405,8 @@ int main(int argc, char *argv[]) {
     }
 
     //logistic_regression(client);
-    //decision_tree(client, solution_type, optimization_type);
-    random_forest(client, solution_type, optimization_type);
+    decision_tree(client, solution_type, optimization_type);
+    //random_forest(client, solution_type, optimization_type);
     //gbdt(client, solution_type, optimization_type);
 
 //    test_share_decrypt(client);

@@ -67,3 +67,4 @@ Makefile
 CTestTestfile.cmake
 CollaborativeML
 data/
+log/

@@ -14,19 +14,19 @@ def get_args():
                         help='whether to train with DecisionTree (default: False)')
     parser.add_argument('--random_forest', action='store_true', default=False,
                         help='whether to train with RandomForest (default: False)')
-    parser.add_argument('--gdbt', action='store_true', default=False,
+    parser.add_argument('--gbdt', action='store_true', default=False,
                         help='whether to train with GDBT (default: False)')
 
-    parser.add_argument('--data_path', default='utils/data/air_quality.data', type=str, help='path to dataset')
+    parser.add_argument('--data_path', default='/home/wuyuncheng/Documents/projects/CollaborativeML/data/air_quality_data/air_quality.data', type=str, help='path to dataset')
     parser.add_argument('--is_classification', action='store_true', default=False,
                         help='whether train as a classification task (default: False)')
     parser.add_argument('--eval_metric', default='l2', type=str, help='evaluation metric for regression tasks')
 
     # DT/RF/GDBT shared hyper-parameters
-    parser.add_argument('--max_depth', type=int, default=8, help='maximum depth of the tree')
+    parser.add_argument('--max_depth', type=int, default=3, help='maximum depth of the tree')
     parser.add_argument('--min_samples_split', type=int, default=2,
                         help='minimum number of samples required to split an internal node')
-    parser.add_argument('--min_samples_leaf', type=int, default=1,
+    parser.add_argument('--min_samples_leaf', type=int, default=5,
                         help='minimum number of samples required to be at a leaf node')
     parser.add_argument('--min_impurity_decrease', default=1e-5, type=float,
                         help='node split if induces a decrease of the impurity greater than or equal to this value')
@@ -36,7 +36,7 @@ def get_args():
                         help='function to measure quality of split, e.g. gini for classification, mse for regression')
 
     # RF/GDBT shared hyper-parameters
-    parser.add_argument('--n_estimators', type=int, default=50, help='number of trees in the model')
+    parser.add_argument('--n_estimators', type=int, default=4, help='number of trees in the model')
 
     # GDBT hyper-parameters
     parser.add_argument('--learning_rate', default=1.0, type=float,
@@ -46,7 +46,7 @@ def get_args():
     parser.add_argument('--validation_fraction', default=0.0, type=float,
                         help='proportion of training data to set aside as validation set for early stopping')
     parser.add_argument('--loss', default='deviance', type=str,
-                        help='loss function to be optimized. ‘ls’ refers to least squares regression')
+                        help='loss function to be optimized. ls refers to least squares regression')
     parser.add_argument('--verbose', action='store_false', default=True,
                         help='whether to train with DecisionTree (default: True)')
 
@@ -112,6 +112,7 @@ if args.random_forest:
                     min_samples_leaf=args.min_samples_leaf, min_impurity_decrease=args.min_impurity_decrease,
                     random_state=randint(0, 1000000))
         train_perf, test_perf = train_eval(clf)
+        print(train_perf, test_perf)
 
         train_avg.update(train_perf)
         test_avg.update(test_perf)
@@ -119,8 +120,8 @@ if args.random_forest:
     print(f'Random Forest\t {args.num_exps}-Avg train_perf:\t{train_avg.avg:4f}, test_perf:\t{test_avg.avg:4f}')
 
 # GDBT
-if args.gdbt:
-    assert args.criterion in ['friedman_mse']
+if args.gbdt:
+    assert args.criterion in ['friedman_mse', 'mse']
     assert args.loss in ['deviance', 'exponential'] if args.is_classification else \
         args.loss in ['ls', 'lad', 'huber', 'quantile']
 
@@ -139,6 +140,7 @@ if args.gdbt:
                     min_samples_leaf=args.min_samples_leaf, min_impurity_decrease=args.min_impurity_decrease,
                     validation_fraction=args.validation_fraction, verbose=True, random_state=randint(0, 1000000))
         train_perf, test_perf = train_eval(clf)
+        print(train_perf, test_perf)
 
         train_avg.update(train_perf)
         test_avg.update(test_perf)
