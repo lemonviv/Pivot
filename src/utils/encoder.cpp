@@ -248,13 +248,21 @@ EncodedNumberState EncodedNumber::check_encoded_number()
     mpz_init(neg_int);
     mpz_sub(neg_int, n, max_int);
 
+    EncodedNumberState state;
+
     if (mpz_cmp(value, n) >= 0) {
-        return Invalid;
+        state = Invalid;
     } else if (mpz_cmp(value, max_int) <= 0) {
-        return Positive;
+        state = Positive;
     } else if (mpz_cmp(value, neg_int) >= 0) {
-        return Negative;
-    } else return Overflow;
+        state = Negative;
+    } else {
+        state = Overflow;
+    }
+
+    mpz_clear(max_int);
+    mpz_clear(neg_int);
+    return state;
 }
 
 
@@ -314,7 +322,7 @@ void fixed_pointed_decode(float & value, mpz_t res, int exponent) {
         } else {
             value = (float) (v * pow(10, exponent));
         }
-        delete [] t;
+        free(t);
     }
 }
 
@@ -330,7 +338,7 @@ void fixed_pointed_decode_truncated(float & value, mpz_t res, int exponent, int 
 
     // convert to string and truncate string before assign to long
     char *t = mpz_get_str(NULL, 10, res);
-    std::string s = t;
+    std::string s(t);
 
     // handle the case that the result value is 0
     if (::atol(t) == 0) {
@@ -355,8 +363,8 @@ void fixed_pointed_decode_truncated(float & value, mpz_t res, int exponent, int 
     long v = ::atol(r);
     value = (float) (v * pow(10, real_exponent));
 
-    delete [] t;
-    delete [] r;
+    free(t);
+    free(r);
 }
 
 
@@ -382,15 +390,19 @@ void decrypt_temp(djcs_t_public_key *pk, djcs_t_auth_server **au, int required_c
     mpz_set(rop.value, t);
 
     mpz_clear(t);
+    for (int i = 0; i < required_client_num; i++) {
+        mpz_clear(dec[i]);
+    }
     free(dec);
 }
 
 
 void EncodedNumber::print_encoded_number() {
     logger(stdout, "****** Print encoded number ******\n");
-    std::string n_str, value_str;
-    n_str = mpz_get_str(NULL, 10, n);
-    value_str = mpz_get_str(NULL, 10, value);
+    char * n_str_c, * value_str_c;
+    n_str_c = mpz_get_str(NULL, 10, n);
+    value_str_c = mpz_get_str(NULL, 10, value);
+    std::string n_str(n_str_c), value_str(value_str_c);
     logger(stdout, "n = %s\n", n_str.c_str());
     logger(stdout, "value = %s\n", value_str.c_str());
     logger(stdout, "exponent = %d\n", exponent);

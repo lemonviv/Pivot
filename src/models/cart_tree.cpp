@@ -1346,7 +1346,7 @@ void DecisionTree::build_tree_node(Client & client, int node_index) {
     client_split_nums.shrink_to_fit();
 
     // sample_iv of the current node will never used again, so free the memory
-    delete [] tree_nodes[node_index].sample_iv;
+    // delete [] tree_nodes[node_index].sample_iv;
 
     /** step 9: recursively build the next child tree nodes */
     internal_node_num += 1;

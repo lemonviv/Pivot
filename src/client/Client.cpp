@@ -264,28 +264,36 @@ void Client::serialize_send_keys(std::string &send_keys, djcs_t_public_key *pk, 
     pb_keys.set_public_key_s(pk->s);
     pb_keys.set_public_key_w(pk->w);
     pb_keys.set_public_key_l(pk->l);
-    std::string g_str, delta_str;
-    g_str = mpz_get_str(NULL, 10, pk->g);
-    delta_str = mpz_get_str(NULL, 10, pk->delta);
+    char * g_str_c, * delta_str_c;
+    g_str_c = mpz_get_str(NULL, 10, pk->g);
+    delta_str_c = mpz_get_str(NULL, 10, pk->delta);
+    std::string g_str(g_str_c), delta_str(delta_str_c);
     pb_keys.set_public_key_g(g_str);
     pb_keys.set_public_key_delta(delta_str);
     if (pk->n != NULL) {
         for (int i = 0; i < pk->s + 1; i++) {
             com::collaborative::ml::PB_PublicN *pn = pb_keys.add_public_key_n();
-            std::string ni_str;
-            ni_str = mpz_get_str(NULL, 10, pk->n[i]);
+            char * ni_str_c;
+            ni_str_c = mpz_get_str(NULL, 10, pk->n[i]);
+            std::string ni_str(ni_str_c);
             pn->set_n(ni_str);
+            free(ni_str_c);
             //pb_keys.set_public_key_n(i, ni_str);
         }
     }
 
     // serialize auth server
     pb_keys.set_auth_server_i(i);
-    std::string si_str;
-    si_str = mpz_get_str(NULL, 10, si);
+    char * si_str_c;
+    si_str_c = mpz_get_str(NULL, 10, si);
+    std::string si_str(si_str_c);
     pb_keys.set_auth_server_si(si_str);
 
     pb_keys.SerializeToString(&send_keys);
+
+    free(g_str_c);
+    free(delta_str_c);
+    free(si_str_c);
 }
 
 
@@ -342,6 +350,12 @@ void Client::share_batch_decrypt(EncodedNumber *ciphers, EncodedNumber *& decryp
         djcs_t_share_combine(m_pk, t, dec[i]);
         mpz_set(decrypted_res[i].value, t);
         mpz_clear(t);
+    }
+
+    for (int i = 0; i < size; i++) {
+        for (int j = 0; j < client_num; j++) {
+            mpz_clear(dec[i][j]);
+        }
     }
 
     for (int i = 0; i < size; i++) {

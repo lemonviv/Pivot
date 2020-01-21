@@ -14,16 +14,19 @@ void serialize_encoded_number(EncodedNumber number, std::string & output_str) {
 
     com::collaborative::ml::PB_EncodedNumber pb_number;
 
-    std::string n_str, value_str;
-    n_str = mpz_get_str(NULL, 10, number.n);
-    value_str = mpz_get_str(NULL, 10, number.value);
-
+    char * n_str_c, * value_str_c;
+    n_str_c = mpz_get_str(NULL, 10, number.n);
+    value_str_c = mpz_get_str(NULL, 10, number.value);
+    std::string n_str(n_str_c), value_str(value_str_c);
     pb_number.set_n(n_str);
     pb_number.set_value(value_str);
     pb_number.set_exponent(number.exponent);
     pb_number.set_type(number.type);
 
     pb_number.SerializeToString(& output_str);
+
+    free(n_str_c);
+    free(value_str_c);
 }
 
 
@@ -73,13 +76,17 @@ void serialize_batch_sums(EncodedNumber *batch_sums, int size, std::string & out
 
         com::collaborative::ml::PB_EncodedNumber *pb_number = pb_batch_sums.add_batch_sum();
 
-        std::string n_str, value_str;
-        n_str = mpz_get_str(NULL, 10, batch_sums[i].n);
-        value_str = mpz_get_str(NULL, 10, batch_sums[i].value);
+        char * n_str_c, * value_str_c;
+        n_str_c = mpz_get_str(NULL, 10, batch_sums[i].n);
+        value_str_c = mpz_get_str(NULL, 10, batch_sums[i].value);
+        std::string n_str(n_str_c), value_str(value_str_c);
         pb_number->set_n(n_str);
         pb_number->set_value(value_str);
         pb_number->set_exponent(batch_sums[i].exponent);
         pb_number->set_type(batch_sums[i].type);
+
+        free(n_str_c);
+        free(value_str_c);
     }
 
     pb_batch_sums.SerializeToString(&output_str);
@@ -117,13 +124,17 @@ void serialize_batch_losses(EncodedNumber *batch_losses, int size, std::string &
 
         com::collaborative::ml::PB_EncodedNumber *pb_number = pb_batch_losses.add_batch_loss();
 
-        std::string n_str, value_str;
-        n_str = mpz_get_str(NULL, 10, batch_losses[i].n);
-        value_str = mpz_get_str(NULL, 10, batch_losses[i].value);
+        char * n_str_c, * value_str_c;
+        n_str_c = mpz_get_str(NULL, 10, batch_losses[i].n);
+        value_str_c = mpz_get_str(NULL, 10, batch_losses[i].value);
+        std::string n_str(n_str_c), value_str(value_str_c);
         pb_number->set_n(n_str);
         pb_number->set_value(value_str);
         pb_number->set_exponent(batch_losses[i].exponent);
         pb_number->set_type(batch_losses[i].type);
+
+        free(n_str_c);
+        free(value_str_c);
     }
 
     pb_batch_losses.SerializeToString(&output_str);
@@ -169,13 +180,17 @@ void serialize_pruning_condition_result(int node_index, int is_satisfied, Encode
 
                 com::collaborative::ml::PB_EncodedNumber *pb_number = pb_encrypted_label_vec->add_encrypted_label();
 
-                std::string n_str, value_str;
-                n_str = mpz_get_str(NULL, 10, encrypted_labels[i][j].n);
-                value_str = mpz_get_str(NULL, 10, encrypted_labels[i][j].value);
+                char * n_str_c, * value_str_c;
+                n_str_c = mpz_get_str(NULL, 10, encrypted_labels[i][j].n);
+                value_str_c = mpz_get_str(NULL, 10, encrypted_labels[i][j].value);
+                std::string n_str(n_str_c), value_str(value_str_c);
                 pb_number->set_n(n_str);
                 pb_number->set_value(value_str);
                 pb_number->set_exponent(encrypted_labels[i][j].exponent);
                 pb_number->set_type(encrypted_labels[i][j].type);
+
+                free(n_str_c);
+                free(value_str_c);
             }
         }
 
@@ -184,16 +199,19 @@ void serialize_pruning_condition_result(int node_index, int is_satisfied, Encode
         // satisfied, serialize encrypted impurity and plaintext label
         com::collaborative::ml::PB_EncodedNumber *pb_number_label = new com::collaborative::ml::PB_EncodedNumber;
 
-        std::string n_str_label, value_str_label;
-        n_str_label = mpz_get_str(NULL, 10, label.n);
-        value_str_label = mpz_get_str(NULL, 10, label.value);
-
+        char * n_str_label_c, * value_str_label_c;
+        n_str_label_c = mpz_get_str(NULL, 10, label.n);
+        value_str_label_c = mpz_get_str(NULL, 10, label.value);
+        std::string n_str_label(n_str_label_c), value_str_label(value_str_label_c);
         pb_number_label->set_n(n_str_label);
         pb_number_label->set_value(value_str_label);
         pb_number_label->set_exponent(label.exponent);
         pb_number_label->set_type(label.type);
 
         pb_pruning_condition_result.set_allocated_label(pb_number_label);
+
+        free(n_str_label_c);
+        free(value_str_label_c);
     }
 
     pb_pruning_condition_result.SerializeToString(&output_str);
@@ -279,16 +297,19 @@ void serialize_encrypted_statistics(int client_id, int node_index, int split_num
             com::collaborative::ml::PB_EncodedNumber *pb_number_left = pb_encrypted_statistics.add_left_sample_nums_of_splits();
             com::collaborative::ml::PB_EncodedNumber *pb_number_right = pb_encrypted_statistics.add_right_sample_nums_of_splits();
 
-            std::string n_str_left, value_str_left, n_str_right, value_str_right;
-            n_str_left = mpz_get_str(NULL, 10, left_sample_nums[i].n);
-            value_str_left = mpz_get_str(NULL, 10, left_sample_nums[i].value);
+            char * n_str_left_c, * value_str_left_c, * n_str_right_c, * value_str_right_c;
+
+            n_str_left_c = mpz_get_str(NULL, 10, left_sample_nums[i].n);
+            value_str_left_c = mpz_get_str(NULL, 10, left_sample_nums[i].value);
+            std::string n_str_left(n_str_left_c), value_str_left(value_str_left_c);
             pb_number_left->set_n(n_str_left);
             pb_number_left->set_value(value_str_left);
             pb_number_left->set_exponent(left_sample_nums[i].exponent);
             pb_number_left->set_type(left_sample_nums[i].type);
 
-            n_str_right = mpz_get_str(NULL, 10, right_sample_nums[i].n);
-            value_str_right = mpz_get_str(NULL, 10, right_sample_nums[i].value);
+            n_str_right_c = mpz_get_str(NULL, 10, right_sample_nums[i].n);
+            value_str_right_c = mpz_get_str(NULL, 10, right_sample_nums[i].value);
+            std::string n_str_right(n_str_right_c), value_str_right(value_str_right_c);
             pb_number_right->set_n(n_str_right);
             pb_number_right->set_value(value_str_right);
             pb_number_right->set_exponent(right_sample_nums[i].exponent);
@@ -300,19 +321,28 @@ void serialize_encrypted_statistics(int client_id, int node_index, int split_num
 
                 com::collaborative::ml::PB_EncodedNumber *pb_number = pb_encrypted_stat_split->add_encrypted_stat();
 
-                std::string n_str, value_str;
-                n_str = mpz_get_str(NULL, 10, encrypted_statistics[i][j].n);
-                value_str = mpz_get_str(NULL, 10, encrypted_statistics[i][j].value);
+                char * n_str_c, * value_str_c;
+                n_str_c = mpz_get_str(NULL, 10, encrypted_statistics[i][j].n);
+                value_str_c = mpz_get_str(NULL, 10, encrypted_statistics[i][j].value);
+                std::string n_str(n_str_c), value_str(value_str_c);
                 pb_number->set_n(n_str);
                 pb_number->set_value(value_str);
                 pb_number->set_exponent(encrypted_statistics[i][j].exponent);
                 pb_number->set_type(encrypted_statistics[i][j].type);
 
+                free(n_str_c);
+                free(value_str_c);
             }
+
+            free(n_str_left_c);
+            free(n_str_right_c);
+            free(value_str_left_c);
+            free(value_str_right_c);
         }
     }
 
     pb_encrypted_statistics.SerializeToString(&output_str);
+    pb_encrypted_statistics.Clear();
 }
 
 
@@ -393,16 +423,18 @@ void serialize_update_info(int source_client_id, int best_client_id, int best_fe
     com::collaborative::ml::PB_EncodedNumber *pb_left_impurity = new com::collaborative::ml::PB_EncodedNumber;
     com::collaborative::ml::PB_EncodedNumber *pb_right_impurity = new com::collaborative::ml::PB_EncodedNumber;
 
-    std::string n_str_left, value_str_left, n_str_right, value_str_right;
-    n_str_left = mpz_get_str(NULL, 10, left_branch_impurity.n);
-    value_str_left = mpz_get_str(NULL, 10, left_branch_impurity.value);
+    char * n_str_left_c, * value_str_left_c, * n_str_right_c, * value_str_right_c;
+    n_str_left_c = mpz_get_str(NULL, 10, left_branch_impurity.n);
+    value_str_left_c = mpz_get_str(NULL, 10, left_branch_impurity.value);
+    std::string n_str_left(n_str_left_c), value_str_left(value_str_left_c);
     pb_left_impurity->set_n(n_str_left);
     pb_left_impurity->set_value(value_str_left);
     pb_left_impurity->set_exponent(left_branch_impurity.exponent);
     pb_left_impurity->set_type(left_branch_impurity.type);
 
-    n_str_right = mpz_get_str(NULL, 10, right_branch_impurity.n);
-    value_str_right = mpz_get_str(NULL, 10, right_branch_impurity.value);
+    n_str_right_c = mpz_get_str(NULL, 10, right_branch_impurity.n);
+    value_str_right_c = mpz_get_str(NULL, 10, right_branch_impurity.value);
+    std::string n_str_right(n_str_right_c), value_str_right(value_str_right_c);
     pb_right_impurity->set_n(n_str_right);
     pb_right_impurity->set_value(value_str_right);
     pb_right_impurity->set_exponent(right_branch_impurity.exponent);
@@ -416,24 +448,35 @@ void serialize_update_info(int source_client_id, int best_client_id, int best_fe
         com::collaborative::ml::PB_EncodedNumber *pb_left_sample_iv = pb_update_info.add_left_branch_sample_ivs();
         com::collaborative::ml::PB_EncodedNumber *pb_right_sample_iv = pb_update_info.add_right_branch_sample_ivs();
 
-        std::string n_str_left_sample, value_str_left_sample, n_str_right_sample, value_str_right_sample;
-        n_str_left_sample = mpz_get_str(NULL, 10, left_branch_sample_iv[i].n);
-        value_str_left_sample = mpz_get_str(NULL, 10, left_branch_sample_iv[i].value);
+        char * n_str_left_sample_c, * value_str_left_sample_c, * n_str_right_sample_c, * value_str_right_sample_c;
+        n_str_left_sample_c = mpz_get_str(NULL, 10, left_branch_sample_iv[i].n);
+        value_str_left_sample_c = mpz_get_str(NULL, 10, left_branch_sample_iv[i].value);
+        std::string n_str_left_sample(n_str_left_sample_c), value_str_left_sample(value_str_left_sample_c);
         pb_left_sample_iv->set_n(n_str_left_sample);
         pb_left_sample_iv->set_value(value_str_left_sample);
         pb_left_sample_iv->set_exponent(left_branch_sample_iv[i].exponent);
         pb_left_sample_iv->set_type(left_branch_sample_iv[i].type);
 
-        n_str_right_sample = mpz_get_str(NULL, 10, right_branch_sample_iv[i].n);
-        value_str_right_sample = mpz_get_str(NULL, 10, right_branch_sample_iv[i].value);
+        n_str_right_sample_c = mpz_get_str(NULL, 10, right_branch_sample_iv[i].n);
+        value_str_right_sample_c = mpz_get_str(NULL, 10, right_branch_sample_iv[i].value);
+        std::string n_str_right_sample(n_str_right_sample_c), value_str_right_sample(value_str_right_sample_c);
         pb_right_sample_iv->set_n(n_str_right_sample);
         pb_right_sample_iv->set_value(value_str_right_sample);
         pb_right_sample_iv->set_exponent(right_branch_sample_iv[i].exponent);
         pb_right_sample_iv->set_type(right_branch_sample_iv[i].type);
+
+        free(n_str_left_sample_c);
+        free(value_str_left_sample_c);
+        free(n_str_right_sample_c);
+        free(value_str_right_sample_c);
     }
 
     pb_update_info.SerializeToString(&output_str);
 
+    free(n_str_left_c);
+    free(value_str_left_c);
+    free(n_str_right_c);
+    free(value_str_right_c);
 }
 
 
@@ -527,18 +570,21 @@ void serialize_prune_check_result(int node_index, int is_satisfied, EncodedNumbe
 
     com::collaborative::ml::PB_EncodedNumber *pb_number_label = new com::collaborative::ml::PB_EncodedNumber;
 
-    std::string n_str_label, value_str_label;
-    n_str_label = mpz_get_str(NULL, 10, label.n);
-    value_str_label = mpz_get_str(NULL, 10, label.value);
+    char * n_str_label_c, * value_str_label_c;
+    n_str_label_c = mpz_get_str(NULL, 10, label.n);
+    value_str_label_c = mpz_get_str(NULL, 10, label.value);
 
+    std::string n_str_label(n_str_label_c), value_str_label(value_str_label_c);
     pb_number_label->set_n(n_str_label);
     pb_number_label->set_value(value_str_label);
     pb_number_label->set_exponent(label.exponent);
     pb_number_label->set_type(label.type);
 
     pb_prune_check_result.set_allocated_label(pb_number_label);
-
     pb_prune_check_result.SerializeToString(&output_str);
+
+    free(n_str_label_c);
+    free(value_str_label_c);
 }
 
 void deserialize_prune_check_result(int & node_index, int & is_satisfied, EncodedNumber & label, std::string input_str) {
@@ -571,14 +617,16 @@ void serialize_encrypted_label_vector(int node_index, int classes_num,
 
         com::collaborative::ml::PB_EncodedNumber *pb_number = pb_encrypted_label_vector.add_label_indicator();
 
-        std::string n_str, value_str;
-        n_str = mpz_get_str(NULL, 10, encrypted_label_vector[i].n);
-        value_str = mpz_get_str(NULL, 10, encrypted_label_vector[i].value);
+        char * n_str_c, * value_str_c;
+        n_str_c = mpz_get_str(NULL, 10, encrypted_label_vector[i].n);
+        value_str_c = mpz_get_str(NULL, 10, encrypted_label_vector[i].value);
+        std::string n_str(n_str_c), value_str(value_str_c);
         pb_number->set_n(n_str);
         pb_number->set_value(value_str);
         pb_number->set_exponent(encrypted_label_vector[i].exponent);
         pb_number->set_type(encrypted_label_vector[i].type);
-
+        free(n_str_c);
+        free(value_str_c);
     }
 
     pb_encrypted_label_vector.SerializeToString(&output_str);
