@@ -192,4 +192,11 @@ void djcs_t_aux_inner_product(djcs_t_public_key* pk, hcs_random* hr, EncodedNumb
 //    }
     mpz_clear(sum);
     mpz_clear(sum1);
+
+    for (int i = 0; i < size; i++) {
+        mpz_clear(mpz_ciphers[i]);
+        mpz_clear(mpz_plains[i]);
+    }
+    free(mpz_ciphers);
+    free(mpz_plains);
 }

@@ -364,7 +364,7 @@ void fixed_pointed_decode_truncated(float & value, mpz_t res, int exponent, int 
     value = (float) (v * pow(10, real_exponent));
 
     free(t);
-    free(r);
+    delete [] r;
 }
 
 

@@ -401,8 +401,7 @@ void LogisticRegression::train(Client client) {
     mpz_clear(n);
     mpz_clear(positive_threshold);
     mpz_clear(negative_threshold);
-
-
+    delete [] decrypted_weights;
     logger(stdout, "****** Training end ******\n");
 }
 

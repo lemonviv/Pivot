@@ -274,8 +274,9 @@ bool DecisionTree::check_pruning_conditions_revise(Client & client, int node_ind
 
     int is_satisfied = 0;
     std::string result_str;
-    int recv_node_index;
+    int recv_node_index = -1;
     EncodedNumber label;
+    label.set_float(client.m_pk->n[0], -1);
 
     if (client.client_id == 0) {
         // super client check the pruning conditions
@@ -292,8 +293,8 @@ bool DecisionTree::check_pruning_conditions_revise(Client & client, int node_ind
 
         // check if available_samples_num is less than a threshold (prune_sample_num), together with impurity
         // TODO: currently assume decryption on the sum and impurity, should convert to shares for computation
-        auto *encrypted_conditions = new EncodedNumber[2];
-        auto *decrypted_conditions = new EncodedNumber[2];
+        EncodedNumber *encrypted_conditions = new EncodedNumber[2];
+        EncodedNumber *decrypted_conditions = new EncodedNumber[2];
         encrypted_conditions[0] = available_samples_num;
         encrypted_conditions[1] = tree_nodes[node_index].impurity;
 
@@ -348,7 +349,7 @@ bool DecisionTree::check_pruning_conditions_revise(Client & client, int node_ind
             // for classification, the label is djcs_t_aux_dot_product(labels, sample_ivs) / available_num (might incorrect)
             // for regression, the label is djcs_t_aux_dot_product(labels, sample_ivs) / available_num
             if (type == 0) {
-                auto *class_sample_nums = new EncodedNumber[indicator_class_vecs.size()];
+                EncodedNumber *class_sample_nums = new EncodedNumber[indicator_class_vecs.size()];
                 for (int xx = 0; xx < indicator_class_vecs.size(); xx++) {
                     class_sample_nums[xx].set_integer(client.m_pk->n[0], 0);
                     djcs_t_aux_encrypt(client.m_pk, client.m_hr, class_sample_nums[xx], class_sample_nums[xx]);
@@ -361,7 +362,7 @@ bool DecisionTree::check_pruning_conditions_revise(Client & client, int node_ind
 
                 // TODO: should send to SPDZ for finding the majority class
                 std::string sample_nums_str;
-                auto *decrypted_class_sample_nums = new EncodedNumber[indicator_class_vecs.size()];
+                EncodedNumber *decrypted_class_sample_nums = new EncodedNumber[indicator_class_vecs.size()];
                 client.share_batch_decrypt(class_sample_nums, decrypted_class_sample_nums, indicator_class_vecs.size());
 
                 float majority_class_label = -1;
@@ -390,7 +391,7 @@ bool DecisionTree::check_pruning_conditions_revise(Client & client, int node_ind
                 EncodedNumber inv_encoded;
                 inv_encoded.set_float(client.m_pk->n[0], inv_available_num);
 
-                auto *encoded_labels = new EncodedNumber[training_data_labels.size()];
+                EncodedNumber *encoded_labels = new EncodedNumber[training_data_labels.size()];
                 for (int i = 0; i < training_data_labels.size(); i++) {
                     encoded_labels[i].set_float(client.m_pk->n[0], training_data_labels[i]);
                 }
@@ -552,9 +553,21 @@ void DecisionTree::pack_plain_vectors(Client &client, EncodedNumber *&packed_lab
     }
 
     for (int i = 0; i < classes_num; i++) {
+        for (int j = 0; j < sample_num; j++) {
+            mpz_clear(plain_vectors[i][j]);
+        }
+    }
+
+    for (int i = 0; i < classes_num; i++) {
         free(plain_vectors[i]);
     }
     free(plain_vectors);
+
+    for (int i = 0; i < used_classes_num; i++) {
+        for (int j = 0; j < sample_num; j++) {
+            mpz_clear(packed_plain_vectors[i][j]);
+        }
+    }
 
     for (int i = 0; i < used_classes_num; i++) {
         free(packed_plain_vectors[i]);
@@ -894,12 +907,12 @@ void DecisionTree::build_tree_node(Client & client, int node_index) {
         logger(stdout, "The global encrypted statistics are already aggregated\n");
 
         // call share decryption and convert to shares
-        auto **decrypted_global_statistics = new EncodedNumber*[global_split_num];
+        EncodedNumber **decrypted_global_statistics = new EncodedNumber*[global_split_num];
         for (int i = 0; i < global_split_num; i++) {
             decrypted_global_statistics[i] = new EncodedNumber[2 * used_classes_num];
         }
-        auto *decrypted_left_shares = new EncodedNumber[global_split_num];
-        auto *decrypted_right_shares = new EncodedNumber[global_split_num];
+        EncodedNumber *decrypted_left_shares = new EncodedNumber[global_split_num];
+        EncodedNumber *decrypted_right_shares = new EncodedNumber[global_split_num];
 
         // decrypt left shares and set to shares vector
         client.share_batch_decrypt(global_left_branch_sample_nums, decrypted_left_shares, global_split_num,

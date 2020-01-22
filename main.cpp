@@ -151,6 +151,7 @@ void test_share_decrypt(Client client) {
         share_decrypted_res[1].decode(share_x1);
         logger(stdout, "The decrypted value of ciphers[0] using share decryption = %f\n", share_x0);
         logger(stdout, "The decrypted value of ciphers[1] using share decryption = %f\n", share_x1);
+        delete [] share_decrypted_res;
     } else {
 
         std::string s, response_s;
@@ -174,6 +175,8 @@ void logistic_regression(Client client) {
         client.recv_long_messages(client.channels[0].get(), recv_s);
         deserialize_ids_from_string(new_indexes, recv_s);
         model.init_datasets_with_indexes(client, new_indexes, split);
+
+        delete [] new_indexes;
     }
 
     model.train(client);
@@ -187,6 +190,8 @@ void logistic_regression(Client client) {
     float accuracy = 0.0;
     model.test(client, 1, accuracy);
     logger(stdout, "Testing accuracy = %f \n", accuracy);
+
+    delete [] sample_ids;
 }
 
 void decision_tree(Client & client, int solution_type, int optimization_type) {

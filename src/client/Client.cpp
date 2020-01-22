@@ -328,7 +328,7 @@ void Client::share_batch_decrypt(EncodedNumber *ciphers, EncodedNumber *& decryp
     for (int j = 0; j < client_num; j++) {
         if (j != client_id) {
             std::string recv_message_i;
-            auto *recv_share_i = new EncodedNumber[size];
+            EncodedNumber *recv_share_i = new EncodedNumber[size];
             send_long_messages(channels[j].get(), send_ciphers);
 
             // receive the response messages and deserialize to decrypted shares
@@ -671,12 +671,12 @@ Client::~Client() {
 
     // free channels
     // std::vector< shared_ptr<CommParty> >().swap(channels); //cause segmentation fault
-    for (int i = 0; i < channels.size(); i++) {
-        channels[i].reset();
-    }
-
-    channels.clear();
-    channels.shrink_to_fit();
+//    for (int i = 0; i < channels.size(); i++) {
+//        channels[i].reset();
+//    }
+//
+//    channels.clear();
+//    channels.shrink_to_fit();
 
     // free keys
     djcs_t_free_public_key(m_pk);

@@ -178,6 +178,7 @@ void GBDT::init_single_tree_data(Client &client, int class_id, int tree_id, std:
                 logger(stdout, "Class %d sample num = %d\n", i, sample_num_per_class[i]);
             }
 
+            delete [] sample_num_per_class;
         } else {
             // regression, compute variance necessary stats
             std::vector<float> label_square_vec;
@@ -374,7 +375,8 @@ std::vector<float> GBDT::compute_predicted_labels(Client &client, int class_id, 
             decrypted_label->decode(label);
 
             predicted_label_vector[i] = label;
-            delete[] encrypted_aggregation;
+            delete [] encrypted_aggregation;
+            delete [] decrypted_label;
         } else {
             std::string s, response_s;
             client.recv_long_messages(client.channels[0].get(), s);
