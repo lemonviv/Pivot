@@ -30,6 +30,7 @@ public:
     djcs_t_public_key* m_pk;                           // public key of threshold Paillier
     djcs_t_auth_server* m_au;                          // private share (auth server) of threshold Paillier
     hcs_random* m_hr;                                  // random value of threshold Paillier
+    boost::asio::io_service io_service;
 
 public:
     /**
@@ -199,7 +200,7 @@ public:
      * @param comm_party
      * @param message
      */
-    void send_messages(CommParty* comm_party, std::string message);
+    void send_messages(int i, std::string message);
 
 
     /**
@@ -208,7 +209,7 @@ public:
      * @param comm_party
      * @param message
      */
-    void send_long_messages(CommParty* comm_party, string message);
+    void send_long_messages(int i, string message);
 
 
     /**
@@ -219,7 +220,7 @@ public:
      * @param buffer
      * @param expected_size
      */
-    void recv_messages(CommParty* comm_party, std::string message, byte * buffer, int expected_size);
+    void recv_messages(int i, std::string message, byte * buffer, int expected_size);
 
     /**
      * receive message from channel comm_party
@@ -227,7 +228,7 @@ public:
      * @param comm_party
      * @param message
      */
-    void recv_long_messages(CommParty* comm_party, std::string & message);
+    void recv_long_messages(int i, std::string & message);
 
     /**
      * print send message s

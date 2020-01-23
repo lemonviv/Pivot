@@ -113,7 +113,7 @@ void DecisionTree::init_datasets(Client & client, float split) {
         if (i != client.client_id) {
             std::string s;
             serialize_batch_ids(new_indexes, client.sample_num, s);
-            client.send_long_messages(client.channels[i].get(), s);
+            client.send_long_messages(i, s);
         }
     }
 
@@ -276,7 +276,6 @@ bool DecisionTree::check_pruning_conditions_revise(Client & client, int node_ind
     std::string result_str;
     int recv_node_index = -1;
     EncodedNumber label;
-    label.set_float(client.m_pk->n[0], -1);
 
     if (client.client_id == 0) {
         // super client check the pruning conditions
@@ -334,12 +333,13 @@ bool DecisionTree::check_pruning_conditions_revise(Client & client, int node_ind
         }
 
         // the first message for notifying whether is_satisfied == 1
+        label.set_float(client.m_pk->n[0], -1); //dummy set the value
         serialize_prune_check_result(node_index, is_satisfied, label, result_str);
 
         // send to the other client
         for (int i = 0; i < client.client_num; i++) {
             if (i != client.client_id) {
-                client.send_long_messages(client.channels[i].get(), result_str);
+                client.send_long_messages(i, result_str);
             }
         }
 
@@ -413,7 +413,7 @@ bool DecisionTree::check_pruning_conditions_revise(Client & client, int node_ind
             // send to the other client
             for (int i = 0; i < client.client_num; i++) {
                 if (i != client.client_id) {
-                    client.send_long_messages(client.channels[i].get(), second_result_str);
+                    client.send_long_messages(i, second_result_str);
                 }
             }
         }
@@ -422,12 +422,12 @@ bool DecisionTree::check_pruning_conditions_revise(Client & client, int node_ind
     } else {
         // decrypt required information for checking pruning conditions
         std::string s, response_s;
-        client.recv_long_messages(client.channels[0].get(), s);
+        client.recv_long_messages(0, s);
         client.decrypt_batch_piece(s, response_s, 0);
 
         // receive the result of the pruning conditions check
         // leave update to the outside
-        client.recv_long_messages(client.channels[0].get(), result_str);
+        client.recv_long_messages(0, result_str);
         deserialize_prune_check_result(recv_node_index, is_satisfied, label, result_str);
 
         if (recv_node_index != node_index) {
@@ -438,12 +438,12 @@ bool DecisionTree::check_pruning_conditions_revise(Client & client, int node_ind
         if (is_satisfied == 1) {
             if (type == 0) { // type == 0, need decrypt the label information for compute majority class
                 std::string ss, response_ss;
-                client.recv_long_messages(client.channels[0].get(), ss);
+                client.recv_long_messages(0, ss);
                 client.decrypt_batch_piece(ss, response_ss, 0);
             }
             // receive another message for updating the label
             std::string second_result_str;
-            client.recv_long_messages(client.channels[0].get(), second_result_str);
+            client.recv_long_messages(0, second_result_str);
             int second_recv_node_index, second_is_satisfied;
             deserialize_prune_check_result(second_recv_node_index, second_is_satisfied, label, second_result_str);
 
@@ -551,6 +551,8 @@ void DecisionTree::pack_plain_vectors(Client &client, EncodedNumber *&packed_lab
     for (int i = 0; i < capacity; i++) {
         mpz_clear(radix_vec[i]);
     }
+
+    free(radix_vec);
 
     for (int i = 0; i < classes_num; i++) {
         for (int j = 0; j < sample_num; j++) {
@@ -690,11 +692,11 @@ void DecisionTree::build_tree_node(Client & client, int node_index) {
         serialize_encrypted_label_vector(node_index, used_classes_num, training_data_labels.size(), encrypted_labels, result_str);
         for (int i = 0; i < client.client_num; i++) {
             if (i != client.client_id) {
-                client.send_long_messages(client.channels[i].get(), result_str);
+                client.send_long_messages(i, result_str);
             }
         }
     } else {
-        client.recv_long_messages(client.channels[0].get(), result_str);
+        client.recv_long_messages(0, result_str);
         int recv_node_index;
         deserialize_encrypted_label_vector(recv_node_index, encrypted_labels, result_str);
     }
@@ -787,7 +789,7 @@ void DecisionTree::build_tree_node(Client & client, int node_index) {
         for (int i = 0; i < client.client_num; i++) {
             std::string recv_encrypted_statistics_str;
             if (i != client.client_id) {
-                client.recv_long_messages(client.channels[i].get(), recv_encrypted_statistics_str);
+                client.recv_long_messages(i, recv_encrypted_statistics_str);
 
                 int recv_client_id, recv_node_index, recv_split_num, recv_classes_num;
                 EncodedNumber **recv_encrypted_statistics;
@@ -818,6 +820,7 @@ void DecisionTree::build_tree_node(Client & client, int node_index) {
                 for (int xx = 0; xx < recv_split_num; xx++) {
                     delete [] recv_encrypted_statistics[xx];
                 }
+                delete [] recv_encrypted_statistics;
             }
         }
 
@@ -829,7 +832,7 @@ void DecisionTree::build_tree_node(Client & client, int node_index) {
         serialize_split_info(global_split_num, client_split_nums, split_info_str);
         for (int i = 0; i < client.client_num; i++) {
             if (i != client.client_id) {
-                client.send_long_messages(client.channels[i].get(), split_info_str);
+                client.send_long_messages(i, split_info_str);
             }
         }
     } else {
@@ -838,7 +841,7 @@ void DecisionTree::build_tree_node(Client & client, int node_index) {
             std::string s;
             serialize_encrypted_statistics(client.client_id, node_index, local_splits_num, used_classes_num,
                     encrypted_left_branch_sample_nums, encrypted_right_branch_sample_nums, encrypted_statistics, s);
-            client.send_long_messages(client.channels[0].get(), s);
+            client.send_long_messages(0, s);
         } else {
             encrypted_statistics = new EncodedNumber*[local_splits_num];
             for (int i = 0; i < local_splits_num; i++) {
@@ -855,13 +858,13 @@ void DecisionTree::build_tree_node(Client & client, int node_index) {
             std::string s;
             serialize_encrypted_statistics(client.client_id, node_index, local_splits_num, used_classes_num,
                     encrypted_left_branch_sample_nums, encrypted_right_branch_sample_nums, encrypted_statistics, s);
-            client.send_long_messages(client.channels[0].get(), s);
+            client.send_long_messages(0, s);
         }
 
         logger(stdout, "Receive global split num from the super client\n");
 
         std::string recv_split_info_str;
-        client.recv_long_messages(client.channels[0].get(), recv_split_info_str);
+        client.recv_long_messages(0, recv_split_info_str);
         deserialize_split_info(global_split_num, client_split_nums, recv_split_info_str);
 
         logger(stdout, "The global_split_num = %d\n", global_split_num);
@@ -880,8 +883,14 @@ void DecisionTree::build_tree_node(Client & client, int node_index) {
                 EncodedNumber **recv_other_client_enc_shares;
                 EncodedNumber *recv_left_shares;
                 EncodedNumber *recv_right_shares;
+//                EncodedNumber **recv_other_client_enc_shares = new EncodedNumber*[global_split_num];
+//                for (int i = 0; i < global_split_num; i++) {
+//                    encrypted_statistics[i] = new EncodedNumber[2 * classes_num];
+//                }
+//                EncodedNumber *recv_left_shares = new EncodedNumber[global_split_num];
+//                EncodedNumber *recv_right_shares = new EncodedNumber[global_split_num];
                 int recv_client_id, recv_node_index, recv_split_num, recv_classes_num;
-                client.recv_long_messages(client.channels[i].get(), recv_s);
+                client.recv_long_messages(i, recv_s);
                 deserialize_encrypted_statistics(recv_client_id, recv_node_index, recv_split_num, recv_classes_num,
                         recv_left_shares, recv_right_shares, recv_other_client_enc_shares, recv_s);
 
@@ -994,23 +1003,23 @@ void DecisionTree::build_tree_node(Client & client, int node_index) {
         std::string s_enc_shares;
         serialize_encrypted_statistics(client.client_id, node_index, global_split_num, used_classes_num,
                 global_left_branch_sample_nums, global_right_branch_sample_nums, global_encrypted_statistics, s_enc_shares);
-        client.send_long_messages(client.channels[0].get(), s_enc_shares);
+        client.send_long_messages(0, s_enc_shares);
 
         logger(stdout, "Send encrypted shares succeed\n");
 
         // receive share decrypt information, and decrypt the corresponding information
         std::string s_left_shares, response_s_left_shares, s_right_shares, response_s_right_shares;
-        client.recv_long_messages(client.channels[0].get(), s_left_shares);
+        client.recv_long_messages(0, s_left_shares);
         client.decrypt_batch_piece(s_left_shares, response_s_left_shares, 0,
                 (optimization_type == Parallelism || optimization_type == All));
 
-        client.recv_long_messages(client.channels[0].get(), s_right_shares);
+        client.recv_long_messages(0, s_right_shares);
         client.decrypt_batch_piece(s_right_shares, response_s_right_shares, 0,
                 (optimization_type == Parallelism || optimization_type == All));
 
         for (int i = 0; i < global_split_num; i++) {
             std::string s_stat_shares, response_s_stat_shares;
-            client.recv_long_messages(client.channels[0].get(), s_stat_shares);
+            client.recv_long_messages(0, s_stat_shares);
             client.decrypt_batch_piece(s_stat_shares, response_s_stat_shares, 0,
                     (optimization_type == Parallelism || optimization_type == All));
         }
@@ -1126,8 +1135,8 @@ void DecisionTree::build_tree_node(Client & client, int node_index) {
         for (int i = 0; i < client.client_num; i++) {
             if (i != i_star) {
                 std::string recv_s;
-                EncodedNumber *recv_encrypted_impurities = new EncodedNumber[impurities.size()];
-                client.recv_long_messages(client.channels[i].get(), recv_s);
+                EncodedNumber *recv_encrypted_impurities;// = new EncodedNumber[impurities.size()];
+                client.recv_long_messages(i, recv_s);
                 int size;
                 deserialize_sums_from_string(recv_encrypted_impurities, size, recv_s);
                 for (int j = 0; j < impurities.size(); j++) {
@@ -1225,7 +1234,7 @@ void DecisionTree::build_tree_node(Client & client, int node_index) {
                 tree_nodes[node_index].sample_size, update_str);
         for (int i = 0; i < client.client_num; i++) {
             if (i != client.client_id) {
-                client.send_long_messages(client.channels[i].get(), update_str);
+                client.send_long_messages(i, update_str);
             }
         }
 
@@ -1240,7 +1249,7 @@ void DecisionTree::build_tree_node(Client & client, int node_index) {
         // serialize encrypted impurities and send to i_star
         std::string s;
         serialize_batch_sums(encrypted_impurities, impurities.size(), s);
-        client.send_long_messages(client.channels[i_star].get(), s);
+        client.send_long_messages(i_star, s);
 
         struct timeval enhanced_1, enhanced_2;
         double enhanced_time = 0;
@@ -1249,8 +1258,8 @@ void DecisionTree::build_tree_node(Client & client, int node_index) {
         // simulation
         if (solution_type == Enhanced) {
             logger(stdout, "Enhanced solution\n");
-            EncodedNumber * left_selection_result = new EncodedNumber[sample_num];
-            EncodedNumber * right_selection_result = new EncodedNumber[sample_num];
+            EncodedNumber * left_selection_result;// = new EncodedNumber[sample_num];
+            EncodedNumber * right_selection_result;// = new EncodedNumber[sample_num];
 
             update_sample_iv(client, i_star, left_selection_result, right_selection_result, node_index);
 
@@ -1264,7 +1273,7 @@ void DecisionTree::build_tree_node(Client & client, int node_index) {
 
         // receive from i_star client and update
         std::string recv_update_str;
-        client.recv_long_messages(client.channels[i_star].get(), recv_update_str);
+        client.recv_long_messages(i_star, recv_update_str);
 
         // deserialize and update
         int recv_source_client_id, recv_best_client_id, recv_best_feature_id, recv_best_split_id;
@@ -1344,10 +1353,17 @@ void DecisionTree::build_tree_node(Client & client, int node_index) {
         delete [] encrypted_statistics;
     }
 
-    for (int i = 0; i < global_split_num; i++) {
-        delete [] global_encrypted_statistics[i];
+    if (client.client_id == 0) {
+        for (int i = 0; i < MAX_GLOBAL_SPLIT_NUM; i++) {
+            delete [] global_encrypted_statistics[i];
+        }
+        delete [] global_encrypted_statistics;
+    } else {
+        for (int i = 0; i < global_split_num; i++) {
+            delete [] global_encrypted_statistics[i];
+        }
+        delete [] global_encrypted_statistics;
     }
-    delete [] global_encrypted_statistics;
 
     left_sample_nums_shares.clear();
     left_sample_nums_shares.shrink_to_fit();
@@ -1359,7 +1375,7 @@ void DecisionTree::build_tree_node(Client & client, int node_index) {
     client_split_nums.shrink_to_fit();
 
     // sample_iv of the current node will never used again, so free the memory
-    // delete [] tree_nodes[node_index].sample_iv;
+    //delete [] tree_nodes[node_index].sample_iv;
 
     /** step 9: recursively build the next child tree nodes */
     internal_node_num += 1;
@@ -1748,10 +1764,11 @@ void DecisionTree::test_accuracy_basic(Client &client, float &accuracy) {
         // compute binary vector for the current sample
         std::vector<int> binary_vector = compute_binary_vector(i, node_index_2_leaf_index_map);
         EncodedNumber *encoded_binary_vector = new EncodedNumber[binary_vector.size()];
-        EncodedNumber *updated_label_vector = new EncodedNumber[binary_vector.size()];
+        EncodedNumber *updated_label_vector;// = new EncodedNumber[binary_vector.size()];
 
         // update in Robin cycle, from the last client to client 0
         if (client.client_id == client.client_num - 1) {
+            updated_label_vector = new EncodedNumber[binary_vector.size()];
             for (int j = 0; j < binary_vector.size(); j++) {
                 encoded_binary_vector[j].set_integer(client.m_pk->n[0], binary_vector[j]);
                 djcs_t_aux_ep_mul(client.m_pk, updated_label_vector[j], label_vector[j], encoded_binary_vector[j]);
@@ -1759,10 +1776,10 @@ void DecisionTree::test_accuracy_basic(Client &client, float &accuracy) {
             // send to the next client
             std::string send_s;
             serialize_batch_sums(updated_label_vector, binary_vector.size(), send_s);
-            client.send_long_messages(client.channels[client.client_id - 1].get(), send_s);
+            client.send_long_messages(client.client_id - 1, send_s);
         } else if (client.client_id > 0) {
             std::string recv_s;
-            client.recv_long_messages(client.channels[client.client_id + 1].get(), recv_s);
+            client.recv_long_messages(client.client_id + 1, recv_s);
             int recv_size; // should be same as binary_vector.size()
             deserialize_sums_from_string(updated_label_vector, recv_size, recv_s);
             for (int j = 0; j < binary_vector.size(); j++) {
@@ -1771,11 +1788,11 @@ void DecisionTree::test_accuracy_basic(Client &client, float &accuracy) {
             }
             std::string resend_s;
             serialize_batch_sums(updated_label_vector, binary_vector.size(), resend_s);
-            client.send_long_messages(client.channels[client.client_id - 1].get(), resend_s);
+            client.send_long_messages(client.client_id - 1, resend_s);
         } else {
             // the super client update the last, and aggregate before calling share decryption
             std::string final_recv_s;
-            client.recv_long_messages(client.channels[client.client_id + 1].get(), final_recv_s);
+            client.recv_long_messages(client.client_id + 1, final_recv_s);
             int final_recv_size;
             deserialize_sums_from_string(updated_label_vector, final_recv_size, final_recv_s);
             for (int j = 0; j < binary_vector.size(); j++) {
@@ -1796,14 +1813,14 @@ void DecisionTree::test_accuracy_basic(Client &client, float &accuracy) {
             EncodedNumber *decrypted_label = new EncodedNumber[1];
             client.share_batch_decrypt(encrypted_aggregation, decrypted_label, 1);
             //float decoded_label;
-            decrypted_label->decode(predicted_label_vector[i]);
+            decrypted_label[0].decode(predicted_label_vector[i]);
             logger(stdout, "decoded_label = %f while true label = %f\n", predicted_label_vector[i], testingg_data_labels[i]);
 
             delete [] encrypted_aggregation;
             delete [] decrypted_label;
         } else {
             std::string s, response_s;
-            client.recv_long_messages(client.channels[0].get(), s);
+            client.recv_long_messages(0, s);
             client.decrypt_batch_piece(s, response_s, 0);
         }
 
@@ -1890,8 +1907,8 @@ void DecisionTree::test_accuracy_enhanced(Client &client, float &accuracy) {
         for (int i = 0; i < client.client_num; i++) {
             if (i != client.client_id) {
                 std::string recv_s;
-                client.recv_long_messages(client.channels[i].get(), recv_s);
-                EncodedNumber * deserialized_label_shares = new EncodedNumber[leaf_num];
+                client.recv_long_messages(i, recv_s);
+                EncodedNumber * deserialized_label_shares;// = new EncodedNumber[leaf_num];
                 deserialize_sums_from_string(deserialized_label_shares, leaf_num, recv_s);
                 for (int j = 0; j < leaf_num; j++) {
                     djcs_t_aux_ee_add(client.m_pk, enc_label_shares[j], enc_label_shares[j], deserialized_label_shares[j]);
@@ -1923,11 +1940,11 @@ void DecisionTree::test_accuracy_enhanced(Client &client, float &accuracy) {
         // serialize and send to the super client
         std::string s;
         serialize_batch_sums(enc_label_shares, leaf_num, s);
-        client.send_long_messages(client.channels[0].get(), s);
+        client.send_long_messages(0, s);
 
         // share decrypt
         std::string recv_s, response_s;
-        client.recv_long_messages(client.channels[0].get(), recv_s);
+        client.recv_long_messages(0, recv_s);
         client.decrypt_batch_piece(recv_s, response_s, 0, ((optimization_type == Parallelism) || (optimization_type == All)));
     }
 
@@ -2122,8 +2139,8 @@ void DecisionTree::update_sample_iv(Client &client, int i_star, EncodedNumber *l
         serialize_batch_sums(right_selection_result, sample_num, right_selection_str);
         for (int i = 0; i < client.client_num; i++) {
             if (i != client.client_id) {
-                client.send_long_messages(client.channels[i].get(), left_selection_str);
-                client.send_long_messages(client.channels[i].get(), right_selection_str);
+                client.send_long_messages(i, left_selection_str);
+                client.send_long_messages(i, right_selection_str);
             }
         }
 
@@ -2137,8 +2154,8 @@ void DecisionTree::update_sample_iv(Client &client, int i_star, EncodedNumber *l
         for (int i = 0; i < client.client_num; i++) {
             if (i != client.client_id) {
                 std::string recv_enc_sample_iv_shares_str;
-                EncodedNumber * recv_enc_sample_iv_shares = new EncodedNumber[sample_num];
-                client.recv_long_messages(client.channels[i].get(), recv_enc_sample_iv_shares_str);
+                EncodedNumber * recv_enc_sample_iv_shares;// = new EncodedNumber[sample_num];
+                client.recv_long_messages(i, recv_enc_sample_iv_shares_str);
                 deserialize_sums_from_string(recv_enc_sample_iv_shares, sample_num, recv_enc_sample_iv_shares_str);
 
                 for (int j = 0; j < sample_num; j++) {
@@ -2172,11 +2189,11 @@ void DecisionTree::update_sample_iv(Client &client, int i_star, EncodedNumber *l
 
         for (int i = 0; i < client.client_num; i++) {
             if (i != client.client_id) {
-                EncodedNumber * recv_updated_left = new EncodedNumber[sample_num];
-                EncodedNumber * recv_updated_right = new EncodedNumber[sample_num];
+                EncodedNumber * recv_updated_left;// = new EncodedNumber[sample_num];
+                EncodedNumber * recv_updated_right;// = new EncodedNumber[sample_num];
                 std::string recv_updated_left_str, recv_updated_right_str;
-                client.recv_long_messages(client.channels[i].get(), recv_updated_left_str);
-                client.recv_long_messages(client.channels[i].get(), recv_updated_right_str);
+                client.recv_long_messages(i, recv_updated_left_str);
+                client.recv_long_messages(i, recv_updated_right_str);
                 deserialize_sums_from_string(recv_updated_left, sample_num, recv_updated_left_str);
                 deserialize_sums_from_string(recv_updated_right, sample_num, recv_updated_right_str);
                 for (int j = 0; j < sample_num; j++) {
@@ -2194,8 +2211,8 @@ void DecisionTree::update_sample_iv(Client &client, int i_star, EncodedNumber *l
         serialize_batch_sums(aggregated_updated_sample_iv_right, sample_num, updated_sample_iv_right_str);
         for (int i = 0; i < client.client_num; i++) {
             if (i != client.client_id) {
-                client.send_long_messages(client.channels[i].get(), updated_sample_iv_left_str);
-                client.send_long_messages(client.channels[i].get(), updated_sample_iv_right_str);
+                client.send_long_messages(i, updated_sample_iv_left_str);
+                client.send_long_messages(i, updated_sample_iv_right_str);
             }
         }
 
@@ -2206,8 +2223,8 @@ void DecisionTree::update_sample_iv(Client &client, int i_star, EncodedNumber *l
     } else {
         // step 1
         std::string recv_left_selection_str, recv_right_selection_str;
-        client.recv_long_messages(client.channels[i_star].get(), recv_left_selection_str);
-        client.recv_long_messages(client.channels[i_star].get(), recv_right_selection_str);
+        client.recv_long_messages(i_star, recv_left_selection_str);
+        client.recv_long_messages(i_star, recv_right_selection_str);
         deserialize_sums_from_string(left_selection_result, sample_num, recv_left_selection_str);
         deserialize_sums_from_string(right_selection_result, sample_num, recv_right_selection_str);
 
@@ -2225,10 +2242,10 @@ void DecisionTree::update_sample_iv(Client &client, int i_star, EncodedNumber *l
 
         std::string enc_sample_iv_shares_str;
         serialize_batch_sums(enc_sample_iv_shares, sample_num, enc_sample_iv_shares_str);
-        client.send_long_messages(client.channels[i_star].get(), enc_sample_iv_shares_str);
+        client.send_long_messages(i_star, enc_sample_iv_shares_str);
 
         std::string recv_share_decrypt_str, response_share_decrypt_str;
-        client.recv_long_messages(client.channels[i_star].get(), recv_share_decrypt_str);
+        client.recv_long_messages(i_star, recv_share_decrypt_str);
         client.decrypt_batch_piece(recv_share_decrypt_str, response_share_decrypt_str, i_star);
 
         // step 3
@@ -2243,15 +2260,15 @@ void DecisionTree::update_sample_iv(Client &client, int i_star, EncodedNumber *l
         std::string left_update_shares_str, right_update_shares_str;
         serialize_batch_sums(left_selection_result, sample_num, left_update_shares_str);
         serialize_batch_sums(right_selection_result, sample_num, right_update_shares_str);
-        client.send_long_messages(client.channels[i_star].get(), left_update_shares_str);
-        client.send_long_messages(client.channels[i_star].get(), right_update_shares_str);
+        client.send_long_messages(i_star, left_update_shares_str);
+        client.send_long_messages(i_star, right_update_shares_str);
 
         // step 4 receive the final two sample ivs for the two branches
-        EncodedNumber * updated_sample_iv_left = new EncodedNumber[sample_num];
-        EncodedNumber * updated_sample_iv_right = new EncodedNumber[sample_num];
+        EncodedNumber * updated_sample_iv_left;// = new EncodedNumber[sample_num];
+        EncodedNumber * updated_sample_iv_right;// = new EncodedNumber[sample_num];
         std::string recv_updated_sample_iv_left_str, recv_updated_sample_iv_right_str;
-        client.recv_long_messages(client.channels[i_star].get(), recv_updated_sample_iv_left_str);
-        client.recv_long_messages(client.channels[i_star].get(), recv_updated_sample_iv_right_str);
+        client.recv_long_messages(i_star, recv_updated_sample_iv_left_str);
+        client.recv_long_messages(i_star, recv_updated_sample_iv_right_str);
         deserialize_sums_from_string(updated_sample_iv_left, sample_num, recv_updated_sample_iv_left_str);
         deserialize_sums_from_string(updated_sample_iv_right, sample_num, recv_updated_sample_iv_right_str);
 

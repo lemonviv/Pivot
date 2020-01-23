@@ -52,6 +52,8 @@ void serialize_batch_ids(int *batch_ids, int size, std::string & output_str) {
         pb_batch_ids.add_batch_id(batch_ids[i]);
     }
     pb_batch_ids.SerializeToString(&output_str);
+
+    pb_batch_ids.Clear();
 }
 
 void deserialize_ids_from_string(int *& batch_ids, std::string input_str) {
@@ -342,7 +344,6 @@ void serialize_encrypted_statistics(int client_id, int node_index, int split_num
     }
 
     pb_encrypted_statistics.SerializeToString(&output_str);
-    pb_encrypted_statistics.Clear();
 }
 
 
@@ -527,7 +528,6 @@ void deserialize_update_info(int & source_client_id, int & best_client_id, int &
         right_branch_sample_iv[i].exponent = pb_number_right_iv.exponent();
         right_branch_sample_iv[i].type = pb_number_right_iv.type();
     }
-
 }
 
 
@@ -630,7 +630,6 @@ void serialize_encrypted_label_vector(int node_index, int classes_num,
     }
 
     pb_encrypted_label_vector.SerializeToString(&output_str);
-
 }
 
 

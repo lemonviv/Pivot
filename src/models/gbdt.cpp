@@ -91,7 +91,7 @@ void GBDT::init_datasets(Client & client, float split) {
         if (i != client.client_id) {
             std::string s;
             serialize_batch_ids(new_indexes, client.sample_num, s);
-            client.send_long_messages(client.channels[i].get(), s);
+            client.send_long_messages(i, s);
         }
     }
     logger(stdout, "End init dataset\n");
@@ -316,10 +316,10 @@ std::vector<float> GBDT::compute_predicted_labels(Client &client, int class_id, 
         std::vector<float> sample_values = input_dataset[i];
         std::vector<int> binary_vector = compute_binary_vector(class_id, tree_id, sample_values, node_index_2_leaf_index_map);
         EncodedNumber *encoded_binary_vector = new EncodedNumber[binary_vector.size()];
-        EncodedNumber *updated_label_vector = new EncodedNumber[binary_vector.size()];
+        EncodedNumber *updated_label_vector;// = new EncodedNumber[binary_vector.size()];
         // update in Robin cycle, from the last client to client 0
         if (client.client_id == client.client_num - 1) {
-
+            updated_label_vector = new EncodedNumber[binary_vector.size()];
             for (int j = 0; j < binary_vector.size(); j++) {
                 encoded_binary_vector[j].set_integer(client.m_pk->n[0], binary_vector[j]);
                 djcs_t_aux_ep_mul(client.m_pk, updated_label_vector[j], label_vector[j], encoded_binary_vector[j]);
@@ -327,12 +327,12 @@ std::vector<float> GBDT::compute_predicted_labels(Client &client, int class_id, 
             // send to the next client
             std::string send_s;
             serialize_batch_sums(updated_label_vector, binary_vector.size(), send_s);
-            client.send_long_messages(client.channels[client.client_id - 1].get(), send_s);
+            client.send_long_messages(client.client_id - 1, send_s);
 
         } else if (client.client_id > 0) {
 
             std::string recv_s;
-            client.recv_long_messages(client.channels[client.client_id + 1].get(), recv_s);
+            client.recv_long_messages(client.client_id + 1, recv_s);
             int recv_size; // should be same as binary_vector.size()
             deserialize_sums_from_string(updated_label_vector, recv_size, recv_s);
             for (int j = 0; j < binary_vector.size(); j++) {
@@ -343,13 +343,13 @@ std::vector<float> GBDT::compute_predicted_labels(Client &client, int class_id, 
 
             std::string resend_s;
             serialize_batch_sums(updated_label_vector, binary_vector.size(), resend_s);
-            client.send_long_messages(client.channels[client.client_id - 1].get(), resend_s);
+            client.send_long_messages(client.client_id - 1, resend_s);
 
         } else {
 
             // the super client update the last, and aggregate before calling share decryption
             std::string final_recv_s;
-            client.recv_long_messages(client.channels[client.client_id + 1].get(), final_recv_s);
+            client.recv_long_messages(client.client_id + 1, final_recv_s);
             int final_recv_size;
             deserialize_sums_from_string(updated_label_vector, final_recv_size, final_recv_s);
             for (int j = 0; j < binary_vector.size(); j++) {
@@ -372,14 +372,14 @@ std::vector<float> GBDT::compute_predicted_labels(Client &client, int class_id, 
             float label;
             EncodedNumber *decrypted_label = new EncodedNumber[1];
             client.share_batch_decrypt(encrypted_aggregation, decrypted_label, 1);
-            decrypted_label->decode(label);
+            decrypted_label[0].decode(label);
 
             predicted_label_vector[i] = label;
             delete [] encrypted_aggregation;
             delete [] decrypted_label;
         } else {
             std::string s, response_s;
-            client.recv_long_messages(client.channels[0].get(), s);
+            client.recv_long_messages(0, s);
             client.decrypt_batch_piece(s, response_s, 0);
         }
 

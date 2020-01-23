@@ -143,12 +143,12 @@ void LogisticRegression::train(Client client) {
                 if (i != client.client_id) {
                     std::string s;
                     serialize_batch_ids(batch_ids, batch_size, s);
-                    client.send_long_messages(client.channels[i].get(), s);
+                    client.send_long_messages(i, s);
                 }
             }
         } else {
             std::string recv_s;
-            client.recv_long_messages(client.channels[0].get(), recv_s);
+            client.recv_long_messages(0, recv_s);
             deserialize_ids_from_string(batch_ids, recv_s);
 
 //            for (int i = 0; i < batch_size; i++) {
@@ -198,8 +198,8 @@ void LogisticRegression::train(Client client) {
                 } else {
                     // receive from the other clients
                     std::string recv_s;
-                    EncodedNumber *recv_batch_partial_sums = new EncodedNumber[batch_size];
-                    client.recv_long_messages(client.channels[j].get(), recv_s);
+                    EncodedNumber *recv_batch_partial_sums;// = new EncodedNumber[batch_size];
+                    client.recv_long_messages(j, recv_s);
                     deserialize_sums_from_string(recv_batch_partial_sums, batch_size, recv_s);
                     for (int i = 0; i < batch_size; i++) {
                         batch_partial_sums_array[i][j] = recv_batch_partial_sums[i];
@@ -222,7 +222,7 @@ void LogisticRegression::train(Client client) {
 
             std::string s;
             serialize_batch_sums(batch_partial_sums, batch_size, s);
-            client.send_long_messages(client.channels[0].get(), s);
+            client.send_long_messages(0, s);
 
             // send private values
             // send_private_batch_shares(shares, sockets, NUM_SPDZ_PARTIES);
@@ -253,7 +253,7 @@ void LogisticRegression::train(Client client) {
 
         } else {
             std::string s, response_s;
-            client.recv_long_messages(client.channels[0].get(), s);
+            client.recv_long_messages(0, s);
             client.decrypt_batch_piece(s, response_s, 0);
         }
 
@@ -281,8 +281,8 @@ void LogisticRegression::train(Client client) {
                 } else {
                     // receive from the other clients
                     std::string recv_s;
-                    EncodedNumber *recv_encrypted_shares = new EncodedNumber[batch_size];
-                    client.recv_long_messages(client.channels[j].get(), recv_s);
+                    EncodedNumber *recv_encrypted_shares;// = new EncodedNumber[batch_size];
+                    client.recv_long_messages(j, recv_s);
                     deserialize_sums_from_string(recv_encrypted_shares, batch_size, recv_s);
                     for (int i = 0; i < batch_size; i++) {
                         djcs_t_aux_ee_add(client.m_pk, reencrypted_batch_sums[i],
@@ -295,7 +295,7 @@ void LogisticRegression::train(Client client) {
         } else {
             std::string s;
             serialize_batch_sums(encrypted_mpc_shares, batch_size, s);
-            client.send_long_messages(client.channels[0].get(), s);
+            client.send_long_messages(0, s);
         }
 
 //        // step 4: client 0 compute the logistic function and encrypt the result (should truncation)
@@ -331,13 +331,13 @@ void LogisticRegression::train(Client client) {
                 if (j != client.client_id){
                     std::string s;
                     serialize_batch_losses(encrypted_losses, batch_size, s);
-                    client.send_long_messages(client.channels[j].get(), s);
+                    client.send_long_messages(j, s);
                 }
             }
         } else {
             std::string recv_s;
-            EncodedNumber *recv_encrypted_losses = new EncodedNumber[batch_size];
-            client.recv_long_messages(client.channels[0].get(), recv_s);
+            EncodedNumber *recv_encrypted_losses;// = new EncodedNumber[batch_size];
+            client.recv_long_messages(0, recv_s);
             deserialize_sums_from_string(recv_encrypted_losses, batch_size, recv_s);
 
             // step 6: every client update its local weights
@@ -393,7 +393,7 @@ void LogisticRegression::train(Client client) {
         } else {
             // decrypt piece
             std::string recv_s, response_s;
-            client.recv_long_messages(client.channels[i].get(), recv_s);
+            client.recv_long_messages(i, recv_s);
             client.decrypt_batch_piece(recv_s, response_s, i);
         }
     }
@@ -451,7 +451,7 @@ void LogisticRegression::init_datasets(Client client, float split) {
         if (i != client.client_id) {
             std::string s;
             serialize_batch_ids(new_indexes, client.sample_num, s);
-            client.send_long_messages(client.channels[i].get(), s);
+            client.send_long_messages(i, s);
         }
     }
 
@@ -543,8 +543,8 @@ void LogisticRegression::test(Client client, int type, float & accuracy) {
             else {
                 // receive from the other clients
                 std::string recv_s;
-                EncodedNumber *recv_partial_sums = new EncodedNumber[size];
-                client.recv_long_messages(client.channels[j].get(), recv_s);
+                EncodedNumber *recv_partial_sums;// = new EncodedNumber[size];
+                client.recv_long_messages(j, recv_s);
                 deserialize_sums_from_string(recv_partial_sums, size, recv_s);
                 for (int i = 0; i < size; i++) {
                     partial_sums_array[i][j] = recv_partial_sums[i];
@@ -557,7 +557,7 @@ void LogisticRegression::test(Client client, int type, float & accuracy) {
     } else {
         std::string s;
         serialize_batch_sums(partial_sums, size, s);
-        client.send_long_messages(client.channels[0].get(), s);
+        client.send_long_messages(0, s);
     }
 
     logger(stdout, "step 2 succeed\n");
@@ -576,7 +576,7 @@ void LogisticRegression::test(Client client, int type, float & accuracy) {
 
     } else {
         std::string s, response_s;
-        client.recv_long_messages(client.channels[0].get(), s);
+        client.recv_long_messages(0, s);
         client.decrypt_batch_piece(s, response_s, 0);
     }
 

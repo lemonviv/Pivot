@@ -28,7 +28,7 @@
 #define ROUNDED_PRECISION 1e-3
 #define MAX_PACKING_CAPACITY 6.0
 #define RADIX_FOR_PACKING 2000 // should make sure that the dot product is less than this number, otherwise would be biased
-#define NUM_TREES 4
+#define NUM_TREES 8
 #define GBDT_FLAG 0
 
 enum SolutionType {Basic, Enhanced};

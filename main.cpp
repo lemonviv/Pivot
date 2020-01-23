@@ -78,14 +78,14 @@ void test_share_decrypt(Client client) {
             int size = send_message.size();
             std::string recv_message;
             byte buffer[100];
-            client.send_messages(client.channels[i].get(), send_message);
-            client.recv_messages(client.channels[i].get(), recv_message, buffer, size);
+            client.send_messages(i, send_message);
+            client.recv_messages(i, recv_message, buffer, size);
 
             string longMessage = "Hi, this is a long message to test the writeWithSize approach";
-            client.channels[i].get()->writeWithSize(longMessage);
+            client.channels[i]->writeWithSize(longMessage);
 
             vector<byte> resMsg;
-            client.channels[i].get()->readWithSizeIntoVector(resMsg);
+            client.channels[i]->readWithSizeIntoVector(resMsg);
             const byte * uc = &(resMsg[0]);
             string resMsgStr(reinterpret_cast<char const*>(uc), resMsg.size());
             string eq = (resMsgStr == longMessage)? "yes" : "no";
@@ -104,19 +104,19 @@ void test_share_decrypt(Client client) {
             std::string s;
             serialize_encoded_number(a, s);
             //std::string s1 = "hello world" + std::to_string(i);
-            client.channels[i].get()->writeWithSize(s);
-            //client.send_messages(client.channels[i].get(), s);
+            client.channels[i]->writeWithSize(s);
+            //client.send_messages(client.channels[i], s);
             //logger(stdout, "send message: %s\n", s.c_str());
         }
     } else {
         vector<byte> resMsg;
-        client.channels[0].get()->readWithSizeIntoVector(resMsg);
+        client.channels[0]->readWithSizeIntoVector(resMsg);
         const byte * uc = &(resMsg[0]);
         std::string s(reinterpret_cast<char const*>(uc), resMsg.size());
         EncodedNumber t, tt;
         deserialize_number_from_string(t, s);
         t.print_encoded_number();
-        //client.recv_messages(client.channels[0].get(), s, buffer, 999);
+        //client.recv_messages(client.channels[0], s, buffer, 999);
         //logger(stdout, "receive message: %s\n", s.c_str());
     }
 
@@ -155,7 +155,7 @@ void test_share_decrypt(Client client) {
     } else {
 
         std::string s, response_s;
-        client.recv_long_messages(client.channels[0].get(), s);
+        client.recv_long_messages(0, s);
         client.decrypt_batch_piece(s, response_s, 0);
     }
 }
@@ -172,7 +172,7 @@ void logistic_regression(Client client) {
     } else {
         int *new_indexes = new int[client.sample_num];
         std::string recv_s;
-        client.recv_long_messages(client.channels[0].get(), recv_s);
+        client.recv_long_messages(0, recv_s);
         deserialize_ids_from_string(new_indexes, recv_s);
         model.init_datasets_with_indexes(client, new_indexes, split);
 
@@ -223,7 +223,7 @@ void decision_tree(Client & client, int solution_type, int optimization_type) {
     } else {
         int *new_indexes = new int[client.sample_num];
         std::string recv_s;
-        client.recv_long_messages(client.channels[0].get(), recv_s);
+        client.recv_long_messages(0, recv_s);
         deserialize_ids_from_string(new_indexes, recv_s);
         model.init_datasets_with_indexes(client, new_indexes, split);
         delete [] new_indexes;
@@ -268,7 +268,7 @@ void random_forest(Client & client, int solution_type, int optimization_type) {
     } else {
         int *new_indexes = new int[client.sample_num];
         std::string recv_s;
-        client.recv_long_messages(client.channels[0].get(), recv_s);
+        client.recv_long_messages(0, recv_s);
         deserialize_ids_from_string(new_indexes, recv_s);
         model.init_datasets_with_indexes(client, new_indexes, split);
         delete [] new_indexes;
@@ -315,7 +315,7 @@ void gbdt(Client & client, int solution_type, int optimization_type) {
     } else {
         int *new_indexes = new int[client.sample_num];
         std::string recv_s;
-        client.recv_long_messages(client.channels[0].get(), recv_s);
+        client.recv_long_messages(0, recv_s);
         deserialize_ids_from_string(new_indexes, recv_s);
         model.init_datasets_with_indexes(client, new_indexes, split);
         delete [] new_indexes;
@@ -395,13 +395,13 @@ int main(int argc, char *argv[]) {
             if (i != client.client_id) {
                 std::string keys_i;
                 client.serialize_send_keys(keys_i, pk, si[i], i);
-                client.send_long_messages(client.channels[i].get(), keys_i);
+                client.send_long_messages(i, keys_i);
             }
         }
     } else {
         // receive keys from client 0
         std::string recv_keys;
-        client.recv_long_messages(client.channels[0].get(), recv_keys);
+        client.recv_long_messages(0, recv_keys);
         client.recv_set_keys(recv_keys);
         mpz_init(n);
         mpz_init(positive_threshold);
@@ -409,7 +409,7 @@ int main(int argc, char *argv[]) {
         compute_thresholds(client.m_pk, n, positive_threshold, negative_threshold);
     }
 
-    //logistic_regression(client);
+    //logistic_regression(client)
     decision_tree(client, solution_type, optimization_type);
     //random_forest(client, solution_type, optimization_type);
     //gbdt(client, solution_type, optimization_type);

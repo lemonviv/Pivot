@@ -83,7 +83,6 @@ Client::Client(int param_client_id, int param_client_num, int param_has_label,
 
     // establish connections
     SocketPartyData me, other;
-    boost::asio::io_service io_service;
 
     for (int  i = 0;  i < client_num; ++ i) {
         if (i < client_id) {
@@ -328,11 +327,11 @@ void Client::share_batch_decrypt(EncodedNumber *ciphers, EncodedNumber *& decryp
     for (int j = 0; j < client_num; j++) {
         if (j != client_id) {
             std::string recv_message_i;
-            EncodedNumber *recv_share_i = new EncodedNumber[size];
-            send_long_messages(channels[j].get(), send_ciphers);
+            EncodedNumber *recv_share_i; // = new EncodedNumber[size];
+            send_long_messages(j, send_ciphers);
 
             // receive the response messages and deserialize to decrypted shares
-            recv_long_messages(channels[j].get(), recv_message_i);
+            recv_long_messages(j, recv_message_i);
 
             int x;
             deserialize_sums_from_string(recv_share_i, x, recv_message_i);
@@ -389,7 +388,7 @@ void Client::decrypt_batch_piece(std::string s, std::string & response_s, int sr
     // serialization and return
     serialize_batch_sums(ciphers, size, response_s);
 
-    send_long_messages(channels[src_client_id].get(), response_s);
+    send_long_messages(src_client_id, response_s);
 
     delete [] ciphers;
 }
@@ -406,10 +405,10 @@ void Client::ciphers_conversion_to_shares(EncodedNumber *src_ciphers, std::vecto
         // receive and aggregate encrypted shares
         for (int c = 0; c < client_num; c++) {
             if (c != client_id) {
-                EncodedNumber * recv_encrypted_shares = new EncodedNumber[size];
+                EncodedNumber * recv_encrypted_shares;// = new EncodedNumber[size];
                 int recv_size = 0;
                 std::string recv_str_encrypted_shares;
-                recv_long_messages(channels[c].get(), recv_str_encrypted_shares);
+                recv_long_messages(c, recv_str_encrypted_shares);
                 deserialize_sums_from_string(recv_encrypted_shares, recv_size, recv_str_encrypted_shares);
                 if (recv_size != size) {
                     logger(stdout, "Ciphers conversion to shares: recv_size not equal to real size\n");
@@ -447,11 +446,11 @@ void Client::ciphers_conversion_to_shares(EncodedNumber *src_ciphers, std::vecto
         // serialize encrypted_shares and send to client 0
         std::string str_encrypted_shares;
         serialize_batch_sums(encrypted_shares, size, str_encrypted_shares);
-        send_long_messages(channels[0].get(), str_encrypted_shares);
+        send_long_messages(0, str_encrypted_shares);
 
         // receive share decryption string and decrypt
         std::string recv_str_share_decryption, response_str_share_decryption;
-        recv_long_messages(channels[0].get(), recv_str_share_decryption);
+        recv_long_messages(0, recv_str_share_decryption);
         decrypt_batch_piece(recv_str_share_decryption, response_str_share_decryption, 0);
 
         delete [] encrypted_shares;
@@ -477,22 +476,23 @@ void Client::cipher_vectors_multiplication(EncodedNumber *cipher_vec1, EncodedNu
     }
 
     // step 2
-    EncodedNumber * copy_cipher_vec2 = new EncodedNumber[size];
+    EncodedNumber * copy_cipher_vec2;// = new EncodedNumber[size];
     if (client_id == 0) {
         std::string cipher_vec2_str;
         serialize_batch_sums(cipher_vec2, size, cipher_vec2_str);
         for (int i = 0; i < client_num; i++) {
             if (i != client_id) {
-                send_long_messages(channels[i].get(), cipher_vec2_str);
+                send_long_messages(i, cipher_vec2_str);
             }
         }
+        copy_cipher_vec2 = new EncodedNumber[size];
         for (int i = 0; i < size; i++) {
             copy_cipher_vec2[i] = cipher_vec2[i];
         }
     } else {
         int recv_size = 0;
         std::string recv_cipher_vec2_str;
-        recv_long_messages(channels[0].get(), recv_cipher_vec2_str);
+        recv_long_messages(0, recv_cipher_vec2_str);
         deserialize_sums_from_string(copy_cipher_vec2, recv_size, recv_cipher_vec2_str);
     }
 
@@ -511,8 +511,8 @@ void Client::cipher_vectors_multiplication(EncodedNumber *cipher_vec1, EncodedNu
             if (i != client_id) {
                 std::string recv_local_res_str;
                 int recv_size = 0;
-                EncodedNumber * recv_local_multiplication_res = new EncodedNumber[size];
-                recv_long_messages(channels[i].get(), recv_local_res_str);
+                EncodedNumber * recv_local_multiplication_res;// = new EncodedNumber[size];
+                recv_long_messages(i, recv_local_res_str);
                 deserialize_sums_from_string(recv_local_multiplication_res, recv_size, recv_local_res_str);
                 // aggregation
                 for (int x = 0; x < size; x++) {
@@ -524,7 +524,7 @@ void Client::cipher_vectors_multiplication(EncodedNumber *cipher_vec1, EncodedNu
     } else {
         std::string local_res_str;
         serialize_batch_sums(local_multiplication_res, size, local_res_str);
-        send_long_messages(channels[0].get(), local_res_str);
+        send_long_messages(0, local_res_str);
     }
 
     delete [] encoded_cipher_vec1_shares;
@@ -594,20 +594,20 @@ std::vector<float> Client::read_random_shares(int size, std::string path) {
 }
 
 
-void Client::send_messages(CommParty* comm_party, string message) {
+void Client::send_messages(int i, string message) {
     print_send_message(message);
-    comm_party->write((const byte *) message.c_str(), message.size());
+    channels[i]->write((const byte *) message.c_str(), message.size());
 }
 
 
-void Client::send_long_messages(CommParty *comm_party, string message) {
+void Client::send_long_messages(int i, string message) {
     //print_send_message(message);
-    comm_party->writeWithSize(message);
+    channels[i]->writeWithSize(message);
 }
 
 
-void Client::recv_messages(CommParty* comm_party, string messages, byte * buffer, int expected_size) {
-    comm_party->read(buffer, expected_size);
+void Client::recv_messages(int i, string messages, byte * buffer, int expected_size) {
+    channels[i]->read(buffer, expected_size);
     // the size of all strings is 2. Parse the message to get the original strings
     auto s = string(reinterpret_cast<char const*>(buffer), expected_size);
     //print_recv_message(s);
@@ -615,9 +615,9 @@ void Client::recv_messages(CommParty* comm_party, string messages, byte * buffer
 }
 
 
-void Client::recv_long_messages(CommParty *comm_party, std::string &message) {
+void Client::recv_long_messages(int i, std::string &message) {
     vector<byte> resMsg;
-    comm_party->readWithSizeIntoVector(resMsg);
+    channels[i]->readWithSizeIntoVector(resMsg);
     const byte * uc = &(resMsg[0]);
     string resMsgStr(reinterpret_cast<char const*>(uc), resMsg.size());
     message = resMsgStr;
@@ -659,6 +659,8 @@ void Client::print_labels() {
 
 Client::~Client() {
 
+    io_service.stop();
+
     // free local data
     local_data.clear();
     local_data.shrink_to_fit();
@@ -671,9 +673,10 @@ Client::~Client() {
 
     // free channels
     // std::vector< shared_ptr<CommParty> >().swap(channels); //cause segmentation fault
-//    for (int i = 0; i < channels.size(); i++) {
-//        channels[i].reset();
-//    }
+    //for (int i = 0; i < channels.size(); i++) {
+        //free(channels[i].get());
+        //delete channels[i].get();
+    //}
 //
 //    channels.clear();
 //    channels.shrink_to_fit();
