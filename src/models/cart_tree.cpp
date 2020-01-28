@@ -275,7 +275,7 @@ bool DecisionTree::check_pruning_conditions_revise(Client & client, int node_ind
     int is_satisfied = 0;
     std::string result_str;
     int recv_node_index = -1;
-    EncodedNumber label;
+    EncodedNumber *label = new EncodedNumber[2];
 
     if (client.client_id == 0) {
         // super client check the pruning conditions
@@ -333,8 +333,8 @@ bool DecisionTree::check_pruning_conditions_revise(Client & client, int node_ind
         }
 
         // the first message for notifying whether is_satisfied == 1
-        label.set_float(client.m_pk->n[0], -1); //dummy set the value
-        serialize_prune_check_result(node_index, is_satisfied, label, result_str);
+        label[0].set_float(client.m_pk->n[0], -1); //dummy set the value
+        serialize_prune_check_result(node_index, is_satisfied, label[0], result_str);
 
         // send to the other client
         for (int i = 0; i < client.client_num; i++) {
@@ -382,33 +382,35 @@ bool DecisionTree::check_pruning_conditions_revise(Client & client, int node_ind
                 EncodedNumber majority_label;
                 majority_label.set_float(client.m_pk->n[0], majority_class_label, 2 * FLOAT_PRECISION);
                 djcs_t_aux_encrypt(client.m_pk, client.m_hr, majority_label, majority_label);
-                label = majority_label;
+                label[1] = majority_label;
 
                 delete [] class_sample_nums;
                 delete [] decrypted_class_sample_nums;
             } else {
                 float inv_available_num = 1.0 / (float) available_num;
-                EncodedNumber inv_encoded;
-                inv_encoded.set_float(client.m_pk->n[0], inv_available_num);
+                EncodedNumber *inv_encoded = new EncodedNumber[1];
+                inv_encoded[0].set_float(client.m_pk->n[0], inv_available_num);
 
                 EncodedNumber *encoded_labels = new EncodedNumber[training_data_labels.size()];
                 for (int i = 0; i < training_data_labels.size(); i++) {
                     encoded_labels[i].set_float(client.m_pk->n[0], training_data_labels[i]);
                 }
 
-                EncodedNumber dot_product_res;
-                djcs_t_aux_inner_product(client.m_pk, client.m_hr, dot_product_res,
+                EncodedNumber *dot_product_res = new EncodedNumber[1];
+                djcs_t_aux_inner_product(client.m_pk, client.m_hr, dot_product_res[0],
                                          tree_nodes[node_index].sample_iv, encoded_labels, training_data_labels.size());
-                djcs_t_aux_ep_mul(client.m_pk, label, dot_product_res, inv_encoded);
+                djcs_t_aux_ep_mul(client.m_pk, label[1], dot_product_res[0], inv_encoded[0]);
 
+                delete [] inv_encoded;
                 delete [] encoded_labels;
+                delete [] dot_product_res;
             }
 
             // send encrypted impurity and plaintext label
             std::string second_result_str;
-            serialize_prune_check_result(node_index, is_satisfied, label, second_result_str);
+            serialize_prune_check_result(node_index, is_satisfied, label[1], second_result_str);
             tree_nodes[node_index].is_leaf = 1;
-            tree_nodes[node_index].label = label;
+            tree_nodes[node_index].label = label[1];
 
             // send to the other client
             for (int i = 0; i < client.client_num; i++) {
@@ -428,7 +430,7 @@ bool DecisionTree::check_pruning_conditions_revise(Client & client, int node_ind
         // receive the result of the pruning conditions check
         // leave update to the outside
         client.recv_long_messages(0, result_str);
-        deserialize_prune_check_result(recv_node_index, is_satisfied, label, result_str);
+        deserialize_prune_check_result(recv_node_index, is_satisfied, label[0], result_str);
 
         if (recv_node_index != node_index) {
             logger(stdout, "Tree node index does not match\n");
@@ -445,14 +447,15 @@ bool DecisionTree::check_pruning_conditions_revise(Client & client, int node_ind
             std::string second_result_str;
             client.recv_long_messages(0, second_result_str);
             int second_recv_node_index, second_is_satisfied;
-            deserialize_prune_check_result(second_recv_node_index, second_is_satisfied, label, second_result_str);
+            deserialize_prune_check_result(second_recv_node_index, second_is_satisfied, label[1], second_result_str);
 
             tree_nodes[node_index].is_leaf = 1;
-            tree_nodes[node_index].label = label;
+            tree_nodes[node_index].label = label[1];
         }
     }
 
     logger(stdout, "Pruning conditions check finished\n");
+    delete [] label;
     return is_satisfied;
 }
 

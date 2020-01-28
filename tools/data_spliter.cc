@@ -3,6 +3,7 @@
 #include <sstream>
 #include <string>
 #include <vector>
+#include <iomanip>
 
 using namespace std;
 
@@ -33,26 +34,35 @@ int main(int argc, char* argv[]) {
 
   string f1 = "client_0.txt", f2 = "client_1.txt", f3 = "client_2.txt";
   ofstream out1(f1), out2(f2), out3(f3);
+  out1.precision(6);
+  out2.precision(6);
+  out3.precision(6);
+  //out1 << std::fixed << std::setprecision(6);
+  //out2 << std::fixed << std::setprecision(6);
+  //out3 << std::fixed << std::setprecision(6);
   int n_attr_per_client = n_attributes / 3;
   for (auto entry : table) {
     // out1 << "1.0,"; // x0 for regression
     for (int i = 0; i < n_attributes; ++i) {
       if (i < n_attr_per_client) {
-        out3 << entry[i];
+        double d = std::stod(entry[i]);
+        out3 << fixed << d;
         if (i == n_attr_per_client - 1) {
           out3 << endl;
         } else {
           out3 << ",";
         }
       } else if (i < n_attr_per_client * 2) {
-        out2 << entry[i];
+        double d = std::stod(entry[i]);
+        out2 << fixed << d;
         if (i == n_attr_per_client * 2 - 1) {
           out2 << endl;
         } else {
           out2 << ",";
         }
       } else {
-	out1 << entry[i];
+        double d = std::stod(entry[i]);
+	    out1 << fixed << d;
         if (i == n_attributes - 1) {
           out1 << endl;
         } else {

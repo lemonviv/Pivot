@@ -103,7 +103,7 @@ TreeNode::~TreeNode() {
         available_feature_ids.shrink_to_fit();
     }
 
-    if (sample_iv != NULL) {
+    if (is_leaf != -1) {
         delete [] sample_iv;
     }
 }
