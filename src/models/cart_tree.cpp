@@ -1031,12 +1031,12 @@ void DecisionTree::build_tree_node(Client & client, int node_index) {
 
     logger(logger_out, "Conversion to secret shares succeed\n");
 
-    logger(logger_out, "Print the secret shares of client statistics for debugging\n");
-    for (int i = 0; i < stats_shares.size(); i++) {
-        for (int j = 0; j < stats_shares[0].size(); j++) {
-            logger(logger_out, "client_statistics[%d][%d] = %f\n", i, j, stats_shares[i][j]);
-        }
-    }
+//    logger(logger_out, "Print the secret shares of client statistics for debugging\n");
+//    for (int i = 0; i < stats_shares.size(); i++) {
+//        for (int j = 0; j < stats_shares[0].size(); j++) {
+//            logger(logger_out, "client_statistics[%d][%d] = %f\n", i, j, stats_shares[i][j]);
+//        }
+//    }
 
     gettimeofday(&conversion_2, NULL);
     conversion_time += (double)((conversion_2.tv_sec - conversion_1.tv_sec) * 1000 + (double)(conversion_2.tv_usec - conversion_1.tv_usec) / 1000);
