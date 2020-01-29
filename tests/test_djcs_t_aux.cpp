@@ -24,7 +24,7 @@ extern djcs_t_auth_server **au;
 extern mpz_t *si;
 extern mpz_t n, positive_threshold, negative_threshold;
 extern int total_cases_num, passed_cases_num;
-
+extern FILE * logger_out;
 
 
 void aux_compute_thresholds() {
@@ -69,11 +69,11 @@ void test_encryption_decryption_int(int x) {
     float y;
     decrypted_a->decode(y);
     if ((float) x != y) {
-        logger(stdout, "test_encryption_decryption_int: "
+        logger(logger_out, "test_encryption_decryption_int: "
                        "the decrypted plaintext %f is not match original plaintext %f, failed\n", y, x);
         total_cases_num += 1;
     } else {
-        logger(stdout, "test_encryption_decryption_int；"
+        logger(logger_out, "test_encryption_decryption_int；"
                        "the encryption and decryption test succeed\n");
         total_cases_num += 1;
         passed_cases_num += 1;
@@ -106,11 +106,11 @@ void test_encryption_decryption_float(float x) {
     float y;
     decrypted_a->decode(y);
     if (fabs(y - x) >= PRECISION_THRESHOLD) {
-        logger(stdout, "test_encryption_decryption_float: "
+        logger(logger_out, "test_encryption_decryption_float: "
                        "the decrypted plaintext %f is not match original plaintext %f, failed\n", y, x);
         total_cases_num += 1;
     } else {
-        logger(stdout, "test_encryption_decryption_float: "
+        logger(logger_out, "test_encryption_decryption_float: "
                        "the encryption and decryption test succeed\n");
         total_cases_num += 1;
         passed_cases_num += 1;
@@ -152,11 +152,11 @@ void test_ee_add() {
     float y;
     decryption->decode(y);
     if (fabs(y - (10 + 0.5)) >= PRECISION_THRESHOLD) {
-        logger(stdout, "test_ee_add: "
+        logger(logger_out, "test_ee_add: "
                        "the decrypted result %f is not match original plaintext addition %f, failed\n", y, 10 + 0.5);
         total_cases_num += 1;
     } else {
-        logger(stdout, "test_ee_add: "
+        logger(logger_out, "test_ee_add: "
                        "the homomorphic addition computation test succeed, expected value = %f, real value = %f\n", 10 + 0.5, y);
         total_cases_num += 1;
         passed_cases_num += 1;
@@ -196,11 +196,11 @@ void test_ep_mul() {
     float y;
     decryption->decode(y);
     if (fabs(y - (0.25 * 0.12)) >= PRECISION_THRESHOLD) {
-        logger(stdout, "test_ep_mul: "
+        logger(logger_out, "test_ep_mul: "
                        "the decrypted result %f is not match original plaintext addition %f, failed\n", y, 0.25 + 0.12);
         total_cases_num += 1;
     } else {
-        logger(stdout, "test_ep_mul: "
+        logger(logger_out, "test_ep_mul: "
                        "the homomorphic multiplication computation test succeed\n");
         total_cases_num += 1;
         passed_cases_num += 1;
@@ -250,11 +250,11 @@ void test_inner_product_int() {
     float y;
     decryption->decode(y);
     if (fabs((float) y - plain_res) >= PRECISION_THRESHOLD) {
-        logger(stdout, "test_inner_product_int: "
+        logger(logger_out, "test_inner_product_int: "
                        "the decrypted result %f is not match original plaintext inner product %f, failed\n", y, plain_res);
         total_cases_num += 1;
     } else {
-        logger(stdout, "test_inner_product_int: "
+        logger(logger_out, "test_inner_product_int: "
                        "the homomorphic inner product computation test succeed, expected value = %f, real value = %f\n", plain_res, y);
         total_cases_num += 1;
         passed_cases_num += 1;
@@ -278,7 +278,7 @@ void test_inner_product_float() {
         //ciphers[i] = new EncodedNumber();
 
         EncodedNumber *plain1 = new EncodedNumber();
-        logger(stdout, "the plain1 value = %f\n", ((float) i + 1) / ((float) feature_num + i));
+        logger(logger_out, "the plain1 value = %f\n", ((float) i + 1) / ((float) feature_num + i));
         plain1->set_float(n, ((float) i + 1) / ((float) feature_num + i), FLOAT_PRECISION);
         djcs_t_aux_encrypt(pk, hr, ciphers[i], *plain1);
         plains[i].set_float(n, ((float) i + 2) / ((float) feature_num + i), 2 * FLOAT_PRECISION);
@@ -310,11 +310,11 @@ void test_inner_product_float() {
     float y = 0.1;
     decryption->decode(y);
     if (fabs(y - plain_res) >= PRECISION_THRESHOLD) {
-        logger(stdout, "test_inner_product_float: "
+        logger(logger_out, "test_inner_product_float: "
                        "the decrypted result %f is not match original plaintext inner product %f, failed\n", y, plain_res);
         total_cases_num += 1;
     } else {
-        logger(stdout, "test_inner_product_float: "
+        logger(logger_out, "test_inner_product_float: "
                        "the homomorphic inner product computation test succeed, expected_value = %f, real_value = %f\n", plain_res, y);
         total_cases_num += 1;
         passed_cases_num += 1;
@@ -327,7 +327,7 @@ void test_inner_product_float() {
 
 int test_djcs_t_aux()
 {
-    logger(stdout, "****** Test djcs_t auxiliary functions ******\n");
+    logger(logger_out, "****** Test djcs_t auxiliary functions ******\n");
 
 //    hr = hcs_init_random();
 //    pk = djcs_t_init_public_key();
@@ -375,7 +375,7 @@ int test_djcs_t_aux()
     test_inner_product_float();
 
 
-    logger(stdout, "****** total_cases_num = %d, passed_cases_num = %d ******\n",
+    logger(logger_out, "****** total_cases_num = %d, passed_cases_num = %d ******\n",
            total_cases_num, passed_cases_num);
 
     // free memory

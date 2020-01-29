@@ -16,6 +16,7 @@ extern djcs_t_auth_server **au;
 extern mpz_t *si;
 extern mpz_t n, positive_threshold, negative_threshold;
 extern int total_cases_num, passed_cases_num;
+extern FILE * logger_out;
 
 void test_pb_encode_number() {
     EncodedNumber number;
@@ -32,10 +33,10 @@ void test_pb_encode_number() {
             && mpz_cmp(number.n, deserialized_number.n) == 0 && mpz_cmp(number.value, deserialized_number.value) == 0) {
         total_cases_num += 1;
         passed_cases_num += 1;
-        logger(stdout, "test_pb_encode_number: succeed\n");
+        logger(logger_out, "test_pb_encode_number: succeed\n");
     } else {
         total_cases_num += 1;
-        logger(stdout, "test_pb_encode_number: failed\n");
+        logger(logger_out, "test_pb_encode_number: failed\n");
     }
 }
 
@@ -63,10 +64,10 @@ void test_pb_batch_ids() {
     if (is_success) {
         total_cases_num += 1;
         passed_cases_num += 1;
-        logger(stdout, "test_pb_batch_ids: succeed\n");
+        logger(logger_out, "test_pb_batch_ids: succeed\n");
     } else {
         total_cases_num += 1;
-        logger(stdout, "test_pb_batch_ids: failed\n");
+        logger(logger_out, "test_pb_batch_ids: failed\n");
     }
 }
 
@@ -101,10 +102,10 @@ void test_pb_batch_sums() {
     if (is_success) {
         total_cases_num += 1;
         passed_cases_num += 1;
-        logger(stdout, "test_pb_partial_sums: succeed\n");
+        logger(logger_out, "test_pb_partial_sums: succeed\n");
     } else {
         total_cases_num += 1;
-        logger(stdout, "test_pb_partial_sums: failed\n");
+        logger(logger_out, "test_pb_partial_sums: failed\n");
     }
 }
 
@@ -137,10 +138,10 @@ void test_pb_batch_losses() {
     if (is_success) {
         total_cases_num += 1;
         passed_cases_num += 1;
-        logger(stdout, "test_pb_batch_losses: succeed\n");
+        logger(logger_out, "test_pb_batch_losses: succeed\n");
     } else {
         total_cases_num += 1;
-        logger(stdout, "test_pb_batch_losses: failed\n");
+        logger(logger_out, "test_pb_batch_losses: failed\n");
     }
 }
 
@@ -221,10 +222,10 @@ void test_pb_pruning_condition_result() {
     if (is_success) {
         total_cases_num += 1;
         passed_cases_num += 1;
-        logger(stdout, "test_pb_pruning_condition_result: succeed\n");
+        logger(logger_out, "test_pb_pruning_condition_result: succeed\n");
     } else {
         total_cases_num += 1;
-        logger(stdout, "test_pb_pruning_condition_result: failed\n");
+        logger(logger_out, "test_pb_pruning_condition_result: failed\n");
     }
 
     // test is_satisfied true
@@ -261,10 +262,10 @@ void test_pb_pruning_condition_result() {
     if (is_success) {
         total_cases_num += 1;
         passed_cases_num += 1;
-        logger(stdout, "test_pb_pruning_condition_result: succeed\n");
+        logger(logger_out, "test_pb_pruning_condition_result: succeed\n");
     } else {
         total_cases_num += 1;
-        logger(stdout, "test_pb_pruning_condition_result: failed\n");
+        logger(logger_out, "test_pb_pruning_condition_result: failed\n");
     }
 
 }
@@ -303,10 +304,10 @@ void test_pb_encrypted_statistics() {
     if (is_success) {
         total_cases_num += 1;
         passed_cases_num += 1;
-        logger(stdout, "test_pb_encrypted_statistics: succeed\n");
+        logger(logger_out, "test_pb_encrypted_statistics: succeed\n");
     } else {
         total_cases_num += 1;
-        logger(stdout, "test_pb_encrypted_statistics: failed\n");
+        logger(logger_out, "test_pb_encrypted_statistics: failed\n");
     }
 
     // test split_num != 0
@@ -363,10 +364,10 @@ void test_pb_encrypted_statistics() {
     if (is_success) {
         total_cases_num += 1;
         passed_cases_num += 1;
-        logger(stdout, "test_pb_encrypted_statistics: succeed\n");
+        logger(logger_out, "test_pb_encrypted_statistics: succeed\n");
     } else {
         total_cases_num += 1;
-        logger(stdout, "test_pb_encrypted_statistics: failed\n");
+        logger(logger_out, "test_pb_encrypted_statistics: failed\n");
     }
 }
 
@@ -419,10 +420,10 @@ void test_pb_updated_info() {
     if (is_success) {
         total_cases_num += 1;
         passed_cases_num += 1;
-        logger(stdout, "test_pb_updated_info: succeed\n");
+        logger(logger_out, "test_pb_updated_info: succeed\n");
     } else {
         total_cases_num += 1;
-        logger(stdout, "test_pb_updated_info: failed\n");
+        logger(logger_out, "test_pb_updated_info: failed\n");
     }
 }
 
@@ -453,10 +454,10 @@ void test_pb_split_info() {
     if (is_success) {
         total_cases_num += 1;
         passed_cases_num += 1;
-        logger(stdout, "test_pb_split_info: succeed\n");
+        logger(logger_out, "test_pb_split_info: succeed\n");
     } else {
         total_cases_num += 1;
-        logger(stdout, "test_pb_split_info: failed\n");
+        logger(logger_out, "test_pb_split_info: failed\n");
     }
 }
 
@@ -492,10 +493,10 @@ void test_pb_prune_check_result() {
     if (is_success) {
         total_cases_num += 1;
         passed_cases_num += 1;
-        logger(stdout, "test_pb_prune_check_result: succeed\n");
+        logger(logger_out, "test_pb_prune_check_result: succeed\n");
     } else {
         total_cases_num += 1;
-        logger(stdout, "test_pb_prune_check_result: failed\n");
+        logger(logger_out, "test_pb_prune_check_result: failed\n");
     }
 
 }
@@ -540,10 +541,10 @@ void test_pb_encrypted_label_vector() {
     if (is_success) {
         total_cases_num += 1;
         passed_cases_num += 1;
-        logger(stdout, "test_pb_encrypted_label_vector: succeed\n");
+        logger(logger_out, "test_pb_encrypted_label_vector: succeed\n");
     } else {
         total_cases_num += 1;
-        logger(stdout, "test_pb_encrypted_label_vector: failed\n");
+        logger(logger_out, "test_pb_encrypted_label_vector: failed\n");
     }
 
 }
@@ -551,7 +552,7 @@ void test_pb_encrypted_label_vector() {
 
 int test_pb() {
 
-    logger(stdout, "****** Test protobuf serialization and deserialization ******\n");
+    logger(logger_out, "****** Test protobuf serialization and deserialization ******\n");
 
     total_cases_num = 0;
     passed_cases_num = 0;
@@ -567,7 +568,7 @@ int test_pb() {
     test_pb_prune_check_result();
     test_pb_encrypted_label_vector();
 
-    logger(stdout, "****** total_cases_num = %d, passed_cases_num = %d ******\n",
+    logger(logger_out, "****** total_cases_num = %d, passed_cases_num = %d ******\n",
            total_cases_num, passed_cases_num);
 
     return 0;

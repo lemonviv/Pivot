@@ -23,7 +23,7 @@ def get_args():
     parser.add_argument('--eval_metric', default='l2', type=str, help='evaluation metric for regression tasks')
 
     # DT/RF/GDBT shared hyper-parameters
-    parser.add_argument('--max_depth', type=int, default=3, help='maximum depth of the tree')
+    parser.add_argument('--max_depth', type=int, default=6, help='maximum depth of the tree')
     parser.add_argument('--min_samples_split', type=int, default=2,
                         help='minimum number of samples required to split an internal node')
     parser.add_argument('--min_samples_leaf', type=int, default=5,

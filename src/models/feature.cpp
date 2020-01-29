@@ -5,6 +5,7 @@
 #include "feature.h"
 #include <numeric>      // std::iota
 #include <algorithm>    // std::sort
+extern FILE * logger_out;
 
 Feature::Feature() {}
 
@@ -172,7 +173,7 @@ void Feature::find_splits() {
     }
     else {
         // the distinct values is equal to 1, which is suspicious for the input dataset
-        logger(stdout, "This feature has only one distinct value, please check it again\n");
+        logger(logger_out, "This feature has only one distinct value, please check it again\n");
         num_splits = distinct_values.size();
         split_values.push_back(distinct_values[0]);
     }
@@ -275,7 +276,7 @@ void Feature::test_split_correctness() {
             if (split_ivs_right[i][j] == 1) right_sum += 1;
         }
         int total_sum = left_sum + right_sum;
-        logger(stdout, "left_sum = %d, right_sum = %d, total_sum = %d\n",
+        logger(logger_out, "left_sum = %d, right_sum = %d, total_sum = %d\n",
                 left_sum, right_sum, total_sum);
     }
 }

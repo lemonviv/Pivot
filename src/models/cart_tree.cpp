@@ -21,6 +21,7 @@
 #include "../utils/score.h"
 
 #include "../utils/spdz/spdz_util.h"
+extern FILE * logger_out;
 
 DecisionTree::DecisionTree() {}
 
@@ -71,7 +72,7 @@ DecisionTree::DecisionTree(int m_global_feature_num, int m_local_feature_num, in
 
 
 void DecisionTree::init_datasets(Client & client, float split) {
-    logger(stdout, "Begin init dataset\n");
+    logger(logger_out, "Begin init dataset\n");
 
     int training_data_size = client.sample_num * split;
     // store the indexes of the training dataset for random batch selection
@@ -139,7 +140,7 @@ void DecisionTree::init_datasets(Client & client, float split) {
             indicator_vec.shrink_to_fit();
         }
         for (int i = 0; i < classes_num; i++) {
-            logger(stdout, "Class %d sample num = %d\n", i, sample_num_per_class[i]);
+            logger(logger_out, "Class %d sample num = %d\n", i, sample_num_per_class[i]);
         }
         delete [] sample_num_per_class;
     } else {
@@ -160,13 +161,13 @@ void DecisionTree::init_datasets(Client & client, float split) {
     data_indexes.clear();
     data_indexes.shrink_to_fit();
 
-    logger(stdout, "End init dataset\n");
+    logger(logger_out, "End init dataset\n");
 }
 
 
 void DecisionTree::init_datasets_with_indexes(Client & client, int *new_indexes, float split) {
 
-    logger(stdout, "Begin init dataset with indexes\n");
+    logger(logger_out, "Begin init dataset with indexes\n");
 
     int training_data_size = client.sample_num * split;
     // select the former training data size as training data, and the latter as testing data
@@ -186,13 +187,13 @@ void DecisionTree::init_datasets_with_indexes(Client & client, int *new_indexes,
         }
     }
 
-    logger(stdout, "End init dataset with indexes\n");
+    logger(logger_out, "End init dataset with indexes\n");
 }
 
 
 void DecisionTree::init_features() {
 
-    logger(stdout, "Begin init features\n");
+    logger(logger_out, "Begin init features\n");
 
     for (int i = 0; i < local_feature_num; i++) {
         // 1. extract feature values of the i-th feature, compute samples_num
@@ -218,13 +219,13 @@ void DecisionTree::init_features() {
         feature_values.shrink_to_fit();
     }
 
-    logger(stdout, "End init features\n");
+    logger(logger_out, "End init features\n");
 }
 
 
 void DecisionTree::init_root_node(Client & client) {
 
-    logger(stdout, "Begin init root node\n");
+    logger(logger_out, "Begin init root node\n");
 
     // Note that for the root node, every client can init the encrypted sample mask vector
     // but the label vectors need to be received from the super client
@@ -264,13 +265,13 @@ void DecisionTree::init_root_node(Client & client) {
         djcs_t_aux_encrypt(client.m_pk, client.m_hr, tree_nodes[0].impurity, max_variance);
     }
 
-    logger(stdout, "End init root node\n");
+    logger(logger_out, "End init root node\n");
 }
 
 
 bool DecisionTree::check_pruning_conditions_revise(Client & client, int node_index) {
 
-    logger(stdout, "Check pruning conditions\n");
+    logger(logger_out, "Check pruning conditions\n");
 
     int is_satisfied = 0;
     std::string result_str;
@@ -303,13 +304,13 @@ bool DecisionTree::check_pruning_conditions_revise(Client & client, int node_ind
         if ((tree_nodes[node_index].depth == max_depth) || (tree_nodes[node_index].available_global_feature_num == 0)) {
             // case 1
             is_satisfied = 1;
-            logger(stdout, "Pruning condition case 1 satisfied\n");
+            logger(logger_out, "Pruning condition case 1 satisfied\n");
         } else {
             // communicate with SPDZ parties, to receive the label or check if the pruning condition is satisfied
             // case 2
             if ((int) available_num < prune_sample_num) {
                 is_satisfied = 1;
-                logger(stdout, "Pruning condition case 2 satisfied\n");
+                logger(logger_out, "Pruning condition case 2 satisfied\n");
             } else {
                 // case 3
                 if (type == 0) {
@@ -318,7 +319,7 @@ bool DecisionTree::check_pruning_conditions_revise(Client & client, int node_ind
                     decrypted_conditions[1].decode(impurity);
                     if (impurity == 0.0) {
                         is_satisfied = 1;
-                        logger(stdout, "Pruning condition case 3 satisfied\n");
+                        logger(logger_out, "Pruning condition case 3 satisfied\n");
                     }
                 } else {
                     // check if variance is less than a threshold
@@ -326,7 +327,7 @@ bool DecisionTree::check_pruning_conditions_revise(Client & client, int node_ind
                     decrypted_conditions[1].decode(variance);
                     if (variance <= prune_threshold) {
                         is_satisfied = 1;
-                        logger(stdout, "Pruning condition case 3 satisfied\n");
+                        logger(logger_out, "Pruning condition case 3 satisfied\n");
                     }
                 }
             }
@@ -370,14 +371,14 @@ bool DecisionTree::check_pruning_conditions_revise(Client & client, int node_ind
                 for (int j = 0; j < indicator_class_vecs.size(); j++) {
                     long x;
                     decrypted_class_sample_nums[j].decode(x);
-                    logger(stdout, "class %d num = %d\n", j, x);
+                    logger(logger_out, "class %d num = %d\n", j, x);
                     if (majority_class_sample_num < x) {
                         majority_class_label = (float) j;
                         majority_class_sample_num = x;
                     }
                 }
 
-                logger(stdout, "Majority class label = %f\n", majority_class_label);
+                logger(logger_out, "Majority class label = %f\n", majority_class_label);
 
                 EncodedNumber majority_label;
                 majority_label.set_float(client.m_pk->n[0], majority_class_label, 2 * FLOAT_PRECISION);
@@ -433,7 +434,7 @@ bool DecisionTree::check_pruning_conditions_revise(Client & client, int node_ind
         deserialize_prune_check_result(recv_node_index, is_satisfied, label[0], result_str);
 
         if (recv_node_index != node_index) {
-            logger(stdout, "Tree node index does not match\n");
+            logger(logger_out, "Tree node index does not match\n");
             exit(1);
         }
 
@@ -454,7 +455,7 @@ bool DecisionTree::check_pruning_conditions_revise(Client & client, int node_ind
         }
     }
 
-    logger(stdout, "Pruning conditions check finished\n");
+    logger(logger_out, "Pruning conditions check finished\n");
     delete [] label;
     return is_satisfied;
 }
@@ -583,7 +584,7 @@ void DecisionTree::pack_plain_vectors(Client &client, EncodedNumber *&packed_lab
 
 void DecisionTree::build_tree_node(Client & client, int node_index) {
 
-    logger(stdout, "************* Begin build tree node %d, tree depth = %d *************\n", node_index, tree_nodes[node_index].depth);
+    logger(logger_out, "************* Begin build tree node %d, tree depth = %d *************\n", node_index, tree_nodes[node_index].depth);
 
     /** recursively build a decision tree
      *
@@ -608,7 +609,7 @@ void DecisionTree::build_tree_node(Client & client, int node_index) {
     gettimeofday(&tree_node_1, NULL);
 
     if (node_index >= pow(2, max_depth + 1) - 1) {
-        logger(stdout, "Node exceeds the maximum tree depth\n");
+        logger(logger_out, "Node exceeds the maximum tree depth\n");
         exit(1);
     }
 
@@ -621,7 +622,7 @@ void DecisionTree::build_tree_node(Client & client, int node_index) {
     int used_classes_num = classes_num; // default is not packing
     if ((optimization_type == Packing) || (optimization_type == All)) {
         used_classes_num = ceil((float) classes_num / MAX_PACKING_CAPACITY);
-        logger(stdout, "The used_classes_num for packing = %d\n", used_classes_num);
+        logger(logger_out, "The used_classes_num for packing = %d\n", used_classes_num);
     }
 
     // if pruning conditions are not satisfied (note that if satisfied, the handle is in the function)
@@ -632,13 +633,13 @@ void DecisionTree::build_tree_node(Client & client, int node_index) {
 
     /*** init static gfp for sending private batch shares ***/
     string prep_data_prefix = get_prep_dir(NUM_SPDZ_PARTIES, 128, gf2n::default_degree());
-    //logger(stdout, "prep_data_prefix = %s \n", prep_data_prefix.c_str());
+    //logger(logger_out, "prep_data_prefix = %s \n", prep_data_prefix.c_str());
     initialise_fields(prep_data_prefix);
     bigint::init_thread();
     // setup sockets
-    std::vector<int> sockets = setup_sockets(NUM_SPDZ_PARTIES, client.client_id, "localhost", SPDZ_PORT_NUM_DT);
+    std::vector<int> sockets = setup_sockets(NUM_SPDZ_PARTIES, client.client_id, DEFAULT_HOST_NAME, SPDZ_PORT_NUM_DT);
     //for (int i = 0; i < NUM_SPDZ_PARTIES; i++) {
-    //    logger(stdout, "socket %d = %d\n", i, sockets[i]);
+    //    logger(logger_out, "socket %d = %d\n", i, sockets[i]);
     //}
 
     /** step 3: super client computes some encrypted label information and broadcast to the other clients */
@@ -689,7 +690,7 @@ void DecisionTree::build_tree_node(Client & client, int node_index) {
 
         gettimeofday(&encrypted_label_2, NULL);
         encrypted_label_time += (double)((encrypted_label_2.tv_sec - encrypted_label_1.tv_sec) * 1000 + (double)(encrypted_label_2.tv_usec - encrypted_label_1.tv_usec) / 1000);
-        logger(stdout, "Local encrypted label computation time: %'.3f ms\n", encrypted_label_time);
+        logger(logger_out, "Local encrypted label computation time: %'.3f ms\n", encrypted_label_time);
 
         // serialize and send to the other client
         serialize_encrypted_label_vector(node_index, used_classes_num, training_data_labels.size(), encrypted_labels, result_str);
@@ -827,10 +828,10 @@ void DecisionTree::build_tree_node(Client & client, int node_index) {
             }
         }
 
-        logger(stdout, "The global_split_num = %d\n", global_split_num);
+        logger(logger_out, "The global_split_num = %d\n", global_split_num);
 
         // send the total number of splits for the other clients to generate secret shares
-        logger(stdout, "Send global split num to the other clients\n");
+        logger(logger_out, "Send global split num to the other clients\n");
         std::string split_info_str;
         serialize_split_info(global_split_num, client_split_nums, split_info_str);
         for (int i = 0; i < client.client_num; i++) {
@@ -840,7 +841,7 @@ void DecisionTree::build_tree_node(Client & client, int node_index) {
         }
     } else {
         if (local_splits_num == 0) {
-            logger(stdout, "Local feature used up\n");
+            logger(logger_out, "Local feature used up\n");
             std::string s;
             serialize_encrypted_statistics(client.client_id, node_index, local_splits_num, used_classes_num,
                     encrypted_left_branch_sample_nums, encrypted_right_branch_sample_nums, encrypted_statistics, s);
@@ -864,13 +865,13 @@ void DecisionTree::build_tree_node(Client & client, int node_index) {
             client.send_long_messages(0, s);
         }
 
-        logger(stdout, "Receive global split num from the super client\n");
+        logger(logger_out, "Receive global split num from the super client\n");
 
         std::string recv_split_info_str;
         client.recv_long_messages(0, recv_split_info_str);
         deserialize_split_info(global_split_num, client_split_nums, recv_split_info_str);
 
-        logger(stdout, "The global_split_num = %d\n", global_split_num);
+        logger(logger_out, "The global_split_num = %d\n", global_split_num);
     }
 
     /** step 5: encrypted statistics computed finished, convert the encrypted values to secret shares */
@@ -916,7 +917,7 @@ void DecisionTree::build_tree_node(Client & client, int node_index) {
             }
         }
 
-        logger(stdout, "The global encrypted statistics are already aggregated\n");
+        logger(logger_out, "The global encrypted statistics are already aggregated\n");
 
         // call share decryption and convert to shares
         EncodedNumber **decrypted_global_statistics = new EncodedNumber*[global_split_num];
@@ -953,7 +954,7 @@ void DecisionTree::build_tree_node(Client & client, int node_index) {
                 float x;
                 decrypted_global_statistics[i][j].decode(x);
                 tmp.push_back(x);
-                //logger(stdout, "statistics share[%d][%d] = %f\n", i, j, x);
+                //logger(logger_out, "statistics share[%d][%d] = %f\n", i, j, x);
             }
             stats_shares.push_back(tmp);
         }
@@ -965,7 +966,7 @@ void DecisionTree::build_tree_node(Client & client, int node_index) {
         }
         delete [] decrypted_global_statistics;
 
-        logger(stdout, "Shares decrypt succeed, currently all the client shares are obtained\n");
+        logger(logger_out, "Shares decrypt succeed, currently all the client shares are obtained\n");
     } else {
         // generate random shares, encrypt, and send to the super client
         global_encrypted_statistics = new EncodedNumber*[global_split_num];
@@ -990,9 +991,9 @@ void DecisionTree::build_tree_node(Client & client, int node_index) {
 
             std::vector<float> tmp;
             for (int j = 0; j < 2 * used_classes_num; j++) {
-                float r_stat = static_cast<float> (rand()) / static_cast<float> (RAND_MAX);
+                float r_stat = static_cast<float> (rand() % MAXIMUM_RAND_VALUE);
                 tmp.push_back(0 - r_stat);
-                //logger(stdout, "statistics share[%d][%d] = %f\n", i, j, r_stat);
+                //logger(logger_out, "statistics share[%d][%d] = %f\n", i, j, r_stat);
 
                 EncodedNumber a_stat;
                 a_stat.set_float(client.m_pk->n[0], r_stat);
@@ -1008,7 +1009,7 @@ void DecisionTree::build_tree_node(Client & client, int node_index) {
                 global_left_branch_sample_nums, global_right_branch_sample_nums, global_encrypted_statistics, s_enc_shares);
         client.send_long_messages(0, s_enc_shares);
 
-        logger(stdout, "Send encrypted shares succeed\n");
+        logger(logger_out, "Send encrypted shares succeed\n");
 
         // receive share decrypt information, and decrypt the corresponding information
         std::string s_left_shares, response_s_left_shares, s_right_shares, response_s_right_shares;
@@ -1028,15 +1029,22 @@ void DecisionTree::build_tree_node(Client & client, int node_index) {
         }
     }
 
-    logger(stdout, "Conversion to secret shares succeed\n");
+    logger(logger_out, "Conversion to secret shares succeed\n");
+
+    logger(logger_out, "Print the secret shares of client statistics for debugging\n");
+    for (int i = 0; i < stats_shares.size(); i++) {
+        for (int j = 0; j < stats_shares[0].size(); j++) {
+            logger(logger_out, "client_statistics[%d][%d] = %f\n", i, j, stats_shares[i][j]);
+        }
+    }
 
     gettimeofday(&conversion_2, NULL);
     conversion_time += (double)((conversion_2.tv_sec - conversion_1.tv_sec) * 1000 + (double)(conversion_2.tv_usec - conversion_1.tv_usec) / 1000);
-    logger(stdout, "Secret share conversion time: %'.3f ms\n", conversion_time);
+    logger(logger_out, "Secret share conversion time: %'.3f ms\n", conversion_time);
 
     double current_collapse_time = 0;
     current_collapse_time += (double) ((conversion_2.tv_sec - tree_node_1.tv_sec) * 1000 + (double)(conversion_2.tv_usec - tree_node_1.tv_usec) / 1000);
-    logger(stdout, "Current collapse time: %'.3f ms\n", current_collapse_time);
+    logger(logger_out, "Current collapse time: %'.3f ms\n", current_collapse_time);
 
     struct timeval spdz_1, spdz_2;
     double spdz_time = 0;
@@ -1045,7 +1053,7 @@ void DecisionTree::build_tree_node(Client & client, int node_index) {
     /** step 6: secret shares conversion finished, talk to SPDZ parties for MPC computations */
     if (client.client_id == 0) {
         send_public_parameters(type, global_split_num, classes_num, used_classes_num, sockets, NUM_SPDZ_PARTIES);
-        logger(stdout, "Finish send public parameters to SPDZ engines\n");
+        logger(logger_out, "Finish send public parameters to SPDZ engines\n");
     }
 
     for (int i = 0; i < global_split_num; i++) {
@@ -1072,7 +1080,7 @@ void DecisionTree::build_tree_node(Client & client, int node_index) {
         send_private_inputs(input_values_gfp, sockets, NUM_SPDZ_PARTIES);
     }
 
-    logger(stdout, "Finish send private values to SPDZ engines\n");
+    logger(logger_out, "Finish send private values to SPDZ engines\n");
 
     // receive result from the SPDZ parties
     // TODO: communicate with SPDZ parties
@@ -1084,15 +1092,15 @@ void DecisionTree::build_tree_node(Client & client, int node_index) {
         djcs_t_aux_encrypt(client.m_pk, client.m_hr, encrypted_impurities[i], encrypted_impurities[i]);
     }
 
-    logger(stdout, "Received: best_split_index = %d\n", index_in_global_split_num);
+    logger(logger_out, "Received: best_split_index = %d\n", index_in_global_split_num);
 
     gettimeofday(&spdz_2, NULL);
     spdz_time += (double)((spdz_2.tv_sec - spdz_1.tv_sec) * 1000 + (double)(spdz_2.tv_usec - spdz_1.tv_usec) / 1000);
-    logger(stdout, "SPDZ time: %'.3f ms\n", spdz_time);
+    logger(logger_out, "SPDZ time: %'.3f ms\n", spdz_time);
 
     double current_collapse_time_2 = 0;
     current_collapse_time_2 += (double) ((spdz_2.tv_sec - tree_node_1.tv_sec) * 1000 + (double)(spdz_2.tv_usec - tree_node_1.tv_usec) / 1000);
-    logger(stdout, "Current collapse time 2: %'.3f ms\n", current_collapse_time_2);
+    logger(logger_out, "Current collapse time 2: %'.3f ms\n", current_collapse_time_2);
 
     /** step 7: update tree nodes, including sample iv for the next tree node computation */
     int left_child_index = 2 * node_index + 1;
@@ -1157,7 +1165,7 @@ void DecisionTree::build_tree_node(Client & client, int node_index) {
 
         // TODO: here simulate the additional two steps for the enhanced solution, to be complete the entire code with SPDZ
         if (solution_type == Enhanced) {
-            logger(stdout, "Enhanced solution\n");
+            logger(logger_out, "Enhanced solution\n");
             // the first step is to private select an encrypted iv with size sample_num
             int cur_split_num = features[j_star].num_splits;
             EncodedNumber *selection_iv = new EncodedNumber[cur_split_num];
@@ -1186,7 +1194,7 @@ void DecisionTree::build_tree_node(Client & client, int node_index) {
 
         gettimeofday(&enhanced_2, NULL);
         enhanced_time += (double)((enhanced_2.tv_sec - enhanced_1.tv_sec) * 1000 + (double)(enhanced_2.tv_usec - enhanced_1.tv_usec) / 1000);
-        logger(stdout, "Enhance solution additional time: %'.3f ms\n", enhanced_time);
+        logger(logger_out, "Enhance solution additional time: %'.3f ms\n", enhanced_time);
 
         // update current node index for prediction
         tree_nodes[node_index].is_self_feature = 1;
@@ -1260,7 +1268,7 @@ void DecisionTree::build_tree_node(Client & client, int node_index) {
 
         // simulation
         if (solution_type == Enhanced) {
-            logger(stdout, "Enhanced solution\n");
+            logger(logger_out, "Enhanced solution\n");
             EncodedNumber * left_selection_result;// = new EncodedNumber[sample_num];
             EncodedNumber * right_selection_result;// = new EncodedNumber[sample_num];
 
@@ -1272,7 +1280,7 @@ void DecisionTree::build_tree_node(Client & client, int node_index) {
 
         gettimeofday(&enhanced_2, NULL);
         enhanced_time += (double)((enhanced_2.tv_sec - enhanced_1.tv_sec) * 1000 + (double)(enhanced_2.tv_usec - enhanced_1.tv_usec) / 1000);
-        logger(stdout, "Enhance solution additional time: %'.3f ms\n", enhanced_time);
+        logger(logger_out, "Enhance solution additional time: %'.3f ms\n", enhanced_time);
 
         // receive from i_star client and update
         std::string recv_update_str;
@@ -1287,7 +1295,7 @@ void DecisionTree::build_tree_node(Client & client, int node_index) {
 
         // update tree nodes
         if (i_star != recv_best_client_id) {
-            logger(stdout, "Suspicious message\n");
+            logger(logger_out, "Suspicious message\n");
         }
 
         // update current node index for prediction
@@ -1330,11 +1338,11 @@ void DecisionTree::build_tree_node(Client & client, int node_index) {
         close_client_socket(sockets[i]);
     }
 
-    logger(stdout, "Tree node %d update finished\n", node_index);
+    logger(logger_out, "Tree node %d update finished\n", node_index);
 
     gettimeofday(&tree_node_2, NULL);
     tree_node_time += (double)((tree_node_2.tv_sec - tree_node_1.tv_sec) * 1000 + (double)(tree_node_2.tv_usec - tree_node_1.tv_usec) / 1000);
-    logger(stdout, "Build a tree node time: %'.3f ms\n", tree_node_time);
+    logger(logger_out, "Build a tree node time: %'.3f ms\n", tree_node_time);
 
     /** free memory used before recursive function call to save memory */
     delete [] encrypted_labels;
@@ -1385,7 +1393,7 @@ void DecisionTree::build_tree_node(Client & client, int node_index) {
     build_tree_node(client, left_child_index);
     build_tree_node(client, right_child_index);
 
-    logger(stdout, "End build tree node %d\n", node_index);
+    logger(logger_out, "End build tree node %d\n", node_index);
 }
 
 
@@ -1399,7 +1407,7 @@ void DecisionTree::compute_encrypted_statistics(Client & client, int node_index,
     double parallel_time = 0;
     gettimeofday(&parallel_1, NULL);
 
-    logger(stdout, "Begin compute encrypted statistics\n");
+    logger(logger_out, "Begin compute encrypted statistics\n");
 
     int split_index = 0;
     int available_feature_num = tree_nodes[node_index].available_feature_ids.size();
@@ -1632,11 +1640,11 @@ void DecisionTree::compute_encrypted_statistics(Client & client, int node_index,
         }
     }
 
-    logger(stdout, "End compute encrypted statistics\n");
+    logger(logger_out, "End compute encrypted statistics\n");
 
     gettimeofday(&parallel_2, NULL);
     parallel_time += (double)((parallel_2.tv_sec - parallel_1.tv_sec) * 1000 + (double)(parallel_2.tv_usec - parallel_1.tv_usec) / 1000);
-    logger(stdout, "Encrypted statistic computation time: %'.3f ms\n", parallel_time);
+    logger(logger_out, "Encrypted statistic computation time: %'.3f ms\n", parallel_time);
 }
 
 
@@ -1723,7 +1731,7 @@ void DecisionTree::test_accuracy_basic(Client &client, float &accuracy) {
     double testing_time = 0;
     gettimeofday(&testing_1, NULL);
 
-    logger(stdout, "Begin test accuracy with basic solution on testing dataset\n");
+    logger(logger_out, "Begin test accuracy with basic solution on testing dataset\n");
 
     /**
      * Testing procedure:
@@ -1743,7 +1751,7 @@ void DecisionTree::test_accuracy_basic(Client &client, float &accuracy) {
      */
 
     // step 1: organize the leaf label vector, compute the map
-    logger(stdout, "internal_node_num = %d\n", internal_node_num);
+    logger(logger_out, "internal_node_num = %d\n", internal_node_num);
     EncodedNumber *label_vector = new EncodedNumber[internal_node_num + 1];
 
     std::map<int, int> node_index_2_leaf_index_map;
@@ -1817,7 +1825,7 @@ void DecisionTree::test_accuracy_basic(Client &client, float &accuracy) {
             client.share_batch_decrypt(encrypted_aggregation, decrypted_label, 1);
             //float decoded_label;
             decrypted_label[0].decode(predicted_label_vector[i]);
-            logger(stdout, "decoded_label = %f while true label = %f\n", predicted_label_vector[i], testingg_data_labels[i]);
+            logger(logger_out, "decoded_label = %f while true label = %f\n", predicted_label_vector[i], testingg_data_labels[i]);
 
             delete [] encrypted_aggregation;
             delete [] decrypted_label;
@@ -1842,7 +1850,7 @@ void DecisionTree::test_accuracy_basic(Client &client, float &accuracy) {
                     correct_num += 1;
                 }
             }
-            logger(stdout, "correct_num = %d, testing_data_size = %d\n", correct_num, testingg_data_labels.size());
+            logger(logger_out, "correct_num = %d, testing_data_size = %d\n", correct_num, testingg_data_labels.size());
             accuracy = (float) correct_num / (float) testingg_data_labels.size();
         } else {
             accuracy = mean_squared_error(predicted_label_vector, testingg_data_labels);
@@ -1851,18 +1859,18 @@ void DecisionTree::test_accuracy_basic(Client &client, float &accuracy) {
 
     gettimeofday(&testing_2, NULL);
     testing_time += (double)((testing_2.tv_sec - testing_1.tv_sec) * 1000 + (double)(testing_2.tv_usec - testing_1.tv_usec) / 1000);
-    logger(stdout, "Total testing computation time: %'.3f ms\n", testing_time);
-    logger(stdout, "Average testing computation time: %'.3f ms\n", testing_time / testingg_data_labels.size());
+    logger(logger_out, "Total testing computation time: %'.3f ms\n", testing_time);
+    logger(logger_out, "Average testing computation time: %'.3f ms\n", testing_time / testingg_data_labels.size());
 
     delete [] label_vector;
-    logger(stdout, "End test accuracy with basic solution on testing dataset\n");
+    logger(logger_out, "End test accuracy with basic solution on testing dataset\n");
 }
 
 
 void DecisionTree::test_accuracy_enhanced(Client &client, float &accuracy) {
 
     if (testing_data.size() == 0) {
-        logger(stdout, "No testing data\n");
+        logger(logger_out, "No testing data\n");
         return;
     }
 
@@ -1895,7 +1903,7 @@ void DecisionTree::test_accuracy_enhanced(Client &client, float &accuracy) {
 
     int leaf_num = leaf_index_nodes.size();
     if (leaf_num != internal_node_num + 1) {
-        logger(stdout, "Leaf node number is incorrect\n");
+        logger(logger_out, "Leaf node number is incorrect\n");
         return;
     }
 
@@ -1956,7 +1964,7 @@ void DecisionTree::test_accuracy_enhanced(Client &client, float &accuracy) {
     double testing_time = 0;
     gettimeofday(&testing_1, NULL);
 
-    logger(stdout, "Begin test accuracy with enhanced solution on testing dataset\n");
+    logger(logger_out, "Begin test accuracy with enhanced solution on testing dataset\n");
 
     /**
      * (Notice that this function only applied in single decision tree, currently not integrated into RF and GBDT)
@@ -1990,7 +1998,7 @@ void DecisionTree::test_accuracy_enhanced(Client &client, float &accuracy) {
     // 1. init SPDZ related information
     // init static gfp
     string prep_data_prefix = get_prep_dir(NUM_SPDZ_PARTIES, 128, gf2n::default_degree());
-    //logger(stdout, "prep_data_prefix = %s \n", prep_data_prefix.c_str());
+    //logger(logger_out, "prep_data_prefix = %s \n", prep_data_prefix.c_str());
     initialise_fields(prep_data_prefix);
     bigint::init_thread();
     // setup sockets
@@ -2003,7 +2011,7 @@ void DecisionTree::test_accuracy_enhanced(Client &client, float &accuracy) {
         param1.push_back(leaf_num);
         send_public_values(param1, sockets, NUM_SPDZ_PARTIES);
 
-        logger(stdout, "The leaf num has been sent to SPDZ\n");
+        logger(logger_out, "The leaf num has been sent to SPDZ\n");
 
         // send the leaf nodes
         for (int i = 0; i < leaf_num; i++) {
@@ -2012,7 +2020,7 @@ void DecisionTree::test_accuracy_enhanced(Client &client, float &accuracy) {
             send_public_values(param2, sockets, NUM_SPDZ_PARTIES);
         }
 
-        logger(stdout, "The leaf nodes index have been sent to SPDZ\n");
+        logger(logger_out, "The leaf nodes index have been sent to SPDZ\n");
     }
 
     // 3. Every client send label_shares vector as private input to SPDZ parties
@@ -2022,14 +2030,14 @@ void DecisionTree::test_accuracy_enhanced(Client &client, float &accuracy) {
         send_private_batch_shares(x, sockets, NUM_SPDZ_PARTIES);
     }
 
-    logger(stdout, "The leaf label shares have been sent to SPDZ\n");
+    logger(logger_out, "The leaf label shares have been sent to SPDZ\n");
 
     // 4. Every client send self_feature_nodes vector as public input to SPDZ parties
     vector<int> public_param3;
     public_param3.push_back(self_features_used);
     send_public_values(public_param3, sockets, NUM_SPDZ_PARTIES);
 
-    logger(stdout, "The self internal node num = %d, has been sent to SPDZ\n", self_features_used);
+    logger(logger_out, "The self internal node num = %d, has been sent to SPDZ\n", self_features_used);
 
     for (int i = 0; i < self_features_used; i++) {
         vector<int> public_param4;
@@ -2037,7 +2045,7 @@ void DecisionTree::test_accuracy_enhanced(Client &client, float &accuracy) {
         send_public_values(public_param4, sockets, NUM_SPDZ_PARTIES);
     }
 
-    logger(stdout, "The self internal node indexes have been sent to SPDZ\n");
+    logger(logger_out, "The self internal node indexes have been sent to SPDZ\n");
 
     for (int i = 0; i < self_features_used; i++) {
         vector<float> x;
@@ -2045,11 +2053,11 @@ void DecisionTree::test_accuracy_enhanced(Client &client, float &accuracy) {
         send_private_batch_shares(x, sockets, NUM_SPDZ_PARTIES);
     }
 
-    logger(stdout, "The self internal node threshold values have been sent to SPDZ\n");
+    logger(logger_out, "The self internal node threshold values have been sent to SPDZ\n");
 
     // 5. Every client send self_testing_data matrix as private input to SPDZ parties
-    logger(stdout, "self testing data size = %d\n", self_testing_data.size());
-    logger(stdout, "self testing data [0].size = %d\n", self_testing_data[0].size());
+    logger(logger_out, "self testing data size = %d\n", self_testing_data.size());
+    logger(logger_out, "self testing data [0].size = %d\n", self_testing_data[0].size());
     for (int i = 0; i < self_testing_data.size(); i++) {
         for (int j = 0; j < self_testing_data[0].size(); j++) {
             vector<float> x;
@@ -2058,7 +2066,7 @@ void DecisionTree::test_accuracy_enhanced(Client &client, float &accuracy) {
         }
     }
 
-    logger(stdout, "The testing data has been sent to SPDZ\n");
+    logger(logger_out, "The testing data has been sent to SPDZ\n");
 
     // 6. Super client receive the revealed labels and compare to the ground truth labels
     std::vector<float> predicted_labels = receive_result(sockets, NUM_SPDZ_PARTIES, testing_data.size());
@@ -2066,14 +2074,14 @@ void DecisionTree::test_accuracy_enhanced(Client &client, float &accuracy) {
     if (type == 0) {
         int correct_num = 0;
         for (int i = 0; i < testing_data.size(); i++) {
-            logger(stdout, "predicted_labels[%d] = %f, testing_data_labels[%d] = %f\n",
+            logger(logger_out, "predicted_labels[%d] = %f, testing_data_labels[%d] = %f\n",
                    i, predicted_labels[i], i, testingg_data_labels[i]);
             if (rounded_comparison(predicted_labels[i], testingg_data_labels[i])) {
                 correct_num += 1;
             }
         }
 
-        logger(stdout, "correct_num = %d, testing_data_size = %d\n", correct_num, testingg_data_labels.size());
+        logger(logger_out, "correct_num = %d, testing_data_size = %d\n", correct_num, testingg_data_labels.size());
         accuracy = (float) correct_num / (float) testingg_data_labels.size();
     } else {
         accuracy = mean_squared_error(predicted_labels, testingg_data_labels);
@@ -2081,8 +2089,8 @@ void DecisionTree::test_accuracy_enhanced(Client &client, float &accuracy) {
 
     gettimeofday(&testing_2, NULL);
     testing_time += (double)((testing_2.tv_sec - testing_1.tv_sec) * 1000 + (double)(testing_2.tv_usec - testing_1.tv_usec) / 1000);
-    logger(stdout, "Total testing computation time: %'.3f ms\n", testing_time);
-    logger(stdout, "Average testing computation time: %'.3f ms\n", testing_time / testingg_data_labels.size());
+    logger(logger_out, "Total testing computation time: %'.3f ms\n", testing_time);
+    logger(logger_out, "Average testing computation time: %'.3f ms\n", testing_time / testingg_data_labels.size());
 
     predicted_labels.clear();
     predicted_labels.shrink_to_fit();
@@ -2095,7 +2103,7 @@ void DecisionTree::test_accuracy_enhanced(Client &client, float &accuracy) {
         close_client_socket(sockets[i]);
     }
 
-    logger(stdout, "End test accuracy with enhanced solution on testing dataset\n");
+    logger(logger_out, "End test accuracy with enhanced solution on testing dataset\n");
 }
 
 
@@ -2107,7 +2115,7 @@ void DecisionTree::private_split_selection(Client &client, EncodedNumber *&resul
     // result_iv size is equal to sample num
 
     if (split_iv_matrix.size() == 0 || split_iv_matrix[0].size() == 0) {
-        logger(stdout, "Invalid split ivs\n");
+        logger(logger_out, "Invalid split ivs\n");
     }
 
     omp_set_num_threads(NUM_OMP_THREADS);
@@ -2296,7 +2304,7 @@ void DecisionTree::update_sample_iv(Client &client, int i_star, EncodedNumber *l
 //    for (int i = 0; i < classes_num; i++) {
 //        total_sum += class_sums[i];
 //    }
-//    logger(stdout, "Total_sum = %d\n", total_sum);
+//    logger(logger_out, "Total_sum = %d\n", total_sum);
 //}
 //
 //
@@ -2336,7 +2344,7 @@ void DecisionTree::update_sample_iv(Client &client, int i_star, EncodedNumber *l
 //        decrypted_sums[1].decode(left_sum_count);
 //        decrypted_sums[2].decode(right_sum_count);
 //
-//        logger(stdout, "The parent node available sample num = %d, while the left child sample num = %d and "
+//        logger(logger_out, "The parent node available sample num = %d, while the left child sample num = %d and "
 //                       "the right child sample num = %d\n", parent_sum_count, left_sum_count, right_sum_count);
 //
 //        delete [] decrypted_sums;
@@ -2363,9 +2371,9 @@ void DecisionTree::update_sample_iv(Client &client, int i_star, EncodedNumber *l
 //        decrypted_statistics[3].decode(right_0_stat);
 //        decrypted_statistics[4].decode(left_1_stat);
 //        decrypted_statistics[5].decode(right_1_stat);
-//        logger(stdout, "left_sum[%d] = %d, right_sum[%d] = %d\n",
+//        logger(logger_out, "left_sum[%d] = %d, right_sum[%d] = %d\n",
 //               split_index, left_sum, split_index, right_sum);
-//        logger(stdout, "stat[%d][0] = %f, stat[%d][1] = %f, stat[%d][2] = %f, stat[%d][3] = %f\n",
+//        logger(logger_out, "stat[%d][0] = %f, stat[%d][1] = %f, stat[%d][2] = %f, stat[%d][3] = %f\n",
 //               split_index, left_0_stat, split_index, right_0_stat, split_index, left_1_stat, split_index, right_1_stat);
 //        delete [] decrypted_statistics;
 //    } else {

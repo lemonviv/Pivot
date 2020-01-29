@@ -5,8 +5,10 @@
 #include "spdz_util.h"
 #include "math.h"
 #include "../util.h"
+#include "../../include/common.h"
 
-#define SPDZ_FIXED_PRECISION 16
+#define SPDZ_FIXED_PRECISION 8
+extern FILE * logger_out;
 
 void send_private_batch_shares(std::vector<float> shares, std::vector<int>& sockets, int n_parties) {
 
@@ -152,11 +154,11 @@ void initialise_fields(const string& dir_prefix)
     int lg2;
     bigint p;
 
-    string filename = "/home/wuyuncheng/Documents/projects/VFL-SPDZ/Player-Data/3-128-128/Params-Data";
+    string filename = DEFAULT_PARAM_DATA_FILE;
     // string filename = "/home/sunxutao/projects/VFL-SPDZ/Player-Data/3-128-128/Params-Data";
 
     //string filename = dir_prefix + "Params-Data";
-    //logger(stdout, "loading params for SPDZ from %s\n", filename.c_str());
+    //logger(logger_out, "loading params for SPDZ from %s\n", filename.c_str());
 
     ifstream inpf(filename.c_str());
     if (inpf.fail()) { throw file_error(filename.c_str()); }
@@ -203,7 +205,7 @@ std::vector<float> receive_result(std::vector<int>& sockets, int n_parties, int 
 
 std::vector<float> receive_result_dt(std::vector<int>& sockets, int n_parties, int size, int & best_split_index) {
 
-    logger(stdout, "Receive result from the SPDZ engine\n");
+    logger(logger_out, "Receive result from the SPDZ engine\n");
     std::vector<gfp> output_values(size);
     octetStream os;
     for (int i = 0; i < n_parties; i++)
@@ -239,7 +241,7 @@ std::vector<float> receive_result_dt(std::vector<int>& sockets, int n_parties, i
 
 
 std::vector<float> receive_mode(std::vector<int>& sockets, int n_parties, int size) {
-    //logger(stdout, "Receive mode from the SPDZ engine\n");
+    //logger(logger_out, "Receive mode from the SPDZ engine\n");
     std::vector<gfp> output_values(size);
     octetStream os;
     for (int i = 0; i < n_parties; i++)

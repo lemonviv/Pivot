@@ -25,6 +25,7 @@
 
 
 extern djcs_t_auth_server **au;
+extern FILE * logger_out;
 
 LogisticRegression::LogisticRegression(){}
 
@@ -93,7 +94,7 @@ LogisticRegression::LogisticRegression(
 
 void LogisticRegression::train(Client client) {
 
-    logger(stdout, "****** Training begin ******\n");
+    logger(logger_out, "****** Training begin ******\n");
 
     // compute n using client->m_pk
     mpz_t n, positive_threshold, negative_threshold;
@@ -116,7 +117,7 @@ void LogisticRegression::train(Client client) {
     /*** send private batch shares ***/
     // init static gfp
     string prep_data_prefix = get_prep_dir(NUM_SPDZ_PARTIES, 128, gf2n::default_degree());
-    logger(stdout, "prep_data_prefix = %s \n", prep_data_prefix.c_str());
+    logger(logger_out, "prep_data_prefix = %s \n", prep_data_prefix.c_str());
     initialise_fields(prep_data_prefix);
     bigint::init_thread();
 
@@ -124,7 +125,7 @@ void LogisticRegression::train(Client client) {
     const clock_t begin_time = clock();
     for (int iter = 0; iter < MAX_ITERATION; iter++) {
 
-        logger(stdout, "****** Iteration %d ******\n", iter);
+        logger(logger_out, "****** Iteration %d ******\n", iter);
 
         // step 1: random select a batch with batch size and encode the batch samples
         int *batch_ids = new int[batch_size];
@@ -135,7 +136,7 @@ void LogisticRegression::train(Client client) {
             std::shuffle(std::begin(data_indexes), std::end(data_indexes), rng);
             for (int i = 0; i < batch_size; i++) {
                 batch_ids[i] = data_indexes[i];
-                //logger(stdout, "selected batch ids by client 0: %d\n", batch_ids[i]);
+                //logger(logger_out, "selected batch ids by client 0: %d\n", batch_ids[i]);
             }
 
             // send to the other clients
@@ -152,7 +153,7 @@ void LogisticRegression::train(Client client) {
             deserialize_ids_from_string(batch_ids, recv_s);
 
 //            for (int i = 0; i < batch_size; i++) {
-//                logger(stdout, "received batch ids from client 0: %d\n", batch_ids[i]);
+//                logger(logger_out, "received batch ids from client 0: %d\n", batch_ids[i]);
 //            }
         }
 
@@ -168,13 +169,13 @@ void LogisticRegression::train(Client client) {
             }
         }
 
-        //logger(stdout, "step 1 computed succeed\n");
+        //logger(logger_out, "step 1 computed succeed\n");
 
         // step 2: every client locally compute partial sum and send to client 0
         // setup sockets
         std::vector<int> sockets = setup_sockets(NUM_SPDZ_PARTIES, client.client_id, "localhost", SPDZ_PORT_BASE);
         for (int i = 0; i < NUM_SPDZ_PARTIES; i++) {
-            logger(stdout, "socket %d = %d\n", i, sockets[i]);
+            logger(logger_out, "socket %d = %d\n", i, sockets[i]);
         }
 
         // add a random float number and write to the file for mpc computation
@@ -228,7 +229,7 @@ void LogisticRegression::train(Client client) {
             // send_private_batch_shares(shares, sockets, NUM_SPDZ_PARTIES);
         }
 
-        logger(stdout, "step 2 computed succeed\n");
+        logger(logger_out, "step 2 computed succeed\n");
 
         // step 3: client 0 aggregate the sums and call share decrypt
         EncodedNumber *batch_aggregated_sums = new EncodedNumber[batch_size];
@@ -257,7 +258,7 @@ void LogisticRegression::train(Client client) {
             client.decrypt_batch_piece(s, response_s, 0);
         }
 
-        logger(stdout, "step 3 computed succeed\n");
+        logger(logger_out, "step 3 computed succeed\n");
 
         // send private shares and receive shares
         send_private_batch_shares(shares, sockets, NUM_SPDZ_PARTIES);
@@ -314,7 +315,7 @@ void LogisticRegression::train(Client client) {
 //        }
 
         // add temporary code for viewing the training accuracy, now is full training dataset sgd
-        logger(stdout, "step 4 computed succeed\n");
+        logger(logger_out, "step 4 computed succeed\n");
 
         // step 5: client 0 compute the losses of the batch, and send to every other client
         EncodedNumber *encrypted_losses = new EncodedNumber[batch_size];
@@ -346,12 +347,12 @@ void LogisticRegression::train(Client client) {
             delete [] recv_encrypted_losses;
         }
 
-        logger(stdout, "step 5 and step 6 computed succeed\n");
+        logger(logger_out, "step 5 and step 6 computed succeed\n");
 
 //        float accuracy = 0.0;
 //        if (iter == 1) {
 //            //test(client, 0, accuracy);
-//            logger(stdout, "Accuracy in iter %d = %f\n", iter, accuracy);
+//            logger(logger_out, "Accuracy in iter %d = %f\n", iter, accuracy);
 //        }
 
         for (unsigned int i = 0; i < sockets.size(); i++)
@@ -377,7 +378,7 @@ void LogisticRegression::train(Client client) {
     }
 
     const clock_t end_time = clock();
-    logger(stdout, "time difference = %f\n", float(end_time - begin_time) / CLOCKS_PER_SEC);
+    logger(logger_out, "time difference = %f\n", float(end_time - begin_time) / CLOCKS_PER_SEC);
 
     // share decrypt the local weights
     EncodedNumber *decrypted_weights = new EncodedNumber[feature_num];
@@ -388,7 +389,7 @@ void LogisticRegression::train(Client client) {
             for (int j = 0; j < feature_num; j++) {
                 float weight;
                 decrypted_weights[j].decode(weight);
-                logger(stdout, "The decrypted weight %d = %f\n", j, weight);
+                logger(logger_out, "The decrypted weight %d = %f\n", j, weight);
             }
         } else {
             // decrypt piece
@@ -402,13 +403,13 @@ void LogisticRegression::train(Client client) {
     mpz_clear(positive_threshold);
     mpz_clear(negative_threshold);
     delete [] decrypted_weights;
-    logger(stdout, "****** Training end ******\n");
+    logger(logger_out, "****** Training end ******\n");
 }
 
 
 void LogisticRegression::init_datasets(Client client, float split) {
 
-    logger(stdout, "Begin init dataset\n");
+    logger(logger_out, "Begin init dataset\n");
 
     int training_data_size = client.sample_num * split;
     int testing_data_size = client.sample_num - training_data_size;
@@ -455,12 +456,12 @@ void LogisticRegression::init_datasets(Client client, float split) {
         }
     }
 
-    logger(stdout, "End init dataset\n");
+    logger(logger_out, "End init dataset\n");
 }
 
 void LogisticRegression::init_datasets_with_indexes(Client client, int *new_indexes, float split) {
 
-    logger(stdout, "Begin init dataset with indexes\n");
+    logger(logger_out, "Begin init dataset with indexes\n");
 
     int training_data_size = client.sample_num * 0.8;
     int testing_data_size = client.sample_num - training_data_size;
@@ -482,12 +483,12 @@ void LogisticRegression::init_datasets_with_indexes(Client client, int *new_inde
         }
     }
 
-    logger(stdout, "End init dataset with indexes\n");
+    logger(logger_out, "End init dataset with indexes\n");
 }
 
 void LogisticRegression::test(Client client, int type, float & accuracy) {
 
-    logger(stdout, "****** Begin test process ******\n");
+    logger(logger_out, "****** Begin test process ******\n");
 
     // compute n using client->m_pk
     mpz_t n, positive_threshold, negative_threshold;
@@ -499,7 +500,7 @@ void LogisticRegression::test(Client client, int type, float & accuracy) {
     // test process is similar to the train process in one iteration
     int size = type == 0 ? training_data.size() : testing_data.size();
 
-    logger(stdout, "test data size = %d\n", size);
+    logger(logger_out, "test data size = %d\n", size);
 
     EncodedNumber **test_data = new EncodedNumber*[size];
     for (int i = 0; i < size; i++) {
@@ -521,7 +522,7 @@ void LogisticRegression::test(Client client, int type, float & accuracy) {
         }
     }
 
-    logger(stdout, "step 1 succeed\n");
+    logger(logger_out, "step 1 succeed\n");
 
     // step 2: every client compute partial sums and send back to super client
     EncodedNumber *partial_sums = new EncodedNumber[size];
@@ -560,7 +561,7 @@ void LogisticRegression::test(Client client, int type, float & accuracy) {
         client.send_long_messages(0, s);
     }
 
-    logger(stdout, "step 2 succeed\n");
+    logger(logger_out, "step 2 succeed\n");
 
     // step 3: super client aggregate the partial sums and call the share decrypt (now without mpc)
     EncodedNumber *aggregated_sums = new EncodedNumber[size];
@@ -580,7 +581,7 @@ void LogisticRegression::test(Client client, int type, float & accuracy) {
         client.decrypt_batch_piece(s, response_s, 0);
     }
 
-    logger(stdout, "step 3 succeed\n");
+    logger(logger_out, "step 3 succeed\n");
 
     // step 4: super client compute the logistic function and compare to the labels, returning accuracy
     int correct_num = 0;
@@ -590,9 +591,9 @@ void LogisticRegression::test(Client client, int type, float & accuracy) {
             decrypted_aggregated_sums[i].decode(t);
             t = 1.0 / (1 + exp(0 - t));
             int predict_label = t >= 0.5 ? 1 : 0;
-            //logger(stdout, "t = %f\n", t);
-            //logger(stdout, "predict_label = %d\n", predict_label);
-            //logger(stdout, "training_data_label = %d\n", training_data_labels[i]);
+            //logger(logger_out, "t = %f\n", t);
+            //logger(logger_out, "predict_label = %d\n", predict_label);
+            //logger(logger_out, "training_data_label = %d\n", training_data_labels[i]);
             if (type == 0) {
                 if (predict_label == training_data_labels[i]) correct_num += 1;
             } else {
@@ -601,9 +602,9 @@ void LogisticRegression::test(Client client, int type, float & accuracy) {
         }
     }
 
-    logger(stdout, "correct num = %d\n", correct_num);
+    logger(logger_out, "correct num = %d\n", correct_num);
     accuracy = (float) correct_num / size;
-    logger(stdout, "The model accuracy is %f\n", accuracy);
+    logger(logger_out, "The model accuracy is %f\n", accuracy);
 
     // free temporary memories
     delete [] partial_sums;
@@ -620,7 +621,7 @@ void LogisticRegression::test(Client client, int type, float & accuracy) {
     mpz_clear(positive_threshold);
     mpz_clear(negative_threshold);
 
-    logger(stdout, "****** End test process ******\n");
+    logger(logger_out, "****** End test process ******\n");
 }
 
 void LogisticRegression::init_encrypted_local_weights(djcs_t_public_key *pk, hcs_random* hr, int precision)
@@ -632,7 +633,7 @@ void LogisticRegression::init_encrypted_local_weights(djcs_t_public_key *pk, hcs
         // 1. generate random fixed point float values
         float fr = static_cast<float>(rand()) / static_cast<float> (RAND_MAX);
 
-        logger(stdout, "initialized local weight %d value = %f\n", i, fr);
+        logger(logger_out, "initialized local weight %d value = %f\n", i, fr);
 
         // 2. compute public key size in encoded number
         mpz_t n;
@@ -710,7 +711,7 @@ void LogisticRegression::aggregate_partial_sum_instance(
     // compute the logistic function of aggregated sum \frac{1}{1 + e^{-t.value}}
 //    float x;
 //    t.decode(x);
-//    logger(stdout, "decoded value before non-linear function = %f\n", x);
+//    logger(logger_out, "decoded value before non-linear function = %f\n", x);
 //    x = 1.0 / (1 + exp(0 - x));
 //    aggregated_sum.set_float(aggregated_sum.n, x, desired_precision);
 //    aggregated_sum.type = Plaintext;
@@ -718,7 +719,7 @@ void LogisticRegression::aggregate_partial_sum_instance(
 
 //    decrypt_temp(pk, au, TOTAL_CLIENT_NUM, t, aggregated_sum);
 //    t.decode(x);
-//    logger(stdout, "decoded value after non-linear function = %f\n", x);
+//    logger(logger_out, "decoded value after non-linear function = %f\n", x);
 }
 
 
@@ -740,7 +741,7 @@ void LogisticRegression::update_local_weights(
     //     * losses[i] should be truncated to PRECISION in compute batch loss function
 
     if (batch_size == 0) {
-        logger(stdout, "no update needed\n");
+        logger(logger_out, "no update needed\n");
         return;
     }
 

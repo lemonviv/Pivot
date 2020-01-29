@@ -6,10 +6,11 @@
 #include "score.h"
 #include "util.h"
 #include "../include/common.h"
+extern FILE * logger_out;
 
 float mean_squared_error(std::vector<float> a, std::vector<float> b) {
     if (a.size() != b.size()) {
-        logger(stdout, "Mean squared error computation wrong: sizes of the two vectors not same\n");
+        logger(logger_out, "Mean squared error computation wrong: sizes of the two vectors not same\n");
     }
 
     int num = a.size();

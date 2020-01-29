@@ -7,7 +7,7 @@
 #include "../include/protobuf/common.pb.h"
 #include "../include/protobuf/logistic.pb.h"
 #include "../include/protobuf/cart.pb.h"
-
+extern FILE * logger_out;
 
 
 void serialize_encoded_number(EncodedNumber number, std::string & output_str) {
@@ -34,7 +34,7 @@ void deserialize_number_from_string(EncodedNumber & number, std::string input_st
 
     com::collaborative::ml::PB_EncodedNumber deserialized_pb_number;
     if (!deserialized_pb_number.ParseFromString(input_str)) {
-        logger(stdout, "Failed to parse PB_EncodedNumber from string\n");
+        logger(logger_out, "Failed to parse PB_EncodedNumber from string\n");
         return;
     }
 
@@ -60,7 +60,7 @@ void deserialize_ids_from_string(int *& batch_ids, std::string input_str) {
 
     com::collaborative::ml::PB_BatchIds deserialized_pb_batch_ids;
     if (!deserialized_pb_batch_ids.ParseFromString(input_str)) {
-        logger(stdout, "Failed to parse PB_BatchIds from string\n");
+        logger(logger_out, "Failed to parse PB_BatchIds from string\n");
         return;
     }
 
@@ -99,7 +99,7 @@ void deserialize_sums_from_string(EncodedNumber *& partial_sums, int & size, std
 
     com::collaborative::ml::PB_BatchSums deserialized_batch_partial_sums;
     if (!deserialized_batch_partial_sums.ParseFromString(input_str)) {
-        logger(stdout, "Failed to parse PB_BatchPartialSums from string\n");
+        logger(logger_out, "Failed to parse PB_BatchPartialSums from string\n");
         return;
     }
 
@@ -147,7 +147,7 @@ void deserialize_losses_from_string(EncodedNumber *& batch_losses, std::string i
 
     com::collaborative::ml::PB_BatchLosses deserialized_batch_losses;
     if (!deserialized_batch_losses.ParseFromString(input_str)) {
-        logger(stdout, "Failed to parse PB_BatchPartialSums from string\n");
+        logger(logger_out, "Failed to parse PB_BatchPartialSums from string\n");
         return;
     }
 
@@ -225,7 +225,7 @@ void deserialize_pruning_condition_result(int & node_index, int & is_satisfied, 
 
     com::collaborative::ml::PB_PruneConditionResult deserialized_pruning_condition_result;
     if (!deserialized_pruning_condition_result.ParseFromString(input_str)) {
-        logger(stdout, "Failed to parse PB_PruneConditionResult from string\n");
+        logger(logger_out, "Failed to parse PB_PruneConditionResult from string\n");
         return;
     }
 
@@ -276,7 +276,7 @@ void deserialize_pruning_condition_result(int & node_index, int & is_satisfied, 
         label.type = pb_number_label.type();
     }
 
-    logger(stdout, "Error after return?\n");
+    logger(logger_out, "Error after return?\n");
 }
 
 
@@ -353,7 +353,7 @@ void deserialize_encrypted_statistics(int & client_id, int & node_index, int & s
 
     com::collaborative::ml::PB_EncryptedStatistics deserialized_encrypted_statistics;
     if (!deserialized_encrypted_statistics.ParseFromString(input_str)) {
-        logger(stdout, "Failed to parse PB_EncryptedStatistics from string\n");
+        logger(logger_out, "Failed to parse PB_EncryptedStatistics from string\n");
         return;
     }
 
@@ -487,7 +487,7 @@ void deserialize_update_info(int & source_client_id, int & best_client_id, int &
 
     com::collaborative::ml::PB_UpdateInfo deserialized_update_info;
     if (!deserialized_update_info.ParseFromString(input_str)) {
-        logger(stdout, "Failed to parse PB_UpdateInfo from string\n");
+        logger(logger_out, "Failed to parse PB_UpdateInfo from string\n");
         return;
     }
 
@@ -549,7 +549,7 @@ void deserialize_split_info(int & global_split_num, std::vector<int> & client_sp
 
     com::collaborative::ml::PB_SplitInfo deserialized_split_info;
     if (!deserialized_split_info.ParseFromString(input_str)) {
-        logger(stdout, "Failed to parse PB_SplitInfo from string\n");
+        logger(logger_out, "Failed to parse PB_SplitInfo from string\n");
         return;
     }
 
@@ -591,7 +591,7 @@ void deserialize_prune_check_result(int & node_index, int & is_satisfied, Encode
 
     com::collaborative::ml::PB_PruneCheckResult deserialize_prune_check_result;
     if (!deserialize_prune_check_result.ParseFromString(input_str)) {
-        logger(stdout, "Failed to parse PB_PruneCheckResult from string\n");
+        logger(logger_out, "Failed to parse PB_PruneCheckResult from string\n");
         return;
     }
 
@@ -637,7 +637,7 @@ void deserialize_encrypted_label_vector(int & node_index, EncodedNumber *& encry
 
     com::collaborative::ml::PB_EncryptedLabelVector pb_deserialize_encrypted_label_vector;
     if (!pb_deserialize_encrypted_label_vector.ParseFromString(input_str)) {
-        logger(stdout, "Failed to parse PB_EncryptedLabelVector from string\n");
+        logger(logger_out, "Failed to parse PB_EncryptedLabelVector from string\n");
         return;
     }
 

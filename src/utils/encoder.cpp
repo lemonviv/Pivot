@@ -7,7 +7,7 @@
 #include <sstream>
 #include <cmath>
 #include <iostream>
-
+extern FILE * logger_out;
 
 EncodedNumber::EncodedNumber()
 {
@@ -64,7 +64,7 @@ EncodedNumber::~EncodedNumber()
 void EncodedNumber::decrease_exponent(int new_exponent)
 {
     if (new_exponent > exponent) {
-        logger(stdout, "New exponent %d should be more negative"
+        logger(logger_out, "New exponent %d should be more negative"
                        "than old exponent %d", new_exponent, exponent);
         return;
     }
@@ -84,7 +84,7 @@ void EncodedNumber::decrease_exponent(int new_exponent)
 void EncodedNumber::increase_exponent(int new_exponent)
 {
     if (new_exponent < exponent) {
-        logger(stdout, "New exponent %d should be more positive "
+        logger(logger_out, "New exponent %d should be more positive "
                        "than old exponent %d", new_exponent, exponent);
         return;
     }
@@ -100,7 +100,7 @@ void EncodedNumber::increase_exponent(int new_exponent)
     int v_size = s.size() - exp_diff;
 
     if (v_size <= 0) {
-        logger(stdout, "increase exponent error when truncating\n");
+        logger(logger_out, "increase exponent error when truncating\n");
         return;
     }
 
@@ -130,15 +130,15 @@ void EncodedNumber::increase_exponent(int new_exponent)
 //            mpz_sub(value, value, n);
 //            break;
 //        case Overflow:
-//            logger(stdout, "encoded number %Zd is overflow\n", value);
+//            logger(logger_out, "encoded number %Zd is overflow\n", value);
 //            return;
 //        default:
-//            logger(stdout, "encoded number %Zd is corrupted\n", value);
+//            logger(logger_out, "encoded number %Zd is corrupted\n", value);
 //            return;
 //    }
 //
 //    if (exponent >= 0 || truncated_exponent >= 0) {
-//        logger(stdout, "truncate mpz_t failed\n");
+//        logger(logger_out, "truncate mpz_t failed\n");
 //        return;
 //    }
 //
@@ -154,7 +154,7 @@ void EncodedNumber::increase_exponent(int new_exponent)
 //    int v_size = s.size() - exponent + real_exponent;
 //
 //    if (v_size <= 0) {
-//        logger(stdout, "error when truncating to desired exponent\n");
+//        logger(logger_out, "error when truncating to desired exponent\n");
 //        return;
 //    }
 //
@@ -176,7 +176,7 @@ void EncodedNumber::decode(long &v)
 {
     if (exponent != 0) {
         // not integer, should not call this decode function
-        logger(stdout, "exponent is not zero, failed, should call decode with float\n");
+        logger(logger_out, "exponent is not zero, failed, should call decode with float\n");
         return;
     }
 
@@ -189,10 +189,10 @@ void EncodedNumber::decode(long &v)
             fixed_pointed_decode(v, value);
             break;
         case Overflow:
-            logger(stdout, "encoded number %Zd is overflow\n", value);
+            logger(logger_out, "encoded number %Zd is overflow\n", value);
             return;
         default:
-            logger(stdout, "encoded number %Zd is corrupted\n", value);
+            logger(logger_out, "encoded number %Zd is corrupted\n", value);
             return;
     }
 }
@@ -209,10 +209,10 @@ void EncodedNumber::decode(float &v)
             fixed_pointed_decode(v, value, exponent);
             break;
         case Overflow:
-            logger(stdout, "encoded number %Zd is overflow\n", value);
+            logger(logger_out, "encoded number %Zd is overflow\n", value);
             break;
         default:
-            logger(stdout, "encoded number %Zd is corrupted\n", value);
+            logger(logger_out, "encoded number %Zd is corrupted\n", value);
             return;
     }
 }
@@ -229,10 +229,10 @@ void EncodedNumber::decode_with_truncation(float &v, int truncated_exponent)
             fixed_pointed_decode_truncated(v, value, exponent, truncated_exponent);
             break;
         case Overflow:
-            logger(stdout, "encoded number %Zd is overflow\n", value);
+            logger(logger_out, "encoded number %Zd is overflow\n", value);
             break;
         default:
-            logger(stdout, "encoded number %Zd is corrupted\n", value);
+            logger(logger_out, "encoded number %Zd is corrupted\n", value);
             return;
     }
 }
@@ -307,7 +307,7 @@ void fixed_pointed_decode(long & value, mpz_t res) {
 void fixed_pointed_decode(float & value, mpz_t res, int exponent) {
 
     if (exponent >= 0) {
-        logger(stdout, "decode mpz_t for float value failed\n");
+        logger(logger_out, "decode mpz_t for float value failed\n");
         return;
     }
 
@@ -330,7 +330,7 @@ void fixed_pointed_decode(float & value, mpz_t res, int exponent) {
 void fixed_pointed_decode_truncated(float & value, mpz_t res, int exponent, int truncated_exponent) {
 
     if (exponent >= 0 || truncated_exponent >= 0) {
-        logger(stdout, "decode mpz_t for float value failed\n");
+        logger(logger_out, "decode mpz_t for float value failed\n");
         return;
     }
 
@@ -350,7 +350,7 @@ void fixed_pointed_decode_truncated(float & value, mpz_t res, int exponent, int 
     int v_size = s.size() + exponent - real_exponent;
 
     if (v_size <= 0) {
-        logger(stdout, "decode error when truncating to desired exponent\n");
+        logger(logger_out, "decode error when truncating to desired exponent\n");
         return;
     }
 
@@ -398,14 +398,14 @@ void decrypt_temp(djcs_t_public_key *pk, djcs_t_auth_server **au, int required_c
 
 
 void EncodedNumber::print_encoded_number() {
-    logger(stdout, "****** Print encoded number ******\n");
+    logger(logger_out, "****** Print encoded number ******\n");
     char * n_str_c, * value_str_c;
     n_str_c = mpz_get_str(NULL, 10, n);
     value_str_c = mpz_get_str(NULL, 10, value);
     std::string n_str(n_str_c), value_str(value_str_c);
-    logger(stdout, "n = %s\n", n_str.c_str());
-    logger(stdout, "value = %s\n", value_str.c_str());
-    logger(stdout, "exponent = %d\n", exponent);
-    logger(stdout, "type = %d\n", type);
-    logger(stdout, "****** End print encoded number ******\n");
+    logger(logger_out, "n = %s\n", n_str.c_str());
+    logger(logger_out, "value = %s\n", value_str.c_str());
+    logger(logger_out, "exponent = %d\n", exponent);
+    logger(logger_out, "type = %d\n", type);
+    logger(logger_out, "****** End print encoded number ******\n");
 }

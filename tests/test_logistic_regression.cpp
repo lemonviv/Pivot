@@ -15,6 +15,7 @@ extern djcs_t_auth_server **au;
 extern mpz_t *si;
 extern mpz_t n, positive_threshold, negative_threshold;
 extern int total_cases_num, passed_cases_num;
+extern FILE * logger_out;
 LogisticRegression lr_model(2, 10, PRECISION_THRESHOLD, ALPHA, 3);
 
 
@@ -38,7 +39,7 @@ void compute_thresholds(djcs_t_public_key *pk) {
 
 void test_init_weights(djcs_t_public_key *pk, hcs_random *hr) {
 
-    logger(stdout, "Test init weights\n");
+    logger(logger_out, "Test init weights\n");
 
     float x;
     lr_model.init_encrypted_local_weights(pk, hr);
@@ -46,21 +47,21 @@ void test_init_weights(djcs_t_public_key *pk, hcs_random *hr) {
         EncodedNumber tmp;
         decrypt_temp(pk, au, TOTAL_CLIENT_NUM, tmp, lr_model.local_weights[i]);
         tmp.decode(x);
-        logger(stdout, "The decrypted local weight %d = %f\n", i, x);
+        logger(logger_out, "The decrypted local weight %d = %f\n", i, x);
     }
 }
 
 
 void test_instance_partial_sum(djcs_t_public_key *pk, hcs_random *hr, int feature_num) {
 
-    logger(stdout, "Test instance partial sum\n");
+    logger(logger_out, "Test instance partial sum\n");
 
     lr_model.init_encrypted_local_weights(pk, hr);
 
     EncodedNumber *instance = new EncodedNumber[feature_num];
     for (int i = 0; i < feature_num; i++) {
         instance[i].set_float(n, (i+1) * 0.05, FLOAT_PRECISION);
-        logger(stdout, "The feature %d = %f\n", i, (i+1) * 0.05);
+        logger(logger_out, "The feature %d = %f\n", i, (i+1) * 0.05);
     }
 
     for (int i = 0; i < feature_num; i++) {
@@ -68,7 +69,7 @@ void test_instance_partial_sum(djcs_t_public_key *pk, hcs_random *hr, int featur
         decrypt_temp(pk, au, TOTAL_CLIENT_NUM, t, lr_model.local_weights[i]);
         float x;
         t.decode(x);
-        logger(stdout, "decoded local weight %d = %f\n", i, x);
+        logger(logger_out, "decoded local weight %d = %f\n", i, x);
     }
 
     EncodedNumber res;
@@ -77,20 +78,20 @@ void test_instance_partial_sum(djcs_t_public_key *pk, hcs_random *hr, int featur
     lr_model.instance_partial_sum(pk, hr, instance, res);
     decrypt_temp(pk, au, TOTAL_CLIENT_NUM, res, res);
     res.decode_with_truncation(x, 0 - FLOAT_PRECISION);
-    logger(stdout, "The instance partial sum is %f\n", x);
+    logger(logger_out, "The instance partial sum is %f\n", x);
 }
 
 
 void test_partial_predict(djcs_t_public_key *pk, hcs_random *hr, int feature_num) {
 
-    logger(stdout, "Test partial predict\n");
+    logger(logger_out, "Test partial predict\n");
 
     lr_model.init_encrypted_local_weights(pk, hr);
 
     EncodedNumber *instance = new EncodedNumber[feature_num];
     for (int i = 0; i < feature_num; i++) {
         instance[i].set_float(n, -(i+1) * 0.05, FLOAT_PRECISION);
-        logger(stdout, "The feature %d = %f\n", i, -(i+1) * 0.05);
+        logger(logger_out, "The feature %d = %f\n", i, -(i+1) * 0.05);
     }
 
     EncodedNumber res;
@@ -99,7 +100,7 @@ void test_partial_predict(djcs_t_public_key *pk, hcs_random *hr, int feature_num
     lr_model.partial_predict(pk, hr, instance, res);
     decrypt_temp(pk, au, TOTAL_CLIENT_NUM, res, res);
     res.decode_with_truncation(x, 0 - FLOAT_PRECISION);
-    logger(stdout, "The partial predict is %f\n", x);
+    logger(logger_out, "The partial predict is %f\n", x);
 }
 
 
@@ -114,7 +115,7 @@ void test_aggregate_partial_sums(djcs_t_public_key *pk, hcs_random *hr, int clie
     EncodedNumber *partial_ciphers = new EncodedNumber[client_num];
     for (int i = 0; i < client_num; i++) {
         float partial = static_cast<float>(rand()) / static_cast<float> (RAND_MAX);
-        //logger(stdout, "the partial plains %d = %f\n", i, partial);
+        //logger(logger_out, "the partial plains %d = %f\n", i, partial);
         partial_plains[i].set_float(n, partial, FLOAT_PRECISION);
         djcs_t_aux_encrypt(pk, hr, partial_ciphers[i], partial_plains[i]);
         sum += partial;
@@ -131,7 +132,7 @@ void test_aggregate_partial_sums(djcs_t_public_key *pk, hcs_random *hr, int clie
 //        decrypt_temp(pk, au2, TOTAL_CLIENT_NUM, t, res);
 //        float y;
 //        t.decode(y);
-//        logger(stdout, "add cipher %i, get result = %f\n", i, y);
+//        logger(logger_out, "add cipher %i, get result = %f\n", i, y);
 //    }
 
     lr_model.aggregate_partial_sum_instance(pk, hr, partial_ciphers, res, client_num);
@@ -140,11 +141,11 @@ void test_aggregate_partial_sums(djcs_t_public_key *pk, hcs_random *hr, int clie
     res.decode_with_truncation(x, 0 - FLOAT_PRECISION);
 
     if (fabs(sum - x) >= PRECISION_THRESHOLD) {
-        logger(stdout, "test_aggregated_partial_sum: "
+        logger(logger_out, "test_aggregated_partial_sum: "
                        "the aggregated sum %f is not match plaintext sum %f, failed\n", x, sum);
         total_cases_num += 1;
     } else {
-        logger(stdout, "test_aggregated_partial_sum: "
+        logger(logger_out, "test_aggregated_partial_sum: "
                        "succeed, the aggregated sum %f is equal to plaintext sum %f\n", x, sum);
         total_cases_num += 1;
         passed_cases_num += 1;
@@ -162,7 +163,7 @@ void test_compute_batch_losses(djcs_t_public_key *pk, hcs_random *hr, int batch_
     EncodedNumber *aggregate_sums = new EncodedNumber[batch_size];
     for (int i = 0; i < batch_size; i++) {
         float r = static_cast<float>(rand()) / static_cast<float> (RAND_MAX);
-        //logger(stdout, "the partial plains %d = %f\n", i, partial);
+        //logger(logger_out, "the partial plains %d = %f\n", i, partial);
         aggregate_sums[i].set_float(n, r, FLOAT_PRECISION);
         djcs_t_aux_encrypt(pk, hr, aggregate_sums[i], aggregate_sums[i]);
 
@@ -170,9 +171,9 @@ void test_compute_batch_losses(djcs_t_public_key *pk, hcs_random *hr, int batch_
         float label = pow(-1, x);
         label = label > 0 ? 0 : label;
         labels[i].set_float(n, label);
-        //logger(stdout, "r %d = %f\n", i, r);
-        //logger(stdout, "label %d = %f\n", i, label);
-        logger(stdout, "loss %d = %f\n", i, label + r);
+        //logger(logger_out, "r %d = %f\n", i, r);
+        //logger(logger_out, "label %d = %f\n", i, label);
+        logger(logger_out, "loss %d = %f\n", i, label + r);
     }
 
     lr_model.compute_batch_loss(pk, hr, aggregate_sums, labels, losses);
@@ -180,7 +181,7 @@ void test_compute_batch_losses(djcs_t_public_key *pk, hcs_random *hr, int batch_
     for (int i = 0; i < batch_size; i++) {
         decrypt_temp(pk, au, TOTAL_CLIENT_NUM, losses[i], losses[i]);
         losses[i].decode(x);
-        logger(stdout, "decrypted and decoded loss %d = %f\n", i, x);
+        logger(logger_out, "decrypted and decoded loss %d = %f\n", i, x);
     }
 }
 
@@ -201,7 +202,7 @@ void test_update_weights(djcs_t_public_key *pk, hcs_random *hr, int feature_num,
 
     for (int i = 0; i < batch_size; i++) {
         float r = static_cast<float>(rand()) / static_cast<float> (RAND_MAX);
-        logger(stdout, "the losses %d = %f\n", i, r);
+        logger(logger_out, "the losses %d = %f\n", i, r);
         losses[i].set_float(n, r, FLOAT_PRECISION);
         djcs_t_aux_encrypt(pk, hr, losses[i], losses[i]);
     }
@@ -209,7 +210,7 @@ void test_update_weights(djcs_t_public_key *pk, hcs_random *hr, int feature_num,
     for (int i = 0; i < batch_size; i++) {
         for (int j = 0; j < feature_num; j++) {
             float r = static_cast<float>(rand()) / static_cast<float> (RAND_MAX);
-            logger(stdout, "the batch[%d][%d] = %f\n", i, j, r);
+            logger(logger_out, "the batch[%d][%d] = %f\n", i, j, r);
             batch_data[i][j].set_float(n, r, FLOAT_PRECISION);
             //djcs_t_aux_encrypt(pk, hr, batch_data[i][j], batch_data[i][j]);
         }
@@ -221,14 +222,14 @@ void test_update_weights(djcs_t_public_key *pk, hcs_random *hr, int feature_num,
         EncodedNumber t;
         decrypt_temp(pk, au, TOTAL_CLIENT_NUM, t, lr_model.local_weights[i]);
         t.decode(x);
-        logger(stdout, "updated weight %d = %f\n", i, x);
+        logger(logger_out, "updated weight %d = %f\n", i, x);
     }
 }
 
 
 int test_lr() {
 
-    logger(stdout, "****** Test logistic regression functions ******\n");
+    logger(logger_out, "****** Test logistic regression functions ******\n");
 
 //    hcs_random *hr = hcs_init_random();
 //    djcs_t_public_key *pk = djcs_t_init_public_key();
@@ -270,7 +271,7 @@ int test_lr() {
     // test update weight
     test_update_weights(pk, hr, 3, 2, 1.0);
 
-    logger(stdout, "****** total_cases_num = %d, passed_cases_num = %d ******\n",
+    logger(logger_out, "****** total_cases_num = %d, passed_cases_num = %d ******\n",
            total_cases_num, passed_cases_num);
 
     // free memory

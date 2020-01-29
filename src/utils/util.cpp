@@ -7,7 +7,25 @@
 #include <cstdarg>
 #include <ctime>
 #include <cstdlib>
+#include <string>
 
+extern FILE * logger_out;
+
+
+std::string get_timestamp_str() {
+
+    time_t rawtime;
+    struct tm * timeinfo;
+    char buffer[80];
+
+    time (&rawtime);
+    timeinfo = localtime(&rawtime);
+
+    strftime(buffer,sizeof(buffer),"%d%m%Y%H%M%S",timeinfo);
+    std::string str(buffer);
+
+    return str;
+}
 
 void logger(FILE *out, const char *format, ...) {
 
@@ -31,15 +49,13 @@ void logger(FILE *out, const char *format, ...) {
             tm_struct->tm_sec);
 
     fprintf(out, "%s %s", date_buf, buf);
+    fflush(out);
 }
 
 
 void print_string(const char *str){
-    logger(stdout, "%s", str);
+    logger(logger_out, "%s", str);
 }
-
-
-
 
 
 void compute_thresholds(djcs_t_public_key *pk, mpz_t n, mpz_t positive_threshold, mpz_t negative_threshold) {

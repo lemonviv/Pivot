@@ -18,6 +18,7 @@
 #include <stack>
 #include "../utils/score.h"
 #include "../utils/spdz/spdz_util.h"
+extern FILE * logger_out;
 
 GBDT::GBDT() {}
 
@@ -43,13 +44,13 @@ GBDT::GBDT(int m_tree_num, int m_global_feature_num, int m_local_feature_num, in
                 m_max_depth, m_max_bins, m_prune_sample_num, m_prune_threshold, solution_type, optimization_type);
     }
 
-    logger(stdout, "GBDT_type = %d, init %d trees in the GBDT\n", gbdt_type, forest_size);
+    logger(logger_out, "GBDT_type = %d, init %d trees in the GBDT\n", gbdt_type, forest_size);
 }
 
 
 void GBDT::init_datasets(Client & client, float split) {
 
-    logger(stdout, "Begin init dataset\n");
+    logger(logger_out, "Begin init dataset\n");
 
     int training_data_size = client.sample_num * split;
 
@@ -94,13 +95,13 @@ void GBDT::init_datasets(Client & client, float split) {
             client.send_long_messages(i, s);
         }
     }
-    logger(stdout, "End init dataset\n");
+    logger(logger_out, "End init dataset\n");
     delete [] new_indexes;
 }
 
 
 void GBDT::init_datasets_with_indexes(Client & client, int new_indexes[], float split) {
-    logger(stdout, "Begin init dataset with indexes\n");
+    logger(logger_out, "Begin init dataset with indexes\n");
 
     int training_data_size = client.sample_num * split;
 
@@ -121,7 +122,7 @@ void GBDT::init_datasets_with_indexes(Client & client, int new_indexes[], float 
         }
     }
 
-    logger(stdout, "End init dataset with indexes\n");
+    logger(logger_out, "End init dataset with indexes\n");
 }
 
 
@@ -175,7 +176,7 @@ void GBDT::init_single_tree_data(Client &client, int class_id, int tree_id, std:
                 indicator_vec.shrink_to_fit();
             }
             for (int i = 0; i < classes_num; i++) {
-                logger(stdout, "Class %d sample num = %d\n", i, sample_num_per_class[i]);
+                logger(logger_out, "Class %d sample num = %d\n", i, sample_num_per_class[i]);
             }
 
             delete [] sample_num_per_class;
@@ -210,7 +211,7 @@ void GBDT::build_gbdt(Client &client) {
      *      the losses for init the difference of training labels in the trees of the next iteration
      */
 
-    logger(stdout, "Begin to build GBDT model\n");
+    logger(logger_out, "Begin to build GBDT model\n");
 
     // this vector is to store the predicted labels of current iteration
     std::vector< std::vector<float> > cur_predicted_labels;
@@ -225,7 +226,7 @@ void GBDT::build_gbdt(Client &client) {
     // build trees iteratively
     for (int tree_id = 0; tree_id < num_trees; tree_id++) {
 
-        logger(stdout, "------------------- build the %d-th tree ----------------------\n", tree_id);
+        logger(logger_out, "------------------- build the %d-th tree ----------------------\n", tree_id);
 
         std::vector< std::vector<float> > softmax_predicted_labels;
         for (int class_id = 0; class_id < classes_num; class_id++) {
@@ -236,7 +237,7 @@ void GBDT::build_gbdt(Client &client) {
             softmax_predicted_labels.push_back(t);
         }
 
-        logger(stdout, "Init softmax labels\n");
+        logger(logger_out, "Init softmax labels\n");
 
         if (gbdt_type == 0 && tree_id != 0) {
             // compute predicted labels for classification
@@ -276,7 +277,7 @@ void GBDT::build_gbdt(Client &client) {
         }
     }
 
-    logger(stdout, "End to build GBDT model\n");
+    logger(logger_out, "End to build GBDT model\n");
 }
 
 
@@ -505,14 +506,14 @@ void GBDT::test_accuracy(Client & client, float & accuracy) {
                     correct_num += 1;
                 }
             }
-            logger(stdout, "correct_num = %d, testing_data_size = %d\n", correct_num, testing_data_labels.size());
+            logger(logger_out, "correct_num = %d, testing_data_size = %d\n", correct_num, testing_data_labels.size());
             accuracy = (float) correct_num / (float) testing_data_labels.size();
         } else {
             accuracy = mean_squared_error(predicted_label_vector, testing_data_labels);
         }
     }
 
-    logger(stdout, "End test accuracy on testing dataset\n");
+    logger(logger_out, "End test accuracy on testing dataset\n");
 }
 
 

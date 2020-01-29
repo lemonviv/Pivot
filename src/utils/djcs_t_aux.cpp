@@ -6,11 +6,12 @@
 #include "djcs_t_aux.h"
 #include <stdio.h>
 #include <cstdlib>
+extern FILE * logger_out;
 
 void djcs_t_aux_encrypt(djcs_t_public_key* pk, hcs_random* hr, EncodedNumber & res, EncodedNumber plain) {
 
     if (plain.type != Plaintext) {
-        logger(stdout, "the plain should not be encrypted\n");
+        logger(logger_out, "the plain should not be encrypted\n");
         return;
     }
 
@@ -33,7 +34,7 @@ void djcs_t_aux_encrypt(djcs_t_public_key* pk, hcs_random* hr, EncodedNumber & r
 void djcs_t_aux_partial_decrypt(djcs_t_public_key* pk, djcs_t_auth_server* au, EncodedNumber res, EncodedNumber cipher) {
 
     if (cipher.type != Ciphertext) {
-        logger(stdout, "the cipher should be encrypted\n");
+        logger(logger_out, "the cipher should be encrypted\n");
         return;
     }
 
@@ -53,17 +54,17 @@ void djcs_t_aux_share_combine(djcs_t_public_key* pk, EncodedNumber res, mpz_t* s
 void djcs_t_aux_ee_add(djcs_t_public_key* pk, EncodedNumber & res, EncodedNumber cipher1, EncodedNumber cipher2) {
 
     if (cipher1.type != Ciphertext || cipher2.type != Ciphertext) {
-        logger(stdout, "the two inputs should be ciphertexts\n");
+        logger(logger_out, "the two inputs should be ciphertexts\n");
         return;
     }
 
     if (mpz_cmp(cipher1.n, cipher2.n) != 0) {
-        logger(stdout, "two ciphertexts not with the same public key\n");
+        logger(logger_out, "two ciphertexts not with the same public key\n");
         return;
     }
 
     if (cipher1.exponent != cipher2.exponent) {
-        logger(stdout, "two ciphertexts do not have the same exponents, meaningless addtion\n");
+        logger(logger_out, "two ciphertexts do not have the same exponents, meaningless addtion\n");
         return;
     }
 
@@ -83,12 +84,12 @@ void djcs_t_aux_ee_add(djcs_t_public_key* pk, EncodedNumber & res, EncodedNumber
 void djcs_t_aux_ep_mul(djcs_t_public_key* pk, EncodedNumber & res, EncodedNumber cipher, EncodedNumber plain) {
 
     if (cipher.type != Ciphertext || plain.type != Plaintext) {
-        logger(stdout, "the cipher should be encrypted or the plain should not be encrypted\n");
+        logger(logger_out, "the cipher should be encrypted or the plain should not be encrypted\n");
         return;
     }
 
     if (mpz_cmp(cipher.n, plain.n) != 0) {
-        logger(stdout, "two values not under the same public key\n");
+        logger(logger_out, "two values not under the same public key\n");
         return;
     }
     mpz_set(res.n, cipher.n);
@@ -102,18 +103,18 @@ void djcs_t_aux_inner_product(djcs_t_public_key* pk, hcs_random* hr, EncodedNumb
         EncodedNumber ciphers[], EncodedNumber plains[], int size) {
 
 //    if (ciphers.size() != plains.size()) {
-//        logger(stdout, "two vectors do not have the same size\n");
+//        logger(logger_out, "two vectors do not have the same size\n");
 //        return;
 //    }
 //
 //    if (ciphers.size() == 0) {
-//        logger(stdout, "no elements in the two vectors\n");
+//        logger(logger_out, "no elements in the two vectors\n");
 //        return;
 //    }
 
 //    // assume the elements in a vector has the same n and exponent
 //    if (mpz_cmp(ciphers[0].n, plains[0].n) != 0) {
-//        logger(stdout, "two values not under the same public key\n");
+//        logger(logger_out, "two values not under the same public key\n");
 //        return;
 //    }
 

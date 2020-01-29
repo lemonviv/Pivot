@@ -3,6 +3,7 @@
 //
 
 #include "tree_node.h"
+extern FILE * logger_out;
 
 TreeNode::TreeNode() {
     is_leaf = -1;
@@ -79,18 +80,18 @@ TreeNode& TreeNode::operator=(TreeNode *node) {
 
 void TreeNode::print_node() {
 
-    logger(stdout, "Node depth = %d\n", depth);
-    logger(stdout, "Is leaf = %d\n", is_leaf);
-    logger(stdout, "Is self feature = %d\n", is_self_feature);
-    logger(stdout, "Best client id = %d\n", best_client_id);
+    logger(logger_out, "Node depth = %d\n", depth);
+    logger(logger_out, "Is leaf = %d\n", is_leaf);
+    logger(logger_out, "Is self feature = %d\n", is_self_feature);
+    logger(logger_out, "Best client id = %d\n", best_client_id);
     if (is_self_feature) {
-        logger(stdout, "Best feature id = %d\n", best_feature_id);
-        logger(stdout, "Best split id = %d\n", best_split_id);
+        logger(logger_out, "Best feature id = %d\n", best_feature_id);
+        logger(logger_out, "Best split id = %d\n", best_split_id);
     }
     if (is_leaf) {
         float f_label;
         label.decode(f_label);
-        logger(stdout, "Label = %f\n", f_label);
+        logger(logger_out, "Label = %f\n", f_label);
     }
 
 }

@@ -6,7 +6,6 @@
 #include <fstream>
 #include <sstream>
 #include <string>
-#include <fstream>
 #include <random>
 #include <stack>
 #include <infra/ConfigFile.hpp>
@@ -18,7 +17,7 @@
 #include "../include/protobuf/keys.pb.h"
 #include "../utils/djcs_t_aux.h"
 #include "omp.h"
-
+extern FILE * logger_out;
 
 Client::Client() {}
 
@@ -40,7 +39,7 @@ Client::Client(int param_client_id, int param_client_num, int param_has_label,
     std::ifstream data_infile(param_local_data_file);
 
     if (!data_infile) {
-        logger(stdout, "open %s error\n", param_local_data_file.c_str());
+        logger(logger_out, "open %s error\n", param_local_data_file.c_str());
         exit(EXIT_FAILURE);
     }
 
@@ -88,28 +87,28 @@ Client::Client(int param_client_id, int param_client_num, int param_has_label,
         if (i < client_id) {
             // this party will be the receiver in the protocol
             me = SocketPartyData(boost_ip::address::from_string(ips[client_id]), ports[client_id] + i);
-            logger(stdout, "my port = %d\n", ports[client_id] + i);
+            logger(logger_out, "my port = %d\n", ports[client_id] + i);
             other = SocketPartyData(boost_ip::address::from_string(ips[i]), ports[i] + client_id - 1);
-            logger(stdout, "other port = %d\n", ports[i] + client_id - 1);
+            logger(logger_out, "other port = %d\n", ports[i] + client_id - 1);
             shared_ptr<CommParty> channel = make_shared<CommPartyTCPSynced>(io_service, me, other);
 
             // connect to the other party
             channel->join(500,5000);
-            logger(stdout, "channel established\n");
+            logger(logger_out, "channel established\n");
 
             // add channel to the other client
             channels.push_back(std::move(channel));
         } else if (i > client_id) {
             // this party will be the sender in the protocol
             me = SocketPartyData(boost_ip::address::from_string(ips[client_id]), ports[client_id] + i - 1);
-            logger(stdout, "my port = %d\n", ports[client_id] + i - 1);
+            logger(logger_out, "my port = %d\n", ports[client_id] + i - 1);
             other = SocketPartyData(boost_ip::address::from_string(ips[i]), ports[i] + client_id);
-            logger(stdout, "other port = %d\n", ports[i] + client_id);
+            logger(logger_out, "other port = %d\n", ports[i] + client_id);
             shared_ptr<CommParty> channel = make_shared<CommPartyTCPSynced>(io_service, me, other);
 
             // connect to the other party
             channel->join(500,5000);
-            logger(stdout, "channel established\n");
+            logger(logger_out, "channel established\n");
 
             // add channel to the other client
             channels.push_back(std::move(channel));
@@ -215,7 +214,7 @@ void Client::recv_set_keys(std::string recv_keys) {
 
     com::collaborative::ml::PB_Keys deserialized_pb_keys;
     if (!deserialized_pb_keys.ParseFromString(recv_keys)) {
-        logger(stdout, "Failed to parse PB_Keys from string\n");
+        logger(logger_out, "Failed to parse PB_Keys from string\n");
         return;
     }
 
@@ -411,7 +410,7 @@ void Client::ciphers_conversion_to_shares(EncodedNumber *src_ciphers, std::vecto
                 recv_long_messages(c, recv_str_encrypted_shares);
                 deserialize_sums_from_string(recv_encrypted_shares, recv_size, recv_str_encrypted_shares);
                 if (recv_size != size) {
-                    logger(stdout, "Ciphers conversion to shares: recv_size not equal to real size\n");
+                    logger(logger_out, "Ciphers conversion to shares: recv_size not equal to real size\n");
                 }
                 for (int i = 0; i < size; i++) {
                     djcs_t_aux_ee_add(m_pk, aggregated_encrypted_shares[i], aggregated_encrypted_shares[i], recv_encrypted_shares[i]);
@@ -437,7 +436,7 @@ void Client::ciphers_conversion_to_shares(EncodedNumber *src_ciphers, std::vecto
         // generate secret shares
         EncodedNumber * encrypted_shares = new EncodedNumber[size];
         for (int i = 0; i < size; i++) {
-            float s = static_cast<float> (rand()) / static_cast<float> (RAND_MAX);
+            float s = static_cast<float> (rand() % MAXIMUM_RAND_VALUE);
             shares.push_back(0 - s);
             encrypted_shares[i].set_float(m_pk->n[0], s, precision);
             djcs_t_aux_encrypt(m_pk, m_hr, encrypted_shares[i], encrypted_shares[i]);
@@ -541,7 +540,7 @@ void Client::write_random_shares(std::vector<float> shares, std::string path) {
     write_file.open(file_name);
 
     if (!write_file.is_open()) {
-        logger(stdout, "open file %s failed\n", file_name.c_str());
+        logger(logger_out, "open file %s failed\n", file_name.c_str());
         return;
     }
 
@@ -568,11 +567,11 @@ std::vector<float> Client::read_random_shares(int size, std::string path) {
     read_file.open(file_name);
 
     if (!read_file.is_open()) {
-        logger(stdout, "open file %s failed\n", file_name.c_str());
+        logger(logger_out, "open file %s failed\n", file_name.c_str());
         exit(1);
     }
 
-    logger(stdout, "Starting read file\n");
+    logger(logger_out, "Starting read file\n");
 
     std::string line;
     std::vector<float> shares;
@@ -584,7 +583,7 @@ std::vector<float> Client::read_random_shares(int size, std::string path) {
     }
 
     if (shares.size() != size) {
-        logger(stdout, "Read share number is not equal to batch size\n");
+        logger(logger_out, "Read share number is not equal to batch size\n");
         exit(1);
     }
 
@@ -625,12 +624,12 @@ void Client::recv_long_messages(int i, std::string &message) {
 
 
 void Client::print_send_message(const string  &s) {
-    logger(stdout, "Sending message: %s\n", s.c_str());
+    logger(logger_out, "Sending message: %s\n", s.c_str());
 }
 
 
 void Client::print_recv_message(const string &s) {
-    logger(stdout, "Receiving message: %s\n", s.c_str());
+    logger(logger_out, "Receiving message: %s\n", s.c_str());
 }
 
 

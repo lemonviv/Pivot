@@ -15,7 +15,7 @@ extern hcs_random *hr;
 extern djcs_t_public_key *pk;
 extern djcs_t_private_key *vk;
 extern mpz_t n, positive_threshold, negative_threshold;
-
+extern FILE * logger_out;
 int total_cases_num, passed_cases_num;
 
 //void compute_thresholds() {
@@ -41,10 +41,10 @@ void test_positive_int(int x) {
     a.set_integer(n, x);
     a.decode(y);
     if ((float) x != y) {
-        logger(stdout, "test_positive_int(%d) failed\n", x);
+        logger(logger_out, "test_positive_int(%d) failed\n", x);
         total_cases_num += 1;
     } else {
-        logger(stdout, "test_positive_int(%d) succeed\n", x);
+        logger(logger_out, "test_positive_int(%d) succeed\n", x);
         total_cases_num += 1;
         passed_cases_num += 1;
     }
@@ -56,10 +56,10 @@ void test_negative_int(int x) {
     a.set_integer(n, x);
     a.decode(y);
     if ((float) x != y) {
-        logger(stdout, "test_negative_int(%d) failed\n", x);
+        logger(logger_out, "test_negative_int(%d) failed\n", x);
         total_cases_num += 1;
     } else {
-        logger(stdout, "test_negative_int(%d) succeed\n", x);
+        logger(logger_out, "test_negative_int(%d) succeed\n", x);
         total_cases_num += 1;
         passed_cases_num += 1;
     }
@@ -72,10 +72,10 @@ void test_positive_float(float x) {
     a.set_float(n, x, FLOAT_PRECISION);
     a.decode(y);
     if ( x != y) {
-        logger(stdout, "test_positive_float(%f) failed, decoded value = %d\n", x, y);
+        logger(logger_out, "test_positive_float(%f) failed, decoded value = %d\n", x, y);
         total_cases_num += 1;
     } else {
-        logger(stdout, "test_positive_float(%f) succeed\n", x);
+        logger(logger_out, "test_positive_float(%f) succeed\n", x);
         total_cases_num += 1;
         passed_cases_num += 1;
     }
@@ -88,10 +88,10 @@ void test_negative_float(float x) {
     a.set_float(n, x);
     a.decode(y);
     if ( x != y) {
-        logger(stdout, "test_negative_float(%f) failed, decoded value = %f\n", x, y);
+        logger(logger_out, "test_negative_float(%f) failed, decoded value = %f\n", x, y);
         total_cases_num += 1;
     } else {
-        logger(stdout, "test_negative_float(%f) succeed\n", x);
+        logger(logger_out, "test_negative_float(%f) succeed\n", x);
         total_cases_num += 1;
         passed_cases_num += 1;
     }
@@ -112,10 +112,10 @@ void test_encoded_number_state() {
     mpz_set(a.value, t1);
     a.exponent = 0;
     if (a.check_encoded_number() != Positive) {
-        logger(stdout, "test_encoded_number_state Positive failed\n");
+        logger(logger_out, "test_encoded_number_state Positive failed\n");
         total_cases_num += 1;
     } else {
-        logger(stdout, "test_encoded_number_state Positive succeed\n");
+        logger(logger_out, "test_encoded_number_state Positive succeed\n");
         total_cases_num += 1;
         passed_cases_num += 1;
     }
@@ -127,10 +127,10 @@ void test_encoded_number_state() {
     mpz_set(b.value, t2);
     b.exponent = 0;
     if (b.check_encoded_number() != Negative) {
-        logger(stdout, "test_encoded_number_state Negative failed\n");
+        logger(logger_out, "test_encoded_number_state Negative failed\n");
         total_cases_num += 1;
     } else {
-        logger(stdout, "test_encoded_number_state Negative succeed\n");
+        logger(logger_out, "test_encoded_number_state Negative succeed\n");
         total_cases_num += 1;
         passed_cases_num += 1;
     }
@@ -141,10 +141,10 @@ void test_encoded_number_state() {
     mpz_set(c.value, t3);
     c.exponent = 0;
     if (c.check_encoded_number() != Overflow) {
-        logger(stdout, "test_encoded_number_state Overflow failed\n");
+        logger(logger_out, "test_encoded_number_state Overflow failed\n");
         total_cases_num += 1;
     } else {
-        logger(stdout, "test_encoded_number_state Overflow succeed\n");
+        logger(logger_out, "test_encoded_number_state Overflow succeed\n");
         total_cases_num += 1;
         passed_cases_num += 1;
     }
@@ -155,10 +155,10 @@ void test_encoded_number_state() {
     mpz_set(d.value, t4);
     d.exponent = 0;
     if (d.check_encoded_number() != Invalid) {
-        logger(stdout, "test_encoded_number_state Invalid failed\n");
+        logger(logger_out, "test_encoded_number_state Invalid failed\n");
         total_cases_num += 1;
     } else {
-        logger(stdout, "test_encoded_number_state Invalid succeed\n");
+        logger(logger_out, "test_encoded_number_state Invalid succeed\n");
         total_cases_num += 1;
         passed_cases_num += 1;
     }
@@ -185,10 +185,10 @@ void test_decrease_exponent_positive_int() {
     mpz_set_str(t, str.c_str(), 10);
 
     if ( (mpz_cmp(t, a.value) != 0) || (a.exponent != 0 - FLOAT_PRECISION)) {
-        logger(stdout, "test_decrease_exponent_positive_int failed\n");
+        logger(logger_out, "test_decrease_exponent_positive_int failed\n");
         total_cases_num += 1;
     } else {
-        logger(stdout, "test_decrease_exponent_positive_int succeed\n");
+        logger(logger_out, "test_decrease_exponent_positive_int succeed\n");
         total_cases_num += 1;
         passed_cases_num += 1;
     }
@@ -210,10 +210,10 @@ void test_decrease_exponent_negative_int() {
     mpz_set_str(t, str.c_str(), 10);
 
     if ( (mpz_cmp(t, a.value) != 0) || (a.exponent != 0 - FLOAT_PRECISION)) {
-        logger(stdout, "test_decrease_exponent_negative_int failed\n");
+        logger(logger_out, "test_decrease_exponent_negative_int failed\n");
         total_cases_num += 1;
     } else {
-        logger(stdout, "test_decrease_exponent_negative_int succeed\n");
+        logger(logger_out, "test_decrease_exponent_negative_int succeed\n");
         total_cases_num += 1;
         passed_cases_num += 1;
     }
@@ -236,10 +236,10 @@ void test_decrease_exponent_positive_float() {
     mpz_set_str(t, str.c_str(), 10);
 
     if ( (mpz_cmp(t, a.value) != 0) || (a.exponent != 0 - 2 * FLOAT_PRECISION)) {
-        logger(stdout, "test_decrease_exponent_positive_float failed\n");
+        logger(logger_out, "test_decrease_exponent_positive_float failed\n");
         total_cases_num += 1;
     } else {
-        logger(stdout, "test_decrease_exponent_positive_float succeed\n");
+        logger(logger_out, "test_decrease_exponent_positive_float succeed\n");
         total_cases_num += 1;
         passed_cases_num += 1;
     }
@@ -267,10 +267,10 @@ void test_decrease_exponent_negative_float() {
     // way to test this function is to decode and compare.
 
     if ( (mpz_cmp(t, a.value) != 0) || (a.exponent != 0 - 2 * FLOAT_PRECISION)) {
-        logger(stdout, "test_decrease_exponent_negative_float failed\n");
+        logger(logger_out, "test_decrease_exponent_negative_float failed\n");
         total_cases_num += 1;
     } else {
-        logger(stdout, "test_decrease_exponent_negative_float succeed\n");
+        logger(logger_out, "test_decrease_exponent_negative_float succeed\n");
         total_cases_num += 1;
         passed_cases_num += 1;
     }
@@ -293,10 +293,10 @@ void test_increase_exponent_positive_float() {
     mpz_set_str(t, str.c_str(), 10);
 
     if ( (mpz_cmp(t, a.value) != 0) || (a.exponent != 0 - FLOAT_PRECISION)) {
-        logger(stdout, "test_increase_exponent_positive_float failed\n");
+        logger(logger_out, "test_increase_exponent_positive_float failed\n");
         total_cases_num += 1;
     } else {
-        logger(stdout, "test_increase_exponent_positive_float succeed\n");
+        logger(logger_out, "test_increase_exponent_positive_float succeed\n");
         total_cases_num += 1;
         passed_cases_num += 1;
     }
@@ -323,10 +323,10 @@ void test_increase_exponent_negative_float() {
     // way to test this function is to decode and compare.
 
     if ( (mpz_cmp(t, a.value) != 0) || (a.exponent != 0 - FLOAT_PRECISION)) {
-        logger(stdout, "test_increase_exponent_negative_float failed\n");
+        logger(logger_out, "test_increase_exponent_negative_float failed\n");
         total_cases_num += 1;
     } else {
-        logger(stdout, "test_increase_exponent_negative_float succeed\n");
+        logger(logger_out, "test_increase_exponent_negative_float succeed\n");
         total_cases_num += 1;
         passed_cases_num += 1;
     }
@@ -340,10 +340,10 @@ void test_decode_with_truncation_float() {
     float x;
     a.decode_with_truncation(x, 0 - FLOAT_PRECISION);
     if (fabs(x + 0.00000001) >= PRECISION_THRESHOLD) {
-        logger(stdout, "decode with truncation failed\n");
+        logger(logger_out, "decode with truncation failed\n");
         total_cases_num += 1;
     } else {
-        logger(stdout, "decode with truncation succeed\n");
+        logger(logger_out, "decode with truncation succeed\n");
         total_cases_num += 1;
         passed_cases_num += 1;
     }
@@ -353,7 +353,7 @@ void test_decode_with_truncation_float() {
 
 int test_encoder()
 {
-    logger(stdout, "****** Test encode and decode functions ******\n");
+    logger(logger_out, "****** Test encode and decode functions ******\n");
 
 //    hr = hcs_init_random();
 //    pk = djcs_t_init_public_key();
@@ -408,7 +408,7 @@ int test_encoder()
     test_decode_with_truncation_float();
 
 
-    logger(stdout, "****** total_cases_num = %d, passed_cases_num = %d ******\n",
+    logger(logger_out, "****** total_cases_num = %d, passed_cases_num = %d ******\n",
             total_cases_num, passed_cases_num);
 
     // free memory

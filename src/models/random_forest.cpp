@@ -15,6 +15,8 @@
 #include "../utils/score.h"
 #include "../utils/spdz/spdz_util.h"
 
+extern FILE * logger_out;
+
 RandomForest::RandomForest() {
     num_trees = NUM_TREES;
 }
@@ -27,13 +29,13 @@ RandomForest::RandomForest(int m_tree_num, int m_global_feature_num, int m_local
         forest.emplace_back(m_global_feature_num, m_local_feature_num, m_internal_node_num, m_type, m_classes_num,
                            m_max_depth, m_max_bins, m_prune_sample_num, m_prune_threshold, solution_type, optimization_type);
     }
-    logger(stdout, "Init %d trees in the random forest\n", num_trees);
+    logger(logger_out, "Init %d trees in the random forest\n", num_trees);
 }
 
 
 void RandomForest::init_datasets(Client & client, float split) {
 
-    logger(stdout, "Begin init dataset\n");
+    logger(logger_out, "Begin init dataset\n");
 
     int training_data_size = client.sample_num * split;
 
@@ -78,13 +80,13 @@ void RandomForest::init_datasets(Client & client, float split) {
             client.send_long_messages(i, s);
         }
     }
-    logger(stdout, "End init dataset\n");
+    logger(logger_out, "End init dataset\n");
     delete [] new_indexes;
 }
 
 
 void RandomForest::init_datasets_with_indexes(Client & client, int new_indexes[], float split) {
-    logger(stdout, "Begin init dataset with indexes\n");
+    logger(logger_out, "Begin init dataset with indexes\n");
 
     int training_data_size = client.sample_num * split;
 
@@ -105,12 +107,12 @@ void RandomForest::init_datasets_with_indexes(Client & client, int new_indexes[]
         }
     }
 
-    logger(stdout, "End init dataset with indexes\n");
+    logger(logger_out, "End init dataset with indexes\n");
 }
 
 
 void RandomForest::shuffle_and_assign_training_data(int tree_id, Client & client, float sample_rate) {
-    logger(stdout, "Begin shuffle training dataset for Tree[%d]\n", tree_id);
+    logger(logger_out, "Begin shuffle training dataset for Tree[%d]\n", tree_id);
 
     // store the indexes of the training dataset for random batch selection
     std::vector<int> data_indexes;
@@ -140,7 +142,7 @@ void RandomForest::shuffle_and_assign_training_data(int tree_id, Client & client
         new_indexes[i] = data_indexes[i];
     }
 
-    logger(stdout, "new_indexes size = %d\n", data_indexes.size());
+    logger(logger_out, "new_indexes size = %d\n", data_indexes.size());
 
     // send the data_indexes to the other client, and the other client shuffles the training data in the same way
     for (int i = 0; i < client.client_num; i++) {
@@ -180,13 +182,13 @@ void RandomForest::shuffle_and_assign_training_data(int tree_id, Client & client
         forest[tree_id].variance_stat_vecs.push_back(label_square_vec);     // the second vector is the squared label vector
     }
 
-    logger(stdout, "End shuffle training dataset\n");
+    logger(logger_out, "End shuffle training dataset\n");
 }
 
 
 void RandomForest::shuffle_and_assign_training_data_with_indexes(int tree_id, Client & client, int new_indexes[], float sample_rate) {
 
-    logger(stdout, "Begin shuffle training dataset with indexes for Tree[%d]\n", tree_id);
+    logger(logger_out, "Begin shuffle training dataset with indexes for Tree[%d]\n", tree_id);
 
     int sampled_training_data_size = training_data.size() * sample_rate;
 
@@ -198,14 +200,14 @@ void RandomForest::shuffle_and_assign_training_data_with_indexes(int tree_id, Cl
         }
     }
 
-    logger(stdout, "End shuffle training dataset with indexes\n");
+    logger(logger_out, "End shuffle training dataset with indexes\n");
 }
 
 
 void RandomForest::build_forest(Client & client, float sample_rate) {
-    logger(stdout, "Begin build forest\n");
+    logger(logger_out, "Begin build forest\n");
     for (int i = 0; i < num_trees; ++i) {
-        logger(stdout, "------------------- build the %d-th tree ----------------------\n", i);
+        logger(logger_out, "------------------- build the %d-th tree ----------------------\n", i);
         if (client.client_id == 0) {
             shuffle_and_assign_training_data(i, client, sample_rate);
         } else {
@@ -224,7 +226,7 @@ void RandomForest::build_forest(Client & client, float sample_rate) {
         forest[i].intermediate_memory_free();
     }
 
-    logger(stdout, "End build forest\n");
+    logger(logger_out, "End build forest\n");
 }
 
 
@@ -293,7 +295,7 @@ std::vector<int> RandomForest::compute_binary_vector(int tree_id, int sample_id,
 
 
 void RandomForest::test_accuracy(Client & client, float & accuracy) {
-    logger(stdout, "Begin test accuracy on testing dataset\n");
+    logger(logger_out, "Begin test accuracy on testing dataset\n");
 
     std::vector<float> predicted_label_vector;
     for (int i = 0; i < testing_data.size(); i++) {
@@ -305,7 +307,7 @@ void RandomForest::test_accuracy(Client & client, float & accuracy) {
         std::map<float, int> results;
         //  for each decision tree
         for (int tree_index = 0; tree_index < num_trees; ++tree_index) {
-            // logger(stdout, "Processing tree[%d]:\n", tree_index);
+            // logger(logger_out, "Processing tree[%d]:\n", tree_index);
 
             // step 1: organize the leaf label vector, compute the map
             EncodedNumber *label_vector = new EncodedNumber[forest[tree_index].internal_node_num + 1];
@@ -431,20 +433,20 @@ void RandomForest::test_accuracy(Client & client, float & accuracy) {
                     correct_num += 1;
                 }
             }
-            logger(stdout, "correct_num = %d, testing_data_size = %d\n", correct_num, testing_data_labels.size());
+            logger(logger_out, "correct_num = %d, testing_data_size = %d\n", correct_num, testing_data_labels.size());
             accuracy = (float) correct_num / (float) testing_data_labels.size();
         } else {
             accuracy = mean_squared_error(predicted_label_vector, testing_data_labels);
         }
     }
 
-    logger(stdout, "End test accuracy on testing dataset\n");
+    logger(logger_out, "End test accuracy on testing dataset\n");
 }
 
 
 void RandomForest::test_accuracy_with_spdz(Client &client, float &accuracy) {
 
-    logger(stdout, "Begin test accuracy on testing dataset\n");
+    logger(logger_out, "Begin test accuracy on testing dataset\n");
 
     std::vector<float> predicted_label_vector;
     for (int i = 0; i < testing_data.size(); i++) {
@@ -456,7 +458,7 @@ void RandomForest::test_accuracy_with_spdz(Client &client, float &accuracy) {
         EncodedNumber * prediction_trees = new EncodedNumber[num_trees];
         //  for each decision tree
         for (int tree_index = 0; tree_index < num_trees; ++tree_index) {
-            // logger(stdout, "Processing tree[%d]:\n", tree_index);
+            // logger(logger_out, "Processing tree[%d]:\n", tree_index);
 
             // step 1: organize the leaf label vector, compute the map
             EncodedNumber *label_vector = new EncodedNumber[forest[tree_index].internal_node_num + 1];
@@ -601,14 +603,14 @@ void RandomForest::test_accuracy_with_spdz(Client &client, float &accuracy) {
                     correct_num += 1;
                 }
             }
-            logger(stdout, "correct_num = %d, testing_data_size = %d\n", correct_num, testing_data_labels.size());
+            logger(logger_out, "correct_num = %d, testing_data_size = %d\n", correct_num, testing_data_labels.size());
             accuracy = (float) correct_num / (float) testing_data_labels.size();
         } else {
             accuracy = mean_squared_error(predicted_label_vector, testing_data_labels);
         }
     }
 
-    logger(stdout, "End test accuracy on testing dataset\n");
+    logger(logger_out, "End test accuracy on testing dataset\n");
 }
 
 

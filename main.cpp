@@ -27,6 +27,8 @@ mpz_t n, positive_threshold, negative_threshold;
 djcs_t_auth_server **au = (djcs_t_auth_server **)malloc(TOTAL_CLIENT_NUM * sizeof(djcs_t_auth_server *));
 mpz_t *si = (mpz_t *)malloc(TOTAL_CLIENT_NUM * sizeof(mpz_t));
 
+FILE * logger_out;
+
 void system_setup() {
     hr = hcs_init_random();
     pk = djcs_t_init_public_key();
@@ -106,7 +108,7 @@ void test_share_decrypt(Client client) {
             //std::string s1 = "hello world" + std::to_string(i);
             client.channels[i]->writeWithSize(s);
             //client.send_messages(client.channels[i], s);
-            //logger(stdout, "send message: %s\n", s.c_str());
+            //logger(logger_out, "send message: %s\n", s.c_str());
         }
     } else {
         vector<byte> resMsg;
@@ -117,7 +119,7 @@ void test_share_decrypt(Client client) {
         deserialize_number_from_string(t, s);
         t.print_encoded_number();
         //client.recv_messages(client.channels[0], s, buffer, 999);
-        //logger(stdout, "receive message: %s\n", s.c_str());
+        //logger(logger_out, "receive message: %s\n", s.c_str());
     }
 
 
@@ -140,8 +142,8 @@ void test_share_decrypt(Client client) {
         float x0, x1;
         dec_t0.decode(x0);
         dec_t1.decode(x1);
-        logger(stdout, "The decrypted value of ciphers[0] using global keys = %f\n", x0);
-        logger(stdout, "The decrypted value of ciphers[1] using global keys = %f\n", x1);
+        logger(logger_out, "The decrypted value of ciphers[0] using global keys = %f\n", x0);
+        logger(logger_out, "The decrypted value of ciphers[1] using global keys = %f\n", x1);
 
         EncodedNumber *share_decrypted_res = new EncodedNumber[2];
         client.share_batch_decrypt(ciphers, share_decrypted_res, 2);
@@ -149,8 +151,8 @@ void test_share_decrypt(Client client) {
         float share_x0, share_x1;
         share_decrypted_res[0].decode(share_x0);
         share_decrypted_res[1].decode(share_x1);
-        logger(stdout, "The decrypted value of ciphers[0] using share decryption = %f\n", share_x0);
-        logger(stdout, "The decrypted value of ciphers[1] using share decryption = %f\n", share_x1);
+        logger(logger_out, "The decrypted value of ciphers[0] using share decryption = %f\n", share_x0);
+        logger(logger_out, "The decrypted value of ciphers[1] using share decryption = %f\n", share_x1);
         delete [] share_decrypted_res;
     } else {
 
@@ -164,7 +166,7 @@ void logistic_regression(Client client) {
 
     LogisticRegression model(BATCH_SIZE, MAX_ITERATION, CONVERGENCE_THRESHOLD, ALPHA, client.feature_num);
 
-    logger(stdout, "init finished\n");
+    logger(logger_out, "init finished\n");
 
     float split = 0.8;
     if (client.client_id == 0) {
@@ -189,20 +191,20 @@ void logistic_regression(Client client) {
 
     float accuracy = 0.0;
     model.test(client, 1, accuracy);
-    logger(stdout, "Testing accuracy = %f \n", accuracy);
+    logger(logger_out, "Testing accuracy = %f \n", accuracy);
 
     delete [] sample_ids;
 }
 
-void decision_tree(Client & client, int solution_type, int optimization_type) {
+void decision_tree(Client & client, int solution_type, int optimization_type, int class_num, int tree_type) {
 
-    logger(stdout, "Begin decision tree training\n");
+    logger(logger_out, "Begin decision tree training\n");
 
     int m_global_feature_num = GLOBAL_FEATURE_NUM;
     int m_local_feature_num = client.local_data[0].size();
     int m_internal_node_num = 0;
-    int m_type = TREE_TYPE;
-    int m_classes_num = CLASSES_NUM;
+    int m_type = tree_type;
+    int m_classes_num = class_num;
     if (m_type == 1) {m_classes_num = 2;}
     int m_max_depth = MAX_DEPTH;
     int m_max_bins = MAX_BINS;
@@ -214,7 +216,7 @@ void decision_tree(Client & client, int solution_type, int optimization_type) {
     DecisionTree model(m_global_feature_num, m_local_feature_num, m_internal_node_num, m_type, m_classes_num,
             m_max_depth, m_max_bins, m_prune_sample_num, m_prune_threshold, m_solution_type, m_optimization_type);
 
-    logger(stdout, "Init decision tree model succeed\n");
+    logger(logger_out, "Init decision tree model succeed\n");
 
     float split = SPLIT_PERCENTAGE;
     if (client.client_id == 0) {
@@ -229,29 +231,29 @@ void decision_tree(Client & client, int solution_type, int optimization_type) {
         delete [] new_indexes;
     }
 
-    logger(stdout, "Training data size = %d\n", model.training_data.size());
+    logger(logger_out, "Training data size = %d\n", model.training_data.size());
     model.init_features();
     model.init_root_node(client);
     model.build_tree_node(client, 0);
 
-    logger(stdout, "End decision tree training\n");
-    logger(stdout, "The internal node number is %d\n", model.internal_node_num);
+    logger(logger_out, "End decision tree training\n");
+    logger(logger_out, "The internal node number is %d\n", model.internal_node_num);
 
     float accuracy = 0.0;
     model.test_accuracy(client, accuracy);
 
-    logger(stdout, "Accuracy = %f\n", accuracy);
+    logger(logger_out, "Accuracy = %f\n", accuracy);
 }
 
-void random_forest(Client & client, int solution_type, int optimization_type) {
-    logger(stdout, "Begin random forest training\n");
+void random_forest(Client & client, int solution_type, int optimization_type, int class_num, int tree_type) {
+    logger(logger_out, "Begin random forest training\n");
 
     int m_tree_num = NUM_TREES;
     int m_global_feature_num = GLOBAL_FEATURE_NUM;
     int m_local_feature_num = client.local_data[0].size();
     int m_internal_node_num = 0;
-    int m_type = TREE_TYPE;
-    int m_classes_num = CLASSES_NUM;
+    int m_type = tree_type;
+    int m_classes_num = class_num;
     if (m_type == 1) m_classes_num = 2;
     int m_max_depth = MAX_DEPTH;
     int m_max_bins = MAX_BINS;
@@ -281,22 +283,22 @@ void random_forest(Client & client, int solution_type, int optimization_type) {
     model.test_accuracy(client, accuracy);
 
     if (client.client_id == 0) {
-        logger(stdout, "Accuracy = %f\n", accuracy);
+        logger(logger_out, "Accuracy = %f\n", accuracy);
         std::ofstream result_log("result.log", std::ios_base::app | std::ios_base::out);
         result_log << accuracy << std::endl;
     }
 }
 
 
-void gbdt(Client & client, int solution_type, int optimization_type) {
+void gbdt(Client & client, int solution_type, int optimization_type, int class_num, int tree_type) {
 
-    logger(stdout, "Begin GBDT training\n");
+    logger(logger_out, "Begin GBDT training\n");
     int m_tree_num = NUM_TREES;
     int m_global_feature_num = GLOBAL_FEATURE_NUM;
     int m_local_feature_num = client.local_data[0].size();
     int m_internal_node_num = 0;
-    int m_type = TREE_TYPE;
-    int m_classes_num = CLASSES_NUM;
+    int m_type = tree_type;
+    int m_classes_num = class_num;
     if (m_type == 1) m_classes_num = 2;
     int m_max_depth = MAX_DEPTH;
     int m_max_bins = MAX_BINS;
@@ -306,7 +308,7 @@ void gbdt(Client & client, int solution_type, int optimization_type) {
     GBDT model(m_tree_num, m_global_feature_num, m_local_feature_num, m_internal_node_num, m_type, m_classes_num,
                        m_max_depth, m_max_bins, m_prune_sample_num, m_prune_threshold, solution_type, optimization_type);
 
-    logger(stdout, "Correct init gbdt\n");
+    logger(logger_out, "Correct init gbdt\n");
 
     float split = SPLIT_PERCENTAGE;
     if (client.client_id == 0) {
@@ -326,7 +328,7 @@ void gbdt(Client & client, int solution_type, int optimization_type) {
     float accuracy = 0.0;
     model.test_accuracy(client, accuracy);
     //model.test_accuracy_with_spdz(client, accuracy);
-    logger(stdout, "Accuracy = %f\n", accuracy);
+    logger(logger_out, "Accuracy = %f\n", accuracy);
 }
 
 
@@ -338,14 +340,14 @@ int main(int argc, char *argv[]) {
         client_id = atoi(argv[1]);
     }
     bool has_label = (client_id == 0);
-    std::string network_file = "/home/wuyuncheng/Documents/projects/CollaborativeML/data/networks/Parties.txt";
-    std::string s1("/home/wuyuncheng/Documents/projects/CollaborativeML/data/datasets/");
-    std::string s2 = std::to_string(client_id);
-    std::string data_file = s1 + "client_" + s2 + ".txt";
+    std::string network_file = DEFAULT_NETWORK_FILE;
+    std::string s1 = DEFAULT_DATA_FILE_PREFIX;
 
     int solution_type = 0;  // type = 0, basic solution; type = 1, enhanced solution
     int optimization_type = 0;  // type = 0, no optimization; type = 1, combining splits; type = 2, packing; type = 3, parallelism; type = 4, full optimization
-    int max_tree_depth = MAX_DEPTH;
+    int class_num = DEFAULT_CLASSES_NUM;
+    int algorithm_type = 0;  // 0 for decision tree; 1 for random forest; 2 for gbdt
+    int tree_type = TREE_TYPE;   // 0 for classification tree; 1 for regression tree
 
     if (argc > 2) {
         if (argv[2] != NULL) {
@@ -354,29 +356,42 @@ int main(int argc, char *argv[]) {
     }
     if (argc > 3) {
         if (argv[3] != NULL) {
-            solution_type = atoi(argv[3]);
+            class_num = atoi(argv[3]);
         }
     }
     if (argc > 4) {
         if (argv[4] != NULL) {
-            optimization_type = atoi(argv[4]);
+            algorithm_type = atoi(argv[4]);
         }
     }
     if (argc > 5) {
         if (argv[5] != NULL) {
-            network_file = argv[5];
+            tree_type = atoi(argv[5]);
         }
     }
     if (argc > 6) {
         if (argv[6] != NULL) {
-            data_file = argv[6];
+            solution_type = atoi(argv[6]);
         }
     }
     if (argc > 7) {
         if (argv[7] != NULL) {
-            max_tree_depth = atoi(argv[7]);
+            optimization_type = atoi(argv[7]);
         }
     }
+    if (argc > 8) {
+        if (argv[8] != NULL) {
+            network_file = argv[8];
+        }
+    }
+    if (argc > 9) {
+        if (argv[9] != NULL) {
+            s1 = argv[9];
+        }
+    }
+
+    std::string s2 = std::to_string(client_id);
+    std::string data_file = s1 + "client_" + s2 + ".txt";
 
     //test_pb();
 
@@ -384,7 +399,18 @@ int main(int argc, char *argv[]) {
         system_setup();
     }
 
+    // create logger file
+    std::string logger_file_name = PROGRAM_HOME;
+    logger_file_name += "log/";
+    logger_file_name += get_timestamp_str();
+    logger_file_name += "_";
+    logger_file_name += to_string(client_id);
+    logger_file_name += ".txt";
+    logger_out = fopen(logger_file_name.c_str(), "wb");
+
     Client client(client_id, client_num, has_label, network_file, data_file);
+
+    fflush(logger_out);
 
     // set up keys
     if (client.client_id == 0) {
@@ -409,8 +435,27 @@ int main(int argc, char *argv[]) {
         compute_thresholds(client.m_pk, n, positive_threshold, negative_threshold);
     }
 
+    fflush(logger_out);
+
+    switch(algorithm_type) {
+        case 0:
+            decision_tree(client, solution_type, optimization_type, class_num, tree_type);
+            break;
+        case 1:
+            random_forest(client, solution_type, optimization_type, class_num, tree_type);
+            break;
+        case 2:
+            gbdt(client, solution_type, optimization_type, class_num, tree_type);
+            break;
+        default:
+            decision_tree(client, solution_type, optimization_type, class_num, tree_type);
+            break;
+    }
+
+    fflush(logger_out);
+
     //logistic_regression(client)
-    decision_tree(client, solution_type, optimization_type);
+    //decision_tree(client, solution_type, optimization_type);
     //random_forest(client, solution_type, optimization_type);
     //gbdt(client, solution_type, optimization_type);
 
@@ -432,7 +477,7 @@ int main(int argc, char *argv[]) {
         mpz_clear(negative_threshold);
     }
 
-    logger(stdout, "The End\n");
+    logger(logger_out, "The End\n");
 
     return 0;
 }
