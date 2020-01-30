@@ -36,7 +36,7 @@ def get_args():
                         help='function to measure quality of split, e.g. gini for classification, mse for regression')
 
     # RF/GDBT shared hyper-parameters
-    parser.add_argument('--n_estimators', type=int, default=4, help='number of trees in the model')
+    parser.add_argument('--n_estimators', type=int, default=16, help='number of trees in the model')
 
     # GDBT hyper-parameters
     parser.add_argument('--learning_rate', default=1.0, type=float,

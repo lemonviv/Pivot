@@ -456,7 +456,7 @@ int main(int argc, char *argv[]) {
     float total_accuracy = 0.0;
     for (int t = 0; t < NUM_TRIALS; t++) {
         logger(logger_out, "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n");
-        logger(logger_out, "~~~~~~~~~~~~~~~~~The %d-th trial~~~~~~~~~~~~~~~~~\n");
+        logger(logger_out, "~~~~~~~~~~~~~~~~~The %d-th trial~~~~~~~~~~~~~~~~~\n", t);
         logger(logger_out, "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n");
         float current_accuracy = 0.0;
         switch(algorithm_type) {
