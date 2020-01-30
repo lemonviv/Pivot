@@ -21,7 +21,7 @@ done
 
 for i in {0..9}
 do
-    ${shell_path}/build/CollaborativeML $id
+    ${shell_path}/build/CollaborativeML $id 3 2 1 0 0 0 /home/wuyuncheng/Documents/projects/CollaborativeML/data/networks/Parties.txt bank_marketing_data
 done
 
 if [ $id -eq 0 ]

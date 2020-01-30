@@ -34,7 +34,7 @@ void system_setup() {
     pk = djcs_t_init_public_key();
     vk = djcs_t_init_private_key();
 
-    djcs_t_generate_key_pair(pk, vk, hr, 1, 1024, TOTAL_CLIENT_NUM, TOTAL_CLIENT_NUM);
+    djcs_t_generate_key_pair(pk, vk, hr, 1, 512, TOTAL_CLIENT_NUM, TOTAL_CLIENT_NUM);
     hr = hcs_init_random();
     mpz_t *coeff = djcs_t_init_polynomial(vk, hr);
 
@@ -241,8 +241,13 @@ float decision_tree(Client & client, int solution_type, int optimization_type, i
 
     float accuracy = 0.0;
     model.test_accuracy(client, accuracy);
-
-    logger(logger_out, "Accuracy = %f\n", accuracy);
+    if (client.client_id == 0) {
+        logger(logger_out, "Accuracy = %f\n", accuracy);
+        std::string result_log_file = LOGGER_HOME;
+        result_log_file += "result.log";
+        std::ofstream result_log(result_log_file, std::ios_base::app | std::ios_base::out);
+        result_log << accuracy << std::endl;
+    }
     return accuracy;
 }
 
@@ -285,8 +290,10 @@ float random_forest(Client & client, int solution_type, int optimization_type, i
 
     if (client.client_id == 0) {
         logger(logger_out, "Accuracy = %f\n", accuracy);
-        //std::ofstream result_log("result.log", std::ios_base::app | std::ios_base::out);
-        //result_log << accuracy << std::endl;
+        std::string result_log_file = LOGGER_HOME;
+        result_log_file += "result.log";
+        std::ofstream result_log(result_log_file, std::ios_base::app | std::ios_base::out);
+        result_log << accuracy << std::endl;
     }
     return accuracy;
 }
@@ -330,7 +337,13 @@ float gbdt(Client & client, int solution_type, int optimization_type, int class_
     float accuracy = 0.0;
     model.test_accuracy(client, accuracy);
     //model.test_accuracy_with_spdz(client, accuracy);
-    logger(logger_out, "Accuracy = %f\n", accuracy);
+    if (client.client_id == 0) {
+        logger(logger_out, "Accuracy = %f\n", accuracy);
+        std::string result_log_file = LOGGER_HOME;
+        result_log_file += "result.log";
+        std::ofstream result_log(result_log_file, std::ios_base::app | std::ios_base::out);
+        result_log << accuracy << std::endl;
+    }
     return accuracy;
 }
 
@@ -453,6 +466,19 @@ int main(int argc, char *argv[]) {
         compute_thresholds(client.m_pk, n, positive_threshold, negative_threshold);
     }
 
+    switch(algorithm_type) {
+        case 1:
+            random_forest(client, solution_type, optimization_type, class_num, tree_type);
+            break;
+        case 2:
+            gbdt(client, solution_type, optimization_type, class_num, tree_type);
+            break;
+        default:
+            decision_tree(client, solution_type, optimization_type, class_num, tree_type);
+            break;
+    }
+
+    /**
     float total_accuracy = 0.0;
     for (int t = 0; t < NUM_TRIALS; t++) {
         logger(logger_out, "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n");
@@ -473,14 +499,16 @@ int main(int argc, char *argv[]) {
         total_accuracy += current_accuracy;
     }
 
+
     float average_accuracy = total_accuracy / (float) NUM_TRIALS;
     logger(logger_out, "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n");
     logger(logger_out, "THE FINAL ACCURACY = %f\n", average_accuracy);
     logger(logger_out, "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n");
+    */
 
     //logistic_regression(client)
     //decision_tree(client, solution_type, optimization_type);
-    //random_forest(client, solution_type, optimization_type);
+    //random_forest(client, solution_type, optimization_type, class_num, tree_type);
     //gbdt(client, solution_type, optimization_type);
 
 //    test_share_decrypt(client);

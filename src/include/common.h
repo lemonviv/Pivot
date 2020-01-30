@@ -9,7 +9,7 @@
 #define MAX_IMPURITY 2.0
 #define MAX_VARIANCE 10000.0
 #define MAX_GLOBAL_SPLIT_NUM 1000
-#define MAX_DEPTH 3
+#define MAX_DEPTH 6
 #define MAX_BINS 32
 #define DEFAULT_CLASSES_NUM 3
 #define TREE_TYPE 0  // 0: classification tree, 1: regression tree
@@ -26,7 +26,7 @@
 #define ROUNDED_PRECISION 1e-3
 #define MAX_PACKING_CAPACITY 6.0
 #define RADIX_FOR_PACKING 2000 // should make sure that the dot product is less than this number, otherwise would be biased
-#define NUM_TREES 4
+#define NUM_TREES 16
 #define GBDT_FLAG 0
 #define GBDT_LEARNING_RATE 0.1
 #define TOTAL_CLIENT_NUM 3
