@@ -196,7 +196,7 @@ void logistic_regression(Client client) {
     delete [] sample_ids;
 }
 
-void decision_tree(Client & client, int solution_type, int optimization_type, int class_num, int tree_type) {
+float decision_tree(Client & client, int solution_type, int optimization_type, int class_num, int tree_type) {
 
     logger(logger_out, "Begin decision tree training\n");
 
@@ -243,9 +243,10 @@ void decision_tree(Client & client, int solution_type, int optimization_type, in
     model.test_accuracy(client, accuracy);
 
     logger(logger_out, "Accuracy = %f\n", accuracy);
+    return accuracy;
 }
 
-void random_forest(Client & client, int solution_type, int optimization_type, int class_num, int tree_type) {
+float random_forest(Client & client, int solution_type, int optimization_type, int class_num, int tree_type) {
     logger(logger_out, "Begin random forest training\n");
 
     int m_tree_num = NUM_TREES;
@@ -284,13 +285,14 @@ void random_forest(Client & client, int solution_type, int optimization_type, in
 
     if (client.client_id == 0) {
         logger(logger_out, "Accuracy = %f\n", accuracy);
-        std::ofstream result_log("result.log", std::ios_base::app | std::ios_base::out);
-        result_log << accuracy << std::endl;
+        //std::ofstream result_log("result.log", std::ios_base::app | std::ios_base::out);
+        //result_log << accuracy << std::endl;
     }
+    return accuracy;
 }
 
 
-void gbdt(Client & client, int solution_type, int optimization_type, int class_num, int tree_type) {
+float gbdt(Client & client, int solution_type, int optimization_type, int class_num, int tree_type) {
 
     logger(logger_out, "Begin GBDT training\n");
     int m_tree_num = NUM_TREES;
@@ -329,6 +331,7 @@ void gbdt(Client & client, int solution_type, int optimization_type, int class_n
     model.test_accuracy(client, accuracy);
     //model.test_accuracy_with_spdz(client, accuracy);
     logger(logger_out, "Accuracy = %f\n", accuracy);
+    return accuracy;
 }
 
 
@@ -384,14 +387,16 @@ int main(int argc, char *argv[]) {
             network_file = argv[8];
         }
     }
+    std::string dataset = "datasets"; // default dataset
     if (argc > 9) {
         if (argv[9] != NULL) {
-            s1 = argv[9];
+            dataset = argv[9];
         }
     }
+    s1 += dataset;
 
     std::string s2 = std::to_string(client_id);
-    std::string data_file = s1 + "client_" + s2 + ".txt";
+    std::string data_file = s1 + "/client_" + s2 + ".txt";
 
     //test_pb();
 
@@ -400,17 +405,30 @@ int main(int argc, char *argv[]) {
     }
 
     // create logger file
-    std::string logger_file_name = PROGRAM_HOME;
-    logger_file_name += "log/";
-    logger_file_name += get_timestamp_str();
+    std::string logger_file_name = LOGGER_HOME;
+    std::string alg_name;
+    switch (algorithm_type) {
+        case 1:
+            alg_name = "RF";
+            break;
+        case 2:
+            alg_name = "GBDT";
+            break;
+        default:
+            alg_name = "DT";
+            break;
+    }
+    logger_file_name += dataset;
     logger_file_name += "_";
+    logger_file_name += alg_name;
+    logger_file_name += "_";
+    logger_file_name += get_timestamp_str();
+    logger_file_name += "_client";
     logger_file_name += to_string(client_id);
     logger_file_name += ".txt";
     logger_out = fopen(logger_file_name.c_str(), "wb");
 
     Client client(client_id, client_num, has_label, network_file, data_file);
-
-    fflush(logger_out);
 
     // set up keys
     if (client.client_id == 0) {
@@ -435,24 +453,30 @@ int main(int argc, char *argv[]) {
         compute_thresholds(client.m_pk, n, positive_threshold, negative_threshold);
     }
 
-    fflush(logger_out);
-
-    switch(algorithm_type) {
-        case 0:
-            decision_tree(client, solution_type, optimization_type, class_num, tree_type);
-            break;
-        case 1:
-            random_forest(client, solution_type, optimization_type, class_num, tree_type);
-            break;
-        case 2:
-            gbdt(client, solution_type, optimization_type, class_num, tree_type);
-            break;
-        default:
-            decision_tree(client, solution_type, optimization_type, class_num, tree_type);
-            break;
+    float total_accuracy = 0.0;
+    for (int t = 0; t < NUM_TRIALS; t++) {
+        logger(logger_out, "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n");
+        logger(logger_out, "~~~~~~~~~~~~~~~~~The %d-th trial~~~~~~~~~~~~~~~~~\n");
+        logger(logger_out, "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n");
+        float current_accuracy = 0.0;
+        switch(algorithm_type) {
+            case 1:
+                current_accuracy = random_forest(client, solution_type, optimization_type, class_num, tree_type);
+                break;
+            case 2:
+                current_accuracy = gbdt(client, solution_type, optimization_type, class_num, tree_type);
+                break;
+            default:
+                current_accuracy = decision_tree(client, solution_type, optimization_type, class_num, tree_type);
+                break;
+        }
+        total_accuracy += current_accuracy;
     }
 
-    fflush(logger_out);
+    float average_accuracy = total_accuracy / (float) NUM_TRIALS;
+    logger(logger_out, "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n");
+    logger(logger_out, "THE FINAL ACCURACY = %f\n", average_accuracy);
+    logger(logger_out, "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n");
 
     //logistic_regression(client)
     //decision_tree(client, solution_type, optimization_type);
