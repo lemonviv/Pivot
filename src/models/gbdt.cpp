@@ -462,6 +462,8 @@ std::vector<int> GBDT::compute_binary_vector(int class_id, int tree_id, std::vec
 
 void GBDT::test_accuracy(Client & client, float & accuracy) {
 
+    logger(logger_out, "Begin test accuracy on testing dataset\n");
+
     std::vector<float> predicted_label_vector;
 
     std::vector< std::vector<float> > predicted_forest_labels;
@@ -493,7 +495,7 @@ void GBDT::test_accuracy(Client & client, float & accuracy) {
         }
     } else {
         for (int i = 0; i < testing_data.size(); i++) {
-            predicted_label_vector[i] = predicted_forest_labels[0][i];
+            predicted_label_vector.push_back(predicted_forest_labels[0][i]);
         }
     }
 
