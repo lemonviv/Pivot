@@ -173,7 +173,7 @@ void LogisticRegression::train(Client client) {
 
         // step 2: every client locally compute partial sum and send to client 0
         // setup sockets
-        std::vector<int> sockets = setup_sockets(NUM_SPDZ_PARTIES, client.client_id, "localhost", SPDZ_PORT_BASE);
+        std::vector<int> sockets = setup_sockets(NUM_SPDZ_PARTIES, client.client_id, client.host_names, SPDZ_PORT_BASE);
         for (int i = 0; i < NUM_SPDZ_PARTIES; i++) {
             logger(logger_out, "socket %d = %d\n", i, sockets[i]);
         }

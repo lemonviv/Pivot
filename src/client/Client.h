@@ -31,6 +31,7 @@ public:
     djcs_t_auth_server* m_au;                          // private share (auth server) of threshold Paillier
     hcs_random* m_hr;                                  // random value of threshold Paillier
     boost::asio::io_service io_service;
+    std::vector<std::string> host_names;
 
 public:
     /**

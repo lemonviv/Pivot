@@ -543,7 +543,7 @@ void RandomForest::test_accuracy_with_spdz(Client &client, float &accuracy) {
                 string prep_data_prefix = get_prep_dir(NUM_SPDZ_PARTIES, 128, gf2n::default_degree());
                 initialise_fields(prep_data_prefix);
                 bigint::init_thread();
-                std::vector<int> sockets = setup_sockets(NUM_SPDZ_PARTIES, client.client_id, "localhost", SPDZ_PORT_NUM_RF_CLASSIFICATION_PREDICTION);
+                std::vector<int> sockets = setup_sockets(NUM_SPDZ_PARTIES, client.client_id, client.host_names, SPDZ_PORT_NUM_RF_CLASSIFICATION_PREDICTION);
                 for (int jj = 0; jj < num_trees; jj++) {
                     std::vector<float> x;
                     x.push_back(shares[jj]);
@@ -577,7 +577,7 @@ void RandomForest::test_accuracy_with_spdz(Client &client, float &accuracy) {
                 string prep_data_prefix = get_prep_dir(NUM_SPDZ_PARTIES, 128, gf2n::default_degree());
                 initialise_fields(prep_data_prefix);
                 bigint::init_thread();
-                std::vector<int> sockets = setup_sockets(NUM_SPDZ_PARTIES, client.client_id, "localhost", SPDZ_PORT_NUM_RF_CLASSIFICATION_PREDICTION);
+                std::vector<int> sockets = setup_sockets(NUM_SPDZ_PARTIES, client.client_id, client.host_names, SPDZ_PORT_NUM_RF_CLASSIFICATION_PREDICTION);
                 for (int jj = 0; jj < num_trees; jj++) {
                     std::vector<float> x;
                     x.push_back(shares[jj]);

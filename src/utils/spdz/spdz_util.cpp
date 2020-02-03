@@ -89,13 +89,13 @@ void send_public_values(std::vector<int> values, std::vector<int>& sockets, int 
 }
 
 
-std::vector<int> setup_sockets(int n_parties, int my_client_id, const std::string host_name, int port_base) {
+std::vector<int> setup_sockets(int n_parties, int my_client_id, std::vector<std::string> host_names, int port_base) {
 
     // Setup connections from this client to each party socket
     std::vector<int> sockets(n_parties);
     for (int i = 0; i < n_parties; i++)
     {
-        set_up_client_socket(sockets[i], host_name.c_str(), port_base + i);
+        set_up_client_socket(sockets[i], host_names[i].c_str(), port_base + i);
         send(sockets[i], (octet*) &my_client_id, sizeof(int));
         //cout << "set up for " << i << "-th party succeed" << ", sockets = " << sockets[i] << ", port_num = " << port_base + i << endl;
     }

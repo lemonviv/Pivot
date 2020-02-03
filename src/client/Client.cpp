@@ -80,6 +80,8 @@ Client::Client(int param_client_id, int param_client_num, int param_has_label,
         ips[i] = config_file.Value("",ipString);
     }
 
+    host_names = ips;
+
     // establish connections
     SocketPartyData me, other;
 

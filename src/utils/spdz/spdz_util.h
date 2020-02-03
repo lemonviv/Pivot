@@ -65,11 +65,11 @@ void send_public_values(std::vector<int> values, std::vector<int>& sockets, int 
  *
  * @param n_parties
  * @param my_client_id
- * @param host_name
+ * @param host_names
  * @param port_base
  * @return
  */
-std::vector<int> setup_sockets(int n_parties, int my_client_id, const std::string host_name, int port_base);
+std::vector<int> setup_sockets(int n_parties, int my_client_id, std::vector<std::string> host_names, int port_base);
 
 
 /**

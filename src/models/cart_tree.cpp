@@ -638,7 +638,7 @@ void DecisionTree::build_tree_node(Client & client, int node_index) {
     initialise_fields(prep_data_prefix);
     bigint::init_thread();
     // setup sockets
-    std::vector<int> sockets = setup_sockets(NUM_SPDZ_PARTIES, client.client_id, DEFAULT_HOST_NAME, SPDZ_PORT_NUM_DT);
+    std::vector<int> sockets = setup_sockets(NUM_SPDZ_PARTIES, client.client_id, client.host_names, SPDZ_PORT_NUM_DT);
     //for (int i = 0; i < NUM_SPDZ_PARTIES; i++) {
     //    logger(logger_out, "socket %d = %d\n", i, sockets[i]);
     //}
@@ -2003,7 +2003,7 @@ void DecisionTree::test_accuracy_enhanced(Client &client, float &accuracy) {
     initialise_fields(prep_data_prefix);
     bigint::init_thread();
     // setup sockets
-    std::vector<int> sockets = setup_sockets(NUM_SPDZ_PARTIES, client.client_id, "localhost", SPDZ_PORT_NUM_DT_ENHANCED);
+    std::vector<int> sockets = setup_sockets(NUM_SPDZ_PARTIES, client.client_id, client.host_names, SPDZ_PORT_NUM_DT_ENHANCED);
 
     // 2. Super client send leaf_index_nodes vector as public input to SPDZ parties
     if (client.client_id == 0) {
