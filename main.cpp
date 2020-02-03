@@ -201,6 +201,10 @@ float decision_tree(Client & client, int solution_type, int optimization_type, i
 
     logger(logger_out, "Begin decision tree training\n");
 
+    struct timeval decision_tree_training_1, decision_tree_training_2;
+    double decision_tree_training_time = 0;
+    gettimeofday(&decision_tree_training_1, NULL);
+
     int m_global_feature_num = GLOBAL_FEATURE_NUM;
     int m_local_feature_num = client.local_data[0].size();
     int m_internal_node_num = 0;
@@ -240,8 +244,28 @@ float decision_tree(Client & client, int solution_type, int optimization_type, i
     logger(logger_out, "End decision tree training\n");
     logger(logger_out, "The internal node number is %d\n", model.internal_node_num);
 
+    gettimeofday(&decision_tree_training_2, NULL);
+    decision_tree_training_time += (double)((decision_tree_training_2.tv_sec - decision_tree_training_1.tv_sec) * 1000 + (double)(decision_tree_training_2.tv_usec - decision_tree_training_1.tv_usec) / 1000);
+    logger(logger_out, "*********************************************************************");
+    logger(logger_out, "******** Decision tree training time: %'.3f ms **********\n", decision_tree_training_time);
+    logger(logger_out, "*********************************************************************");
+
+
+    struct timeval decision_tree_prediction_1, decision_tree_prediction_2;
+    double decision_tree_prediction_average_time = 0;
+    gettimeofday(&decision_tree_prediction_1, NULL);
+
     float accuracy = 0.0;
     model.test_accuracy(client, accuracy);
+
+    gettimeofday(&decision_tree_prediction_2, NULL);
+    decision_tree_prediction_average_time += (double)((decision_tree_prediction_2.tv_sec - decision_tree_prediction_1.tv_sec) * 1000 +
+            (double)(decision_tree_prediction_2.tv_usec - decision_tree_prediction_1.tv_usec) / 1000);
+    decision_tree_prediction_average_time = decision_tree_prediction_average_time / (double) model.testing_data.size();
+    logger(logger_out, "*********************************************************************");
+    logger(logger_out, "********* Average decision tree prediction time: %'.3f ms ************\n", decision_tree_prediction_average_time);
+    logger(logger_out, "*********************************************************************");
+
     if (client.client_id == 0) {
         logger(logger_out, "Accuracy = %f\n", accuracy);
         std::string result_log_file = LOGGER_HOME;
@@ -255,6 +279,10 @@ float decision_tree(Client & client, int solution_type, int optimization_type, i
 float random_forest(Client & client, int solution_type, int optimization_type, int class_num, int tree_type,
                     int max_bins, int max_depth, int num_trees) {
     logger(logger_out, "Begin random forest training\n");
+
+    struct timeval random_forest_training_1, random_forest_training_2;
+    double random_forest_training_time = 0;
+    gettimeofday(&random_forest_training_1, NULL);
 
     int m_tree_num = num_trees;
     int m_global_feature_num = GLOBAL_FEATURE_NUM;
@@ -287,8 +315,28 @@ float random_forest(Client & client, int solution_type, int optimization_type, i
     float sample_rate = RF_SAMPLE_RATE;
     model.build_forest(client, sample_rate);
 
+    gettimeofday(&random_forest_training_2, NULL);
+    random_forest_training_time += (double)((random_forest_training_2.tv_sec - random_forest_training_1.tv_sec) * 1000 +
+            (double)(random_forest_training_2.tv_usec - random_forest_training_1.tv_usec) / 1000);
+    logger(logger_out, "*********************************************************************");
+    logger(logger_out, "******** Random forest training time: %'.3f ms **********\n", random_forest_training_time);
+    logger(logger_out, "*********************************************************************");
+
+    struct timeval random_forest_prediction_1, random_forest_prediction_2;
+    double random_forest_prediction_average_time = 0;
+    gettimeofday(&random_forest_prediction_1, NULL);
+
     float accuracy = 0.0;
     model.test_accuracy(client, accuracy);
+
+    gettimeofday(&random_forest_prediction_2, NULL);
+    random_forest_prediction_average_time += (double)((random_forest_prediction_2.tv_sec - random_forest_prediction_1.tv_sec) * 1000 +
+            (double)(random_forest_prediction_2.tv_usec - random_forest_prediction_1.tv_usec) / 1000);
+    random_forest_prediction_average_time = random_forest_prediction_average_time / (double) model.testing_data.size();
+    logger(logger_out, "*********************************************************************");
+    logger(logger_out, "********* Average random forest prediction time: %'.3f ms ************\n", random_forest_prediction_average_time);
+    logger(logger_out, "*********************************************************************");
+
 
     if (client.client_id == 0) {
         logger(logger_out, "Accuracy = %f\n", accuracy);
@@ -305,6 +353,11 @@ float gbdt(Client & client, int solution_type, int optimization_type, int class_
            int max_bins, int max_depth, int num_trees) {
 
     logger(logger_out, "Begin GBDT training\n");
+
+    struct timeval gbdt_training_1, gbdt_training_2;
+    double gbdt_training_time = 0;
+    gettimeofday(&gbdt_training_1, NULL);
+
     int m_tree_num = num_trees;
     int m_global_feature_num = GLOBAL_FEATURE_NUM;
     int m_local_feature_num = client.local_data[0].size();
@@ -337,8 +390,28 @@ float gbdt(Client & client, int solution_type, int optimization_type, int class_
 
     model.build_gbdt(client);
 
+    gettimeofday(&gbdt_training_2, NULL);
+    gbdt_training_time += (double)((gbdt_training_2.tv_sec - gbdt_training_1.tv_sec) * 1000 +
+                                            (double)(gbdt_training_2.tv_usec - gbdt_training_1.tv_usec) / 1000);
+    logger(logger_out, "*********************************************************************");
+    logger(logger_out, "******** GBDT training time: %'.3f ms **********\n", gbdt_training_time);
+    logger(logger_out, "*********************************************************************");
+
+    struct timeval gbdt_prediction_1, gbdt_prediction_2;
+    double gbdt_prediction_average_time = 0;
+    gettimeofday(&gbdt_prediction_1, NULL);
+
     float accuracy = 0.0;
     model.test_accuracy(client, accuracy);
+
+    gettimeofday(&gbdt_prediction_2, NULL);
+    gbdt_prediction_average_time += (double)((gbdt_prediction_2.tv_sec - gbdt_prediction_1.tv_sec) * 1000 +
+                                                      (double)(gbdt_prediction_2.tv_usec - gbdt_prediction_1.tv_usec) / 1000);
+    gbdt_prediction_average_time = gbdt_prediction_average_time / (double) model.testing_data.size();
+    logger(logger_out, "*********************************************************************");
+    logger(logger_out, "********* Average GBDT prediction time: %'.3f ms ************\n", gbdt_prediction_average_time);
+    logger(logger_out, "*********************************************************************");
+
     //model.test_accuracy_with_spdz(client, accuracy);
     if (client.client_id == 0) {
         logger(logger_out, "Accuracy = %f\n", accuracy);
