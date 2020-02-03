@@ -59,7 +59,12 @@ X_train, y_train, X_test, y_test = load_from_csv(args.data_path)
 print(f'Data shape: \ntrain\t x {X_train.shape},\ty {y_train.shape}\n'
       f'test\t x {X_test.shape},\ty {y_test.shape}\n')
 
+def reload_dateset():
+    global X_train, y_train, X_test, y_test
+    X_train, y_train, X_test, y_test = load_from_csv(args.data_path)
+
 def train_eval(clf):
+    reload_dateset()
     clf.fit(X_train, y_train)
 
     if args.is_classification:

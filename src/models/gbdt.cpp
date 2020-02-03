@@ -478,8 +478,14 @@ void GBDT::test_accuracy(Client & client, float & accuracy) {
     for (int class_id = 0; class_id < classes_num; class_id++) {
         for (int tree_id = 0; tree_id < num_trees; tree_id++) {
             std::vector<float> labels = compute_predicted_labels(client, class_id, tree_id, 1);
-            for (int i = 0; i < testing_data.size(); i++) {
-                predicted_forest_labels[class_id][i] += labels[i];
+            if (tree_id == 0) {
+                for (int i = 0; i < testing_data.size(); i++) {
+                    predicted_forest_labels[class_id][i] = predicted_forest_labels[class_id][i] + labels[i];
+                }
+            } else {
+                for (int i = 0; i < testing_data.size(); i++) {
+                    predicted_forest_labels[class_id][i] = predicted_forest_labels[class_id][i] + GBDT_LEARNING_RATE * labels[i];
+                }
             }
         }
     }
