@@ -196,7 +196,8 @@ void logistic_regression(Client client) {
     delete [] sample_ids;
 }
 
-float decision_tree(Client & client, int solution_type, int optimization_type, int class_num, int tree_type) {
+float decision_tree(Client & client, int solution_type, int optimization_type, int class_num, int tree_type,
+                    int max_bins, int max_depth, int num_trees) {
 
     logger(logger_out, "Begin decision tree training\n");
 
@@ -206,8 +207,8 @@ float decision_tree(Client & client, int solution_type, int optimization_type, i
     int m_type = tree_type;
     int m_classes_num = class_num;
     if (m_type == 1) {m_classes_num = 2;}
-    int m_max_depth = MAX_DEPTH;
-    int m_max_bins = MAX_BINS;
+    int m_max_depth = max_depth;
+    int m_max_bins = max_bins;
     int m_prune_sample_num = PRUNE_SAMPLE_NUM;
     float m_prune_threshold = PRUNE_VARIANCE_THRESHOLD;
     int m_solution_type = solution_type;
@@ -251,18 +252,19 @@ float decision_tree(Client & client, int solution_type, int optimization_type, i
     return accuracy;
 }
 
-float random_forest(Client & client, int solution_type, int optimization_type, int class_num, int tree_type) {
+float random_forest(Client & client, int solution_type, int optimization_type, int class_num, int tree_type,
+                    int max_bins, int max_depth, int num_trees) {
     logger(logger_out, "Begin random forest training\n");
 
-    int m_tree_num = NUM_TREES;
+    int m_tree_num = num_trees;
     int m_global_feature_num = GLOBAL_FEATURE_NUM;
     int m_local_feature_num = client.local_data[0].size();
     int m_internal_node_num = 0;
     int m_type = tree_type;
     int m_classes_num = class_num;
     if (m_type == 1) m_classes_num = 2;
-    int m_max_depth = MAX_DEPTH;
-    int m_max_bins = MAX_BINS;
+    int m_max_depth = max_depth;
+    int m_max_bins = max_bins;
     int m_prune_sample_num = PRUNE_SAMPLE_NUM;
     float m_prune_threshold = PRUNE_VARIANCE_THRESHOLD;
 
@@ -299,18 +301,19 @@ float random_forest(Client & client, int solution_type, int optimization_type, i
 }
 
 
-float gbdt(Client & client, int solution_type, int optimization_type, int class_num, int tree_type) {
+float gbdt(Client & client, int solution_type, int optimization_type, int class_num, int tree_type,
+           int max_bins, int max_depth, int num_trees) {
 
     logger(logger_out, "Begin GBDT training\n");
-    int m_tree_num = NUM_TREES;
+    int m_tree_num = num_trees;
     int m_global_feature_num = GLOBAL_FEATURE_NUM;
     int m_local_feature_num = client.local_data[0].size();
     int m_internal_node_num = 0;
     int m_type = tree_type;
     int m_classes_num = class_num;
     if (m_type == 1) m_classes_num = 2;
-    int m_max_depth = MAX_DEPTH;
-    int m_max_bins = MAX_BINS;
+    int m_max_depth = max_depth;
+    int m_max_bins = max_bins;
     int m_prune_sample_num = PRUNE_SAMPLE_NUM;
     float m_prune_threshold = PRUNE_VARIANCE_THRESHOLD;
 
@@ -364,6 +367,9 @@ int main(int argc, char *argv[]) {
     int class_num = DEFAULT_CLASSES_NUM;
     int algorithm_type = 0;  // 0 for decision tree; 1 for random forest; 2 for gbdt
     int tree_type = TREE_TYPE;   // 0 for classification tree; 1 for regression tree
+    int max_bins = MAX_BINS;
+    int max_depth = MAX_DEPTH;
+    int num_trees = NUM_TREES;
 
     if (argc > 2) {
         if (argv[2] != NULL) {
@@ -400,6 +406,7 @@ int main(int argc, char *argv[]) {
             network_file = argv[8];
         }
     }
+
     std::string dataset = "datasets"; // default dataset
     if (argc > 9) {
         if (argv[9] != NULL) {
@@ -410,6 +417,24 @@ int main(int argc, char *argv[]) {
 
     std::string s2 = std::to_string(client_id);
     std::string data_file = s1 + "/client_" + s2 + ".txt";
+
+    if (argc > 10) {
+        if (argv[10] != NULL) {
+            max_bins = atoi(argv[10]);
+        }
+    }
+
+    if (argc > 11) {
+        if (argv[11] != NULL) {
+            max_depth = atoi(argv[11]);
+        }
+    }
+
+    if (argc > 12) {
+        if (argv[12] != NULL) {
+            num_trees = atoi(argv[12]);
+        }
+    }
 
     //test_pb();
 
@@ -468,13 +493,13 @@ int main(int argc, char *argv[]) {
 
     switch(algorithm_type) {
         case 1:
-            random_forest(client, solution_type, optimization_type, class_num, tree_type);
+            random_forest(client, solution_type, optimization_type, class_num, tree_type, max_bins, max_depth, num_trees);
             break;
         case 2:
-            gbdt(client, solution_type, optimization_type, class_num, tree_type);
+            gbdt(client, solution_type, optimization_type, class_num, tree_type, max_bins, max_depth, num_trees);
             break;
         default:
-            decision_tree(client, solution_type, optimization_type, class_num, tree_type);
+            decision_tree(client, solution_type, optimization_type, class_num, tree_type, max_bins, max_depth, num_trees);
             break;
     }
 
