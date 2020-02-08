@@ -2,6 +2,7 @@
 // Created by wuyuncheng on 18/10/19.
 //
 
+#include <google/protobuf/io/coded_stream.h>
 #include "pb_converter.h"
 #include "util.h"
 #include "../include/protobuf/common.pb.h"
@@ -98,7 +99,10 @@ void serialize_batch_sums(EncodedNumber *batch_sums, int size, std::string & out
 void deserialize_sums_from_string(EncodedNumber *& partial_sums, int & size, std::string input_str) {
 
     com::collaborative::ml::PB_BatchSums deserialized_batch_partial_sums;
-    if (!deserialized_batch_partial_sums.ParseFromString(input_str)) {
+    google::protobuf::io::CodedInputStream inputStream((unsigned char*)input_str.c_str(), input_str.length());
+    inputStream.SetTotalBytesLimit(1024*1024*1024, 1024*1024*1024);
+
+    if (!deserialized_batch_partial_sums.ParseFromCodedStream(&inputStream)) {
         logger(logger_out, "Failed to parse PB_BatchPartialSums from string\n");
         return;
     }
@@ -146,7 +150,10 @@ void serialize_batch_losses(EncodedNumber *batch_losses, int size, std::string &
 void deserialize_losses_from_string(EncodedNumber *& batch_losses, std::string input_str) {
 
     com::collaborative::ml::PB_BatchLosses deserialized_batch_losses;
-    if (!deserialized_batch_losses.ParseFromString(input_str)) {
+    google::protobuf::io::CodedInputStream inputStream((unsigned char*)input_str.c_str(), input_str.length());
+    inputStream.SetTotalBytesLimit(1024*1024*1024, 1024*1024*1024);
+
+    if (!deserialized_batch_losses.ParseFromCodedStream(&inputStream)) {
         logger(logger_out, "Failed to parse PB_BatchPartialSums from string\n");
         return;
     }
@@ -224,7 +231,10 @@ void deserialize_pruning_condition_result(int & node_index, int & is_satisfied, 
                                           EncodedNumber & label, std::string input_str) {
 
     com::collaborative::ml::PB_PruneConditionResult deserialized_pruning_condition_result;
-    if (!deserialized_pruning_condition_result.ParseFromString(input_str)) {
+    google::protobuf::io::CodedInputStream inputStream((unsigned char*)input_str.c_str(), input_str.length());
+    inputStream.SetTotalBytesLimit(1024*1024*1024, 1024*1024*1024);
+
+    if (!deserialized_pruning_condition_result.ParseFromCodedStream(&inputStream)) {
         logger(logger_out, "Failed to parse PB_PruneConditionResult from string\n");
         return;
     }
@@ -352,7 +362,11 @@ void deserialize_encrypted_statistics(int & client_id, int & node_index, int & s
                                       EncodedNumber ** & encrypted_statistics, std::string input_str) {
 
     com::collaborative::ml::PB_EncryptedStatistics deserialized_encrypted_statistics;
-    if (!deserialized_encrypted_statistics.ParseFromString(input_str)) {
+
+    google::protobuf::io::CodedInputStream inputStream((unsigned char*)input_str.c_str(), input_str.length());
+    inputStream.SetTotalBytesLimit(1024*1024*1024, 1024*1024*1024);
+
+    if (!deserialized_encrypted_statistics.ParseFromCodedStream(&inputStream)) {
         logger(logger_out, "Failed to parse PB_EncryptedStatistics from string\n");
         return;
     }
@@ -486,7 +500,11 @@ void deserialize_update_info(int & source_client_id, int & best_client_id, int &
                              EncodedNumber* & left_branch_sample_iv, EncodedNumber* & right_branch_sample_iv, std::string input_str) {
 
     com::collaborative::ml::PB_UpdateInfo deserialized_update_info;
-    if (!deserialized_update_info.ParseFromString(input_str)) {
+
+    google::protobuf::io::CodedInputStream inputStream((unsigned char*)input_str.c_str(), input_str.length());
+    inputStream.SetTotalBytesLimit(1024*1024*1024, 1024*1024*1024);
+
+    if (!deserialized_update_info.ParseFromCodedStream(&inputStream)) {
         logger(logger_out, "Failed to parse PB_UpdateInfo from string\n");
         return;
     }
@@ -548,7 +566,10 @@ void serialize_split_info(int global_split_num, std::vector<int> client_split_nu
 void deserialize_split_info(int & global_split_num, std::vector<int> & client_split_nums, std::string input_str) {
 
     com::collaborative::ml::PB_SplitInfo deserialized_split_info;
-    if (!deserialized_split_info.ParseFromString(input_str)) {
+    google::protobuf::io::CodedInputStream inputStream((unsigned char*)input_str.c_str(), input_str.length());
+    inputStream.SetTotalBytesLimit(1024*1024*1024, 1024*1024*1024);
+
+    if (!deserialized_split_info.ParseFromCodedStream(&inputStream)) {
         logger(logger_out, "Failed to parse PB_SplitInfo from string\n");
         return;
     }
@@ -590,7 +611,11 @@ void serialize_prune_check_result(int node_index, int is_satisfied, EncodedNumbe
 void deserialize_prune_check_result(int & node_index, int & is_satisfied, EncodedNumber & label, std::string input_str) {
 
     com::collaborative::ml::PB_PruneCheckResult deserialize_prune_check_result;
-    if (!deserialize_prune_check_result.ParseFromString(input_str)) {
+
+    google::protobuf::io::CodedInputStream inputStream((unsigned char*)input_str.c_str(), input_str.length());
+    inputStream.SetTotalBytesLimit(1024*1024*1024, 1024*1024*1024);
+
+    if (!deserialize_prune_check_result.ParseFromCodedStream(&inputStream)) {
         logger(logger_out, "Failed to parse PB_PruneCheckResult from string\n");
         return;
     }
@@ -636,7 +661,11 @@ void serialize_encrypted_label_vector(int node_index, int classes_num,
 void deserialize_encrypted_label_vector(int & node_index, EncodedNumber *& encrypted_label_vector, std::string input_str) {
 
     com::collaborative::ml::PB_EncryptedLabelVector pb_deserialize_encrypted_label_vector;
-    if (!pb_deserialize_encrypted_label_vector.ParseFromString(input_str)) {
+
+    google::protobuf::io::CodedInputStream inputStream((unsigned char*)input_str.c_str(), input_str.length());
+    inputStream.SetTotalBytesLimit(1024*1024*1024, 1024*1024*1024);
+
+    if (!pb_deserialize_encrypted_label_vector.ParseFromCodedStream(&inputStream)) {
         logger(logger_out, "Failed to parse PB_EncryptedLabelVector from string\n");
         return;
     }
