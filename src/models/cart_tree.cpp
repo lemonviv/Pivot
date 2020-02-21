@@ -2192,11 +2192,13 @@ void DecisionTree::update_sample_iv(Client &client, int i_star, EncodedNumber *l
         // step 3
         EncodedNumber * aggregated_updated_sample_iv_left = new EncodedNumber[sample_num];
         EncodedNumber * aggregated_updated_sample_iv_right = new EncodedNumber[sample_num];
+        EncodedNumber * tmps = new EncodedNumber[sample_num];
+        omp_set_num_threads(NUM_OMP_THREADS);
+#pragma omp parallel for
         for (int j = 0; j < sample_num; j++) {
-            EncodedNumber tmp;
-            tmp.set_integer(client.m_pk->n[0], sample_iv_shares[j]);
-            djcs_t_aux_ep_mul(client.m_pk, aggregated_updated_sample_iv_left[j], left_selection_result[j], tmp);
-            djcs_t_aux_ep_mul(client.m_pk, aggregated_updated_sample_iv_right[j], right_selection_result[j], tmp);
+            tmps[j].set_integer(client.m_pk->n[0], sample_iv_shares[j]);
+            djcs_t_aux_ep_mul(client.m_pk, aggregated_updated_sample_iv_left[j], left_selection_result[j], tmps[j]);
+            djcs_t_aux_ep_mul(client.m_pk, aggregated_updated_sample_iv_right[j], right_selection_result[j], tmps[j]);
         }
 
         for (int i = 0; i < client.client_num; i++) {
@@ -2232,6 +2234,7 @@ void DecisionTree::update_sample_iv(Client &client, int i_star, EncodedNumber *l
         delete [] decrypted_sample_iv_shares;
         delete [] aggregated_updated_sample_iv_left;
         delete [] aggregated_updated_sample_iv_right;
+        delete [] tmps;
     } else {
         // step 1
         std::string recv_left_selection_str, recv_right_selection_str;
@@ -2261,11 +2264,13 @@ void DecisionTree::update_sample_iv(Client &client, int i_star, EncodedNumber *l
         client.decrypt_batch_piece(recv_share_decrypt_str, response_share_decrypt_str, i_star);
 
         // step 3
+        EncodedNumber * tmps = new EncodedNumber[sample_num];
+        omp_set_num_threads(NUM_OMP_THREADS);
+#pragma omp parallel for
         for (int j = 0; j < sample_num; j++) {
-            EncodedNumber tmp;
-            tmp.set_integer(client.m_pk->n[0], sample_iv_shares[j]);
-            djcs_t_aux_ep_mul(client.m_pk, left_selection_result[j], left_selection_result[j], tmp);
-            djcs_t_aux_ep_mul(client.m_pk, right_selection_result[j], right_selection_result[j], tmp);
+            tmps[j].set_integer(client.m_pk->n[0], sample_iv_shares[j]);
+            djcs_t_aux_ep_mul(client.m_pk, left_selection_result[j], left_selection_result[j], tmps[j]);
+            djcs_t_aux_ep_mul(client.m_pk, right_selection_result[j], right_selection_result[j], tmps[j]);
         }
 
         //serialize left_selection_result and right_selection_result to i_star client
@@ -2287,6 +2292,7 @@ void DecisionTree::update_sample_iv(Client &client, int i_star, EncodedNumber *l
         delete [] enc_sample_iv_shares;
         delete [] updated_sample_iv_left;
         delete [] updated_sample_iv_right;
+        delete [] tmps;
     }
 }
 
