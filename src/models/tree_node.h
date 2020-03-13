@@ -2,8 +2,8 @@
 // Created by wuyuncheng on 26/11/19.
 //
 
-#ifndef COLLABORATIVEML_TREE_NODE_H
-#define COLLABORATIVEML_TREE_NODE_H
+#ifndef PIVOT_TREE_NODE_H
+#define PIVOT_TREE_NODE_H
 
 #include "../utils/encoder.h"
 #include "../utils/djcs_t_aux.h"
@@ -85,4 +85,4 @@ struct PredictionObj {
     ~PredictionObj() {}
 };
 
-#endif //COLLABORATIVEML_TREE_NODE_H
+#endif //PIVOT_TREE_NODE_H

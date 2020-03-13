@@ -2,8 +2,8 @@
 // Created by wuyuncheng on 16/10/19.
 //
 
-#ifndef COLLABORATIVEML_TEST_ENCODER_H
-#define COLLABORATIVEML_TEST_ENCODER_H
+#ifndef PIVOT_TEST_ENCODER_H
+#define PIVOT_TEST_ENCODER_H
 
 //void compute_thresholds();
 void test_positive_int(int x);
@@ -20,4 +20,4 @@ void test_increase_exponent_negative_float();
 void test_decode_with_truncation_float();
 int test_encoder();
 
-#endif //COLLABORATIVEML_TEST_ENCODER_H
+#endif //PIVOT_TEST_ENCODER_H

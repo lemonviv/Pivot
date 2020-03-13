@@ -2,8 +2,8 @@
 // Created by wuyuncheng on 12/10/19.
 //
 
-#ifndef COLLABORATIVEML_ENCODER_H
-#define COLLABORATIVEML_ENCODER_H
+#ifndef PIVOT_ENCODER_H
+#define PIVOT_ENCODER_H
 
 #include "libhcs.h"
 #include "gmp.h"
@@ -237,4 +237,4 @@ void fixed_pointed_decode_truncated(float & value, mpz_t res, int exponent, int 
  */
 void decrypt_temp(djcs_t_public_key *pk, djcs_t_auth_server **au, int required_client_num, EncodedNumber & rop, EncodedNumber v);
 
-#endif //COLLABORATIVEML_ENCODER_H
+#endif //PIVOT_ENCODER_H

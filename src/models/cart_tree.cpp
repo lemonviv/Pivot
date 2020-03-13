@@ -56,12 +56,9 @@ DecisionTree::DecisionTree(int m_global_feature_num, int m_local_feature_num, in
             optimization_type = CombiningSplits;
             break;
         case 2:
-            optimization_type = Packing;
-            break;
-        case 3:
             optimization_type = Parallelism;
             break;
-        case 4:
+        case 3:
             optimization_type = All;
             break;
         default:
@@ -100,7 +97,7 @@ void DecisionTree::init_datasets(Client & client, float split) {
             // add to testing dataset and labels
             testing_data.push_back(client.local_data[data_indexes[i]]);
             if (client.has_label) {
-                testingg_data_labels.push_back(client.labels[data_indexes[i]]);
+                testing_data_labels.push_back(client.labels[data_indexes[i]]);
             }
         }
     }
@@ -183,7 +180,7 @@ void DecisionTree::init_datasets_with_indexes(Client & client, int *new_indexes,
             // add to testing dataset and labels
             testing_data.push_back(client.local_data[new_indexes[i]]);
             if (client.has_label) {
-                testingg_data_labels.push_back(client.labels[new_indexes[i]]);
+                testing_data_labels.push_back(client.labels[new_indexes[i]]);
             }
         }
     }
@@ -463,127 +460,6 @@ bool DecisionTree::check_pruning_conditions_revise(Client & client, int node_ind
 }
 
 
-void DecisionTree::pack_plain_vectors(Client &client, EncodedNumber *&packed_labels, int capacity, int radix) {
-
-    mpz_t r;
-    mpz_init(r);
-    mpz_set_si(r, radix);
-
-    // init mpz_t vector with number big integers, representing the r^{used_classes_Num-1} values
-    mpz_t *radix_vec = (mpz_t *) malloc (capacity * sizeof(mpz_t));
-    for (int i = 0; i < capacity; i++) {
-        mpz_init(radix_vec[i]);
-        if (i == 0) {
-            mpz_set_si(radix_vec[i], 1);
-        } else {
-            mpz_mul(radix_vec[i], radix_vec[i-1], r);
-        }
-        //gmp_printf("R_vec[%d] = %Zd\n", i, radix_vec[i]);
-    }
-
-    int used_classes_num = ceil((float) classes_num / capacity);
-    int sample_num = training_data_labels.size();
-
-    // init the mpz_t plain_vectors for packing
-    mpz_t ** plain_vectors = (mpz_t **) malloc (classes_num * sizeof(mpz_t *));
-    for (int i = 0; i < classes_num; i++) {
-        plain_vectors[i] = (mpz_t *) malloc(sample_num * sizeof(mpz_t));
-    }
-
-    for (int i = 0; i < classes_num; i++) {
-        for (int j = 0; j < sample_num; j++) {
-            mpz_init(plain_vectors[i][j]);
-            float value;
-            if (type == 0) {
-                value = indicator_class_vecs[i][j];
-            } else {
-                value = variance_stat_vecs[i][j];
-            }
-            long long encode_value = fixed_pointed_integer_representation(value, FLOAT_PRECISION);
-            mpz_set_si(plain_vectors[i][j], encode_value);
-        }
-    }
-
-    // init the packed_plain_vectors
-    mpz_t ** packed_plain_vectors = (mpz_t **) malloc (used_classes_num * sizeof(mpz_t));
-    for (int i = 0; i < used_classes_num; i++) {
-        packed_plain_vectors[i] = (mpz_t *) malloc( sample_num * sizeof(mpz_t));
-    }
-    for (int i = 0; i < used_classes_num; i++) {
-        for (int j = 0; j < sample_num; j++) {
-            mpz_init(packed_plain_vectors[i][j]);
-        }
-    }
-
-    int available_classes_num = classes_num;
-    int cur_size = 0;
-    int classes_index = 0;
-    for (int i = 0; i < used_classes_num; i++) {
-        if (capacity <= available_classes_num) {
-            cur_size = capacity;
-            available_classes_num = available_classes_num - capacity;
-        } else {
-            cur_size = available_classes_num;
-        }
-        for (int j = 0; j < sample_num; j++) {
-            mpz_t tmp;
-            mpz_init(tmp);
-            mpz_set_si(tmp, 0);
-            for (int k = 0; k < cur_size; k++) {
-                mpz_t mul_tmp;
-                mpz_init(mul_tmp);
-                mpz_mul(mul_tmp, plain_vectors[k+classes_index][j], radix_vec[k]);
-                mpz_add(tmp, tmp, mul_tmp);
-                mpz_clear(mul_tmp);
-            }
-            mpz_set(packed_plain_vectors[i][j], tmp);
-            //gmp_printf("packed_plains[%d] = %Zd\n", j, packed_plains[j]);
-            mpz_clear(tmp);
-        }
-        classes_index += cur_size;
-    }
-
-    for (int i = 0; i < used_classes_num; i++) {
-        for (int j = 0; j < sample_num; j++) {
-            packed_labels[i * sample_num + j].exponent = 0 - FLOAT_PRECISION;
-            packed_labels[i * sample_num + j].type = 0;
-            mpz_set(packed_labels[i * sample_num + j].n, client.m_pk->n[0]);
-            mpz_set(packed_labels[i * sample_num + j].value, packed_plain_vectors[i][j]);
-        }
-    }
-
-    // free memory usage
-    mpz_clear(r);
-    for (int i = 0; i < capacity; i++) {
-        mpz_clear(radix_vec[i]);
-    }
-
-    free(radix_vec);
-
-    for (int i = 0; i < classes_num; i++) {
-        for (int j = 0; j < sample_num; j++) {
-            mpz_clear(plain_vectors[i][j]);
-        }
-    }
-
-    for (int i = 0; i < classes_num; i++) {
-        free(plain_vectors[i]);
-    }
-    free(plain_vectors);
-
-    for (int i = 0; i < used_classes_num; i++) {
-        for (int j = 0; j < sample_num; j++) {
-            mpz_clear(packed_plain_vectors[i][j]);
-        }
-    }
-
-    for (int i = 0; i < used_classes_num; i++) {
-        free(packed_plain_vectors[i]);
-    }
-    free(packed_plain_vectors);
-}
-
-
 void DecisionTree::build_tree_node(Client & client, int node_index) {
 
     logger(logger_out, "************* Begin build tree node %d, tree depth = %d *************\n", node_index, tree_nodes[node_index].depth);
@@ -648,12 +524,7 @@ void DecisionTree::build_tree_node(Client & client, int node_index) {
         return; // the corresponding process is in the check function
     }
 
-    // use used_classes_num when packing
     int used_classes_num = classes_num; // default is not packing
-    if ((optimization_type == Packing) || (optimization_type == All)) {
-        used_classes_num = ceil((float) classes_num / MAX_PACKING_CAPACITY);
-        logger(logger_out, "The used_classes_num for packing = %d\n", used_classes_num);
-    }
 
     // if pruning conditions are not satisfied (note that if satisfied, the handle is in the function)
     EncodedNumber ** encrypted_label_vecs;
@@ -681,40 +552,29 @@ void DecisionTree::build_tree_node(Client & client, int node_index) {
         //gettimeofday(&encrypted_label_1, NULL);
 
         encrypted_labels = new EncodedNumber[used_classes_num * sample_num];
-        if ((optimization_type == Packing) || (optimization_type == All)) {
-            // pack classes_num vectors into used_classes_num vectors and set tmp
-            pack_plain_vectors(client, encrypted_labels, MAX_PACKING_CAPACITY, RADIX_FOR_PACKING);
-            for (int i = 0; i < used_classes_num; i++) {
-                for (int j = 0; j < sample_num; j++) {
-                    djcs_t_aux_ep_mul(client.m_pk, encrypted_labels[i * sample_num + j],
-                            tree_nodes[node_index].sample_iv[j], encrypted_labels[i * sample_num + j]);
+        for (int i = 0; i < used_classes_num; i++) {
+            for (int j = 0; j < sample_num; j++) {
+                EncodedNumber tmp;
+                if (type == 0) {
+                    tmp.set_float(client.m_pk->n[0], indicator_class_vecs[i][j]); // classification use indicator_class_vecs
+                } else {
+                    tmp.set_float(client.m_pk->n[0], variance_stat_vecs[i][j]); // regression use variance_stat_vecs
                 }
+                djcs_t_aux_ep_mul(client.m_pk, encrypted_labels[i * sample_num + j], tree_nodes[node_index].sample_iv[j], tmp);
             }
-        } else {
+        }
+        // TODO: simulate the running time when using GBDT model
+        if (GBDT_FLAG == 1) {
             for (int i = 0; i < used_classes_num; i++) {
+                EncodedNumber * tmp = new EncodedNumber[sample_num];
                 for (int j = 0; j < sample_num; j++) {
-                    EncodedNumber tmp;
-                    if (type == 0) {
-                        tmp.set_float(client.m_pk->n[0], indicator_class_vecs[i][j]); // classification use indicator_class_vecs
-                    } else {
-                        tmp.set_float(client.m_pk->n[0], variance_stat_vecs[i][j]); // regression use variance_stat_vecs
-                    }
-                    djcs_t_aux_ep_mul(client.m_pk, encrypted_labels[i * sample_num + j], tree_nodes[node_index].sample_iv[j], tmp);
+                    tmp[j].set_float(client.m_pk->n[0], variance_stat_vecs[i][j]);
+                    djcs_t_aux_encrypt(client.m_pk, client.m_hr, tmp[j], tmp[j]);
                 }
-            }
-            // TODO: simulate the running time when using GBDT model
-            if (GBDT_FLAG == 1) {
-                for (int i = 0; i < used_classes_num; i++) {
-                    EncodedNumber * tmp = new EncodedNumber[sample_num];
-                    for (int j = 0; j < sample_num; j++) {
-                        tmp[j].set_float(client.m_pk->n[0], variance_stat_vecs[i][j]);
-                        djcs_t_aux_encrypt(client.m_pk, client.m_hr, tmp[j], tmp[j]);
-                    }
-                    EncodedNumber * res = new EncodedNumber[sample_num];
-                    client.cipher_vectors_multiplication(tree_nodes[node_index].sample_iv, tmp, res, sample_num);
-                    delete [] tmp;
-                    delete [] res;
-                }
+                EncodedNumber * res = new EncodedNumber[sample_num];
+                client.cipher_vectors_multiplication(tree_nodes[node_index].sample_iv, tmp, res, sample_num);
+                delete [] tmp;
+                delete [] res;
             }
         }
 
@@ -1090,11 +950,7 @@ void DecisionTree::build_tree_node(Client & client, int node_index) {
         for (int j = 0; j < used_classes_num * 2; j++) {
             vector<float> x;
             x.push_back(stats_shares[i][j]);
-            if ((optimization_type == Packing) || (optimization_type == All)) {
-                send_private_batch_shares_packing(x, sockets, NUM_SPDZ_PARTIES);
-            } else {
-                send_private_batch_shares(x, sockets, NUM_SPDZ_PARTIES);
-            }
+            send_private_batch_shares(x, sockets, NUM_SPDZ_PARTIES);
         }
     }
 
@@ -1443,9 +1299,6 @@ void DecisionTree::compute_encrypted_statistics(Client & client, int node_index,
     int available_feature_num = tree_nodes[node_index].available_feature_ids.size();
     int sample_num = features[0].split_ivs_left[0].size();
     int used_classes_num = classes_num;
-    if ((optimization_type == Packing) || (optimization_type == All)) {
-        used_classes_num = ceil( (float) classes_num / MAX_PACKING_CAPACITY);
-    }
 
     /**
      * splits of features are flatted, classes_num * 2 are for left and right
@@ -1855,7 +1708,7 @@ void DecisionTree::test_accuracy_basic(Client &client, float &accuracy) {
             client.share_batch_decrypt(encrypted_aggregation, decrypted_label, 1);
             //float decoded_label;
             decrypted_label[0].decode(predicted_label_vector[i]);
-            //logger(logger_out, "decoded_label = %f while true label = %f\n", predicted_label_vector[i], testingg_data_labels[i]);
+            //logger(logger_out, "decoded_label = %f while true label = %f\n", predicted_label_vector[i], testing_data_labels[i]);
 
             delete [] encrypted_aggregation;
             delete [] decrypted_label;
@@ -1876,21 +1729,21 @@ void DecisionTree::test_accuracy_basic(Client &client, float &accuracy) {
         if (type == 0) {
             int correct_num = 0;
             for (int i = 0; i < testing_data.size(); i++) {
-                if (predicted_label_vector[i] == testingg_data_labels[i]) {
+                if (predicted_label_vector[i] == testing_data_labels[i]) {
                     correct_num += 1;
                 }
             }
-            logger(logger_out, "correct_num = %d, testing_data_size = %d\n", correct_num, testingg_data_labels.size());
-            accuracy = (float) correct_num / (float) testingg_data_labels.size();
+            logger(logger_out, "correct_num = %d, testing_data_size = %d\n", correct_num, testing_data_labels.size());
+            accuracy = (float) correct_num / (float) testing_data_labels.size();
         } else {
-            accuracy = mean_squared_error(predicted_label_vector, testingg_data_labels);
+            accuracy = mean_squared_error(predicted_label_vector, testing_data_labels);
         }
     }
 
     gettimeofday(&testing_2, NULL);
     testing_time += (double)((testing_2.tv_sec - testing_1.tv_sec) * 1000 + (double)(testing_2.tv_usec - testing_1.tv_usec) / 1000);
     logger(logger_out, "Total testing computation time: %'.3f ms\n", testing_time);
-    logger(logger_out, "Average testing computation time: %'.3f ms\n", testing_time / testingg_data_labels.size());
+    logger(logger_out, "Average testing computation time: %'.3f ms\n", testing_time / testing_data_labels.size());
 
     delete [] label_vector;
     logger(logger_out, "End test accuracy with basic solution on testing dataset\n");
@@ -2105,22 +1958,22 @@ void DecisionTree::test_accuracy_enhanced(Client &client, float &accuracy) {
         int correct_num = 0;
         for (int i = 0; i < testing_data.size(); i++) {
             //logger(logger_out, "predicted_labels[%d] = %f, testing_data_labels[%d] = %f\n",
-            //       i, predicted_labels[i], i, testingg_data_labels[i]);
-            if (rounded_comparison(predicted_labels[i], testingg_data_labels[i])) {
+            //       i, predicted_labels[i], i, testing_data_labels[i]);
+            if (rounded_comparison(predicted_labels[i], testing_data_labels[i])) {
                 correct_num += 1;
             }
         }
 
-        logger(logger_out, "correct_num = %d, testing_data_size = %d\n", correct_num, testingg_data_labels.size());
-        accuracy = (float) correct_num / (float) testingg_data_labels.size();
+        logger(logger_out, "correct_num = %d, testing_data_size = %d\n", correct_num, testing_data_labels.size());
+        accuracy = (float) correct_num / (float) testing_data_labels.size();
     } else {
-        accuracy = mean_squared_error(predicted_labels, testingg_data_labels);
+        accuracy = mean_squared_error(predicted_labels, testing_data_labels);
     }
 
     gettimeofday(&testing_2, NULL);
     testing_time += (double)((testing_2.tv_sec - testing_1.tv_sec) * 1000 + (double)(testing_2.tv_usec - testing_1.tv_usec) / 1000);
     logger(logger_out, "Total testing computation time: %'.3f ms\n", testing_time);
-    logger(logger_out, "Average testing computation time: %'.3f ms\n", testing_time / testingg_data_labels.size());
+    logger(logger_out, "Average testing computation time: %'.3f ms\n", testing_time / testing_data_labels.size());
 
     predicted_labels.clear();
     predicted_labels.shrink_to_fit();
@@ -2443,9 +2296,9 @@ void DecisionTree::intermediate_memory_free() {
         split_num_each_client.shrink_to_fit();
     }
 
-    if (testingg_data_labels.size() != 0) {
-        testingg_data_labels.clear();
-        testingg_data_labels.shrink_to_fit();
+    if (testing_data_labels.size() != 0) {
+        testing_data_labels.clear();
+        testing_data_labels.shrink_to_fit();
     }
 
     if (indicator_class_vecs.size() != 0) {
@@ -2518,9 +2371,9 @@ DecisionTree::~DecisionTree() {
         training_data_labels.shrink_to_fit();
     }
 
-    if (testingg_data_labels.size() != 0) {
-        testingg_data_labels.clear();
-        testingg_data_labels.shrink_to_fit();
+    if (testing_data_labels.size() != 0) {
+        testing_data_labels.clear();
+        testing_data_labels.shrink_to_fit();
     }
 
     if (indicator_class_vecs.size() != 0) {

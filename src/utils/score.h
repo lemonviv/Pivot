@@ -2,8 +2,8 @@
 // Created by wuyuncheng on 10/1/20.
 //
 
-#ifndef COLLABORATIVEML_SCORE_H
-#define COLLABORATIVEML_SCORE_H
+#ifndef PIVOT_SCORE_H
+#define PIVOT_SCORE_H
 
 #include <vector>
 
@@ -45,4 +45,4 @@ std::vector<float> softmax(std::vector<float> inputs);
 float argmax(std::vector<float> inputs);
 
 
-#endif //COLLABORATIVEML_SCORE_H
+#endif //PIVOT_SCORE_H

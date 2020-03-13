@@ -1,5 +1,5 @@
-#ifndef COLLABORATIVEML_RANDOM_FOREST_H
-#define COLLABORATIVEML_RANDOM_FOREST_H
+#ifndef PIVOT_RANDOM_FOREST_H
+#define PIVOT_RANDOM_FOREST_H
 
 #include "cart_tree.h"
 
@@ -134,4 +134,4 @@ public:
     void test_accuracy_with_spdz(Client & client, float & accuracy);
 };
 
-#endif //COLLABORATIVEML_RANDOM_FOREST_H
+#endif //PIVOT_RANDOM_FOREST_H

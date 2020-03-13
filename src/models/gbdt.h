@@ -2,8 +2,8 @@
 // Created by wuyuncheng on 12/1/20.
 //
 
-#ifndef COLLABORATIVEML_GBDT_H
-#define COLLABORATIVEML_GBDT_H
+#ifndef PIVOT_GBDT_H
+#define PIVOT_GBDT_H
 
 #include "cart_tree.h"
 
@@ -135,4 +135,4 @@ public:
 
 };
 
-#endif //COLLABORATIVEML_GBDT_H
+#endif //PIVOT_GBDT_H

@@ -2,8 +2,8 @@
 // Created by wuyuncheng on 18/10/19.
 //
 
-#ifndef COLLABORATIVEML_PB_CONVERTER_H
-#define COLLABORATIVEML_PB_CONVERTER_H
+#ifndef PIVOT_PB_CONVERTER_H
+#define PIVOT_PB_CONVERTER_H
 
 #include <vector>
 #include "encoder.h"
@@ -236,4 +236,4 @@ void serialize_encrypted_label_vector(int node_index, int classes_num,
 void deserialize_encrypted_label_vector(int & node_index, EncodedNumber *& encrypted_label_vector, std::string input_str);
 
 
-#endif //COLLABORATIVEML_PB_CONVERTER_H
+#endif //PIVOT_PB_CONVERTER_H

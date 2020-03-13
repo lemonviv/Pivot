@@ -2,8 +2,8 @@
 // Created by wuyuncheng on 11/10/19.
 //
 
-#ifndef COLLABORATIVEML_UTIL_H
-#define COLLABORATIVEML_UTIL_H
+#ifndef PIVOT_UTIL_H
+#define PIVOT_UTIL_H
 
 #include <stdio.h>
 #include "gmp.h"
@@ -41,4 +41,4 @@ void print_string(const char *str);
 void compute_thresholds(djcs_t_public_key *pk, mpz_t n, mpz_t positive_threshold, mpz_t negative_threshold);
 
 
-#endif //COLLABORATIVEML_UTIL_H
+#endif //PIVOT_UTIL_H

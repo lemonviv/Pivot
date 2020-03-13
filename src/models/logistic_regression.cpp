@@ -437,7 +437,7 @@ void LogisticRegression::init_datasets(Client client, float split) {
             // add to testing dataset and labels
             testing_data.push_back(client.local_data[data_indexes[i]]);
             if (client.has_label) {
-                testingg_data_labels.push_back(client.labels[data_indexes[i]]);
+                testing_data_labels.push_back(client.labels[data_indexes[i]]);
             }
         }
     }
@@ -478,7 +478,7 @@ void LogisticRegression::init_datasets_with_indexes(Client client, int *new_inde
             // add to testing dataset and labels
             testing_data.push_back(client.local_data[new_indexes[i]]);
             if (client.has_label) {
-                testingg_data_labels.push_back(client.labels[new_indexes[i]]);
+                testing_data_labels.push_back(client.labels[new_indexes[i]]);
             }
         }
     }
@@ -597,7 +597,7 @@ void LogisticRegression::test(Client client, int type, float & accuracy) {
             if (type == 0) {
                 if (predict_label == training_data_labels[i]) correct_num += 1;
             } else {
-                if (predict_label == testingg_data_labels[i]) correct_num += 1;
+                if (predict_label == testing_data_labels[i]) correct_num += 1;
             }
         }
     }
@@ -807,8 +807,8 @@ LogisticRegression::~LogisticRegression() {
         training_data_labels.shrink_to_fit();
     }
 
-    if (testingg_data_labels.size() != 0) {
-        testingg_data_labels.clear();
-        testingg_data_labels.shrink_to_fit();
+    if (testing_data_labels.size() != 0) {
+        testing_data_labels.clear();
+        testing_data_labels.shrink_to_fit();
     }
 }

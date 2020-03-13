@@ -2,8 +2,8 @@
 // Created by wuyuncheng on 10/10/19.
 //
 
-#ifndef COLLABORATIVEML_CLIENT_H
-#define COLLABORATIVEML_CLIENT_H
+#ifndef PIVOT_CLIENT_H
+#define PIVOT_CLIENT_H
 
 #include "gmp.h"
 #include "libhcs.h"
@@ -257,4 +257,4 @@ public:
 };
 
 
-#endif //COLLABORATIVEML_CLIENT_H
+#endif //PIVOT_CLIENT_H

@@ -436,7 +436,7 @@ int main(int argc, char *argv[]) {
     std::string s1 = DEFAULT_DATA_FILE_PREFIX;
 
     int solution_type = 0;  // type = 0, basic solution; type = 1, enhanced solution
-    int optimization_type = 0;  // type = 0, no optimization; type = 1, combining splits; type = 2, packing; type = 3, parallelism; type = 4, full optimization
+    int optimization_type = 0;  // type = 0, no optimization; type = 1, combining splits; type = 2, parallelism; type = 3, full optimization
     int class_num = DEFAULT_CLASSES_NUM;
     int algorithm_type = 0;  // 0 for decision tree; 1 for random forest; 2 for gbdt
     int tree_type = TREE_TYPE;   // 0 for classification tree; 1 for regression tree

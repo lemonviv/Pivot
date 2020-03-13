@@ -2,8 +2,8 @@
 // Created by wuyuncheng on 16/10/19.
 //
 
-#ifndef COLLABORATIVEML_TEST_LOGISTIC_REGRESSION_H
-#define COLLABORATIVEML_TEST_LOGISTIC_REGRESSION_H
+#ifndef PIVOT_TEST_LOGISTIC_REGRESSION_H
+#define PIVOT_TEST_LOGISTIC_REGRESSION_H
 
 #include "../src/utils/encoder.h"
 #include "../src/utils/util.h"
@@ -21,4 +21,4 @@ void test_aggregate_partial_sums(djcs_t_public_key *pk, hcs_random *hr, int clie
 void test_compute_batch_losses(djcs_t_public_key *pk, hcs_random *hr, int batch_size);
 void test_update_weights(djcs_t_public_key *pk, hcs_random *hr, int feature_num, int batch_size, float alpha);
 
-#endif //COLLABORATIVEML_TEST_LOGISTIC_REGRESSION_H
+#endif //PIVOT_TEST_LOGISTIC_REGRESSION_H
