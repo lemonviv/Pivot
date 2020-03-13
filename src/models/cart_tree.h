@@ -2,8 +2,8 @@
 // Created by wuyuncheng on 26/11/19.
 //
 
-#ifndef COLLABORATIVEML_CART_TREE_H
-#define COLLABORATIVEML_CART_TREE_H
+#ifndef PIVOT_CART_TREE_H
+#define PIVOT_CART_TREE_H
 
 #include "tree_node.h"
 #include "feature.h"
@@ -19,7 +19,7 @@ class DecisionTree {
 
 public:
     SolutionType solution_type;                      // denote basic solution and enhanced solution, 0 for basic and 1 for enhanced
-    OptimizationType optimization_type;              // denote optimization types, 0 non, 1 combining splits, 2 packing, 3 parallelism, 4 all
+    OptimizationType optimization_type;              // denote optimization types, 0 non, 1 combining splits, 2 parallelism, 3 all
     int global_feature_num;                          // total features in the global dataset
     int local_feature_num;                           // local feature number in local dataset
     int internal_node_num;                           // total internal node number, leaf_num = internal_node_num + 1
@@ -35,7 +35,7 @@ public:
     std::vector< std::vector<float> > testing_data;    // training dataset
     std::vector<int> feature_types;                    // stores the feature types, 0: continuous, 1: categorical
     std::vector<float> training_data_labels;           // labels of training dataset
-    std::vector<float> testingg_data_labels;           // labels of testing dataset
+    std::vector<float> testing_data_labels;           // labels of testing dataset
     std::vector< std::vector<int> > indicator_class_vecs; // binary vectors of classes, if classification
     std::vector< std::vector<float> > variance_stat_vecs; // variance vectors of labels, y and y^2, if regression
     std::vector<int> split_num_each_client;               // store the split_num of each client
@@ -152,17 +152,6 @@ public:
 
 
     /**
-     * pack the label vectors into packed_labels
-     *
-     * @param client
-     * @param packed_labels
-     * @param capacity
-     * @param radix
-     */
-    void pack_plain_vectors(Client & client, EncodedNumber * & packed_labels, int capacity, int radix);
-
-
-    /**
      * predict a result given a sample id
      *
      * @param sample_id
@@ -223,7 +212,6 @@ public:
     void update_sample_iv(Client & client, int i_star, EncodedNumber * left_selection_result,
             EncodedNumber * right_selection_result, int node_index);
 
-
     /**
      * this function is called after a tree is trained in the ensemble models
      * basically, the training data and testing data related information,
@@ -241,4 +229,4 @@ public:
 
 };
 
-#endif //COLLABORATIVEML_CART_TREE_H
+#endif //PIVOT_CART_TREE_H

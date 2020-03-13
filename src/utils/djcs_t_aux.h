@@ -2,8 +2,8 @@
 // Created by wuyuncheng on 12/10/19.
 //
 
-#ifndef COLLABORATIVEML_DJCS_T_AUX_H
-#define COLLABORATIVEML_DJCS_T_AUX_H
+#ifndef PIVOT_DJCS_T_AUX_H
+#define PIVOT_DJCS_T_AUX_H
 
 #include <vector>
 #include "gmp.h"
@@ -81,4 +81,4 @@ void djcs_t_aux_ep_mul(djcs_t_public_key* pk, EncodedNumber & res, EncodedNumber
 void djcs_t_aux_inner_product(djcs_t_public_key* pk, hcs_random* hr, EncodedNumber & res, EncodedNumber ciphers[], EncodedNumber plains[], int size);
 
 
-#endif //COLLABORATIVEML_DJCS_T_AUX_H
+#endif //PIVOT_DJCS_T_AUX_H

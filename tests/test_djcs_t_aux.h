@@ -2,8 +2,8 @@
 // Created by wuyuncheng on 16/10/19.
 //
 
-#ifndef COLLABORATIVEML_TEST_DJCS_T_AUX_H
-#define COLLABORATIVEML_TEST_DJCS_T_AUX_H
+#ifndef PIVOT_TEST_DJCS_T_AUX_H
+#define PIVOT_TEST_DJCS_T_AUX_H
 
 #include "gmp.h"
 #include "libhcs.h"
@@ -17,4 +17,4 @@ void test_inner_product_int();
 void test_inner_product_float();
 int test_djcs_t_aux();
 
-#endif //COLLABORATIVEML_TEST_DJCS_T_AUX_H
+#endif //PIVOT_TEST_DJCS_T_AUX_H

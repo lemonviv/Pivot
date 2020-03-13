@@ -2,8 +2,8 @@
 // Created by wuyuncheng on 11/10/19.
 //
 
-#ifndef COLLABORATIVEML_LOGISTIC_REGRESSION_H
-#define COLLABORATIVEML_LOGISTIC_REGRESSION_H
+#ifndef PIVOT_LOGISTIC_REGRESSION_H
+#define PIVOT_LOGISTIC_REGRESSION_H
 
 #include <vector>
 #include "gmp.h"
@@ -32,7 +32,7 @@ public:
     std::vector< std::vector<float> > training_data;   // training dataset
     std::vector< std::vector<float> > testing_data;    // training dataset
     std::vector<int> training_data_labels;             // labels of training dataset
-    std::vector<int> testingg_data_labels;             // labels of testing dataset
+    std::vector<int> testing_data_labels;             // labels of testing dataset
 public:
     /**
      * default constructor
@@ -193,4 +193,4 @@ public:
 };
 
 
-#endif //COLLABORATIVEML_LOGISTIC_REGRESSION_H
+#endif //PIVOT_LOGISTIC_REGRESSION_H

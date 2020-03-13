@@ -2,8 +2,8 @@
 // Created by wuyuncheng on 20/11/19.
 //
 
-#ifndef COLLABORATIVEML_SPDZ_UTIL_H
-#define COLLABORATIVEML_SPDZ_UTIL_H
+#ifndef PIVOT_SPDZ_UTIL_H
+#define PIVOT_SPDZ_UTIL_H
 
 // header files from MP-SPDZ
 
@@ -123,4 +123,4 @@ std::vector<float> receive_result_dt(std::vector<int>& sockets, int n_parties, i
 std::vector<float> receive_mode(std::vector<int>& sockets, int n_parties, int size);
 
 
-#endif //COLLABORATIVEML_SPDZ_UTIL_H
+#endif //PIVOT_SPDZ_UTIL_H

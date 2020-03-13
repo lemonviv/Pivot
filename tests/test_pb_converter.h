@@ -2,8 +2,8 @@
 // Created by wuyuncheng on 18/10/19.
 //
 
-#ifndef COLLABORATIVEML_TEST_PB_CONVERTER_H
-#define COLLABORATIVEML_TEST_PB_CONVERTER_H
+#ifndef PIVOT_TEST_PB_CONVERTER_H
+#define PIVOT_TEST_PB_CONVERTER_H
 
 #include "../src/utils/pb_converter.h"
 #include "../src/utils/encoder.h"
@@ -22,4 +22,4 @@ void test_pb_encrypted_label_vector();
 
 int test_pb();
 
-#endif //COLLABORATIVEML_TEST_PB_CONVERTER_H
+#endif //PIVOT_TEST_PB_CONVERTER_H
