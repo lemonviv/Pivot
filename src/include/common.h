@@ -27,7 +27,7 @@
 #define MAX_PACKING_CAPACITY 6.0
 #define RADIX_FOR_PACKING 2000 // should make sure that the dot product is less than this number, otherwise would be biased
 #define NUM_TREES 3
-#define GBDT_FLAG 0
+#define GBDT_FLAG 1
 #define GBDT_LEARNING_RATE 0.1
 #define TOTAL_CLIENT_NUM 3
 

@@ -406,6 +406,7 @@ bool DecisionTree::check_pruning_conditions_revise(Client & client, int node_ind
                 delete [] inv_encoded;
                 delete [] encoded_labels;
                 delete [] dot_product_res;
+
             }
 
             // send encrypted impurity and plaintext label
@@ -612,6 +613,34 @@ void DecisionTree::build_tree_node(Client & client, int node_index) {
     if (node_index >= pow(2, max_depth + 1) - 1) {
         logger(logger_out, "Node exceeds the maximum tree depth\n");
         exit(1);
+    }
+
+    // if GBDT should find labels by dot product of two ciphertext vectors
+    if (GBDT_FLAG == 1) {
+        logger(logger_out, "Simulate GBDT ciphertext multiplication\n");
+        // simulate multiplication between [z] and [y]
+        EncodedNumber * encoded_values = new EncodedNumber[training_data.size()];
+        EncodedNumber * encrypted_values = new EncodedNumber[training_data.size()];
+        for (int i = 0; i < training_data.size(); i++) {
+            encoded_values[i].set_float(client.m_pk->n[0], 0.25);
+            djcs_t_aux_encrypt(client.m_pk, client.m_hr, encrypted_values[i], encoded_values[i]);
+        }
+
+        EncodedNumber * encoded_values2 = new EncodedNumber[training_data.size()];
+        EncodedNumber * encrypted_values2 = new EncodedNumber[training_data.size()];
+        for (int i = 0; i < training_data.size(); i++) {
+            encoded_values2[i].set_float(client.m_pk->n[0], 1.5);
+            djcs_t_aux_encrypt(client.m_pk, client.m_hr, encrypted_values2[i], encoded_values2[i]);
+        }
+
+        EncodedNumber * res = new EncodedNumber[training_data.size()];
+        client.cipher_vectors_multiplication(encrypted_values2, encrypted_values, res, training_data.size());
+
+        delete [] encoded_values;
+        delete [] encrypted_values;
+        delete [] encoded_values2;
+        delete [] encrypted_values2;
+        delete [] res;
     }
 
     /** step 1: check pruning conditions and update tree node accordingly */

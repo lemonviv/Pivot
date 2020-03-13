@@ -34,7 +34,7 @@ void system_setup() {
     pk = djcs_t_init_public_key();
     vk = djcs_t_init_private_key();
 
-    djcs_t_generate_key_pair(pk, vk, hr, 1, 512, TOTAL_CLIENT_NUM, TOTAL_CLIENT_NUM);
+    djcs_t_generate_key_pair(pk, vk, hr, 1, 1024, TOTAL_CLIENT_NUM, TOTAL_CLIENT_NUM);
     hr = hcs_init_random();
     mpz_t *coeff = djcs_t_init_polynomial(vk, hr);
 
