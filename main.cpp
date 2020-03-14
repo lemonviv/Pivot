@@ -348,7 +348,6 @@ float random_forest(Client & client, int solution_type, int optimization_type, i
     return accuracy;
 }
 
-
 float gbdt(Client & client, int solution_type, int optimization_type, int class_num, int tree_type,
            int max_bins, int max_depth, int num_trees) {
 
@@ -576,48 +575,20 @@ int main(int argc, char *argv[]) {
             break;
     }
 
-    /**
-    float total_accuracy = 0.0;
-    for (int t = 0; t < NUM_TRIALS; t++) {
-        logger(logger_out, "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n");
-        logger(logger_out, "~~~~~~~~~~~~~~~~~The %d-th trial~~~~~~~~~~~~~~~~~\n", t);
-        logger(logger_out, "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n");
-        float current_accuracy = 0.0;
-        switch(algorithm_type) {
-            case 1:
-                current_accuracy = random_forest(client, solution_type, optimization_type, class_num, tree_type);
-                break;
-            case 2:
-                current_accuracy = gbdt(client, solution_type, optimization_type, class_num, tree_type);
-                break;
-            default:
-                current_accuracy = decision_tree(client, solution_type, optimization_type, class_num, tree_type);
-                break;
-        }
-        total_accuracy += current_accuracy;
-    }
-
-
-    float average_accuracy = total_accuracy / (float) NUM_TRIALS;
-    logger(logger_out, "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n");
-    logger(logger_out, "THE FINAL ACCURACY = %f\n", average_accuracy);
-    logger(logger_out, "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n");
-    */
-
     //logistic_regression(client)
     //decision_tree(client, solution_type, optimization_type);
     //random_forest(client, solution_type, optimization_type, class_num, tree_type);
     //gbdt(client, solution_type, optimization_type);
 
-//    test_share_decrypt(client);
+    //test_share_decrypt(client);
 
     /**NOTE: the following test is only for single client test with client_id = 0
      * Need to make the test codes independent with the main function
      * */
-//    test_encoder();
-//    test_djcs_t_aux();
-//    test_lr();
-//    test_pb();
+    //test_encoder();
+    //test_djcs_t_aux();
+    //test_lr();
+    //test_pb();
 
     if (client_id == 0) {
         system_free();

@@ -10,7 +10,6 @@
 #define TOTAL_CLIENT_NUM 3
 #define SPDZ_PORT_NUM_DT 18000
 #define NUM_SPDZ_PARTIES 3
-#define NUM_OMP_THREADS 4
 #define SPDZ_PORT_NUM_DT_ENHANCED 19000
 #define SPDZ_PORT_NUM_RF_CLASSIFICATION_PREDICTION 20000
 #define ROUNDED_PRECISION 1e-3
@@ -51,5 +50,7 @@ enum OptimizationType {Non, CombiningSplits, Parallelism, All};
 #define DEFAULT_PARAM_DATA_FILE "/home/wuyuncheng/Documents/projects/Pivot-SPDZ/Player-Data/3-128-128/Params-Data"
 #define PROGRAM_HOME "/home/wuyuncheng/Documents/projects/Pivot/"
 #define LOGGER_HOME "/home/wuyuncheng/Documents/projects/Pivot/log/"
+#define NUM_OMP_THREADS 4
+
 
 #endif //PIVOT_COMMON_H
