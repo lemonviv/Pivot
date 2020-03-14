@@ -267,7 +267,7 @@ void DecisionTree::init_root_node(Client & client) {
 }
 
 
-bool DecisionTree::check_pruning_conditions_revise(Client & client, int node_index) {
+bool DecisionTree::check_pruning_conditions(Client & client, int node_index) {
 
     //logger(logger_out, "Check pruning conditions\n");
 
@@ -520,7 +520,7 @@ void DecisionTree::build_tree_node(Client & client, int node_index) {
     }
 
     /** step 1: check pruning conditions and update tree node accordingly */
-    if (check_pruning_conditions_revise(client, node_index)) {
+    if (check_pruning_conditions(client, node_index)) {
         return; // the corresponding process is in the check function
     }
 
@@ -2023,9 +2023,7 @@ void DecisionTree::update_sample_iv(Client &client, int i_star, EncodedNumber *l
     // 2. convert sample_iv into secret shares
     // 3. aggregate the shares
     // 4. broadcast the final selection_iv for left branch and right branch
-
     int sample_num = tree_nodes[node_index].sample_size;
-
     if (client.client_id == i_star) {
         // step 1
         std::string left_selection_str, right_selection_str;
@@ -2075,8 +2073,8 @@ void DecisionTree::update_sample_iv(Client &client, int i_star, EncodedNumber *l
         EncodedNumber * aggregated_updated_sample_iv_left = new EncodedNumber[sample_num];
         EncodedNumber * aggregated_updated_sample_iv_right = new EncodedNumber[sample_num];
         EncodedNumber * tmps = new EncodedNumber[sample_num];
-        omp_set_num_threads(NUM_OMP_THREADS);
-#pragma omp parallel for
+//        omp_set_num_threads(NUM_OMP_THREADS);
+//#pragma omp parallel for
         for (int j = 0; j < sample_num; j++) {
             tmps[j].set_integer(client.m_pk->n[0], sample_iv_shares[j]);
             djcs_t_aux_ep_mul(client.m_pk, aggregated_updated_sample_iv_left[j], left_selection_result[j], tmps[j]);
@@ -2147,8 +2145,8 @@ void DecisionTree::update_sample_iv(Client &client, int i_star, EncodedNumber *l
 
         // step 3
         EncodedNumber * tmps = new EncodedNumber[sample_num];
-        omp_set_num_threads(NUM_OMP_THREADS);
-#pragma omp parallel for
+//        omp_set_num_threads(NUM_OMP_THREADS);
+//#pragma omp parallel for
         for (int j = 0; j < sample_num; j++) {
             tmps[j].set_integer(client.m_pk->n[0], sample_iv_shares[j]);
             djcs_t_aux_ep_mul(client.m_pk, left_selection_result[j], left_selection_result[j], tmps[j]);
@@ -2178,209 +2176,87 @@ void DecisionTree::update_sample_iv(Client &client, int i_star, EncodedNumber *l
     }
 }
 
-
-//void DecisionTree::test_indicator_vector_correctness() {
-//    int * class_sums = new int[classes_num];
-//    for (int i = 0; i < classes_num; i++) {
-//        class_sums[i] = 0;
-//    }
-//    for (int i = 0; i < classes_num; i++) {
-//        for (int j = 0; j < indicator_class_vecs[0].size(); j++) {
-//            if (indicator_class_vecs[i][j] == 1) class_sums[i] += 1;
-//        }
-//    }
-//    int total_sum = 0;
-//    for (int i = 0; i < classes_num; i++) {
-//        total_sum += class_sums[i];
-//    }
-//    logger(logger_out, "Total_sum = %d\n", total_sum);
-//}
-//
-//
-//void DecisionTree::test_sample_iv_update_correctness(Client &client, int node_index, int i_star) {
-//
-//    if (node_index * 2 + 2 >= pow(2, max_depth + 1) - 1) { return;}
-//
-//    // compute public key size in encoded number
-//    mpz_t n;
-//    mpz_init(n);
-//    mpz_sub_ui(n, client.m_pk->g, 1);
-//
-//    EncodedNumber parent_node_sum, left_node_sum, right_node_sum;
-//    parent_node_sum.set_integer(n, 0);
-//    left_node_sum.set_integer(n, 0);
-//    right_node_sum.set_integer(n, 0);
-//    djcs_t_aux_encrypt(client.m_pk, client.m_hr, parent_node_sum, parent_node_sum);
-//    djcs_t_aux_encrypt(client.m_pk, client.m_hr, left_node_sum, left_node_sum);
-//    djcs_t_aux_encrypt(client.m_pk, client.m_hr, right_node_sum, right_node_sum);
-//
-//    for (int i = 0; i < training_data.size(); i++) {
-//        djcs_t_aux_ee_add(client.m_pk, parent_node_sum, parent_node_sum, tree_nodes[node_index].sample_iv[i]);
-//        djcs_t_aux_ee_add(client.m_pk, left_node_sum, left_node_sum, tree_nodes[2 * node_index + 1].sample_iv[i]);
-//        djcs_t_aux_ee_add(client.m_pk, right_node_sum, right_node_sum, tree_nodes[2 * node_index + 2].sample_iv[i]);
-//    }
-//
-//    // decrypt for checking equality
-//    EncodedNumber * encrypted_sums = new EncodedNumber[3];
-//    encrypted_sums[0] = parent_node_sum;
-//    encrypted_sums[1] = left_node_sum;
-//    encrypted_sums[2] = right_node_sum;
-//    if (client.client_id == 2) {
-//        EncodedNumber * decrypted_sums = new EncodedNumber[3];
-//        client.share_batch_decrypt(encrypted_sums, decrypted_sums, 3);
-//        long parent_sum_count, left_sum_count, right_sum_count;
-//        decrypted_sums[0].decode(parent_sum_count);
-//        decrypted_sums[1].decode(left_sum_count);
-//        decrypted_sums[2].decode(right_sum_count);
-//
-//        logger(logger_out, "The parent node available sample num = %d, while the left child sample num = %d and "
-//                       "the right child sample num = %d\n", parent_sum_count, left_sum_count, right_sum_count);
-//
-//        delete [] decrypted_sums;
-//    } else {
-//        std::string recv_s, response_s;
-//        client.recv_long_messages(client.channels[2].get(), recv_s);
-//        client.decrypt_batch_piece(recv_s, response_s, 2);
-//    }
-//
-//    delete [] encrypted_sums;
-//}
-//
-//
-//void DecisionTree::test_encrypted_statistics_correctness(Client &client, EncodedNumber *stats, int size, int split_index) {
-//
-//    if (client.client_id == 1) {
-//        EncodedNumber * decrypted_statistics = new EncodedNumber[size];
-//        client.share_batch_decrypt(stats, decrypted_statistics, size);
-//        long left_sum, right_sum;
-//        float left_0_stat, right_0_stat, left_1_stat, right_1_stat;
-//        decrypted_statistics[0].decode(left_sum);
-//        decrypted_statistics[1].decode(right_sum);
-//        decrypted_statistics[2].decode(left_0_stat);
-//        decrypted_statistics[3].decode(right_0_stat);
-//        decrypted_statistics[4].decode(left_1_stat);
-//        decrypted_statistics[5].decode(right_1_stat);
-//        logger(logger_out, "left_sum[%d] = %d, right_sum[%d] = %d\n",
-//               split_index, left_sum, split_index, right_sum);
-//        logger(logger_out, "stat[%d][0] = %f, stat[%d][1] = %f, stat[%d][2] = %f, stat[%d][3] = %f\n",
-//               split_index, left_0_stat, split_index, right_0_stat, split_index, left_1_stat, split_index, right_1_stat);
-//        delete [] decrypted_statistics;
-//    } else {
-//        std::string recv_s, response_s;
-//        client.recv_long_messages(client.channels[1].get(), recv_s);
-//        client.decrypt_batch_piece(recv_s, response_s, 1);
-//    }
-//
-//}
-
-
 void DecisionTree::intermediate_memory_free() {
-
     if (training_data.size() != 0) {
         training_data.clear();
         training_data.shrink_to_fit();
     }
-
-//    if (training_data_labels.size() != 0) {
-//        training_data_labels.clear();
-//        training_data_labels.shrink_to_fit();
-//    }
-
     if (feature_types.size() != 0) {
         feature_types.clear();
         feature_types.shrink_to_fit();
     }
-
     if (split_num_each_client.size() != 0) {
         split_num_each_client.clear();
         split_num_each_client.shrink_to_fit();
     }
-
     if (testing_data_labels.size() != 0) {
         testing_data_labels.clear();
         testing_data_labels.shrink_to_fit();
     }
-
     if (indicator_class_vecs.size() != 0) {
         indicator_class_vecs.clear();
         indicator_class_vecs.shrink_to_fit();
     }
-
     if (variance_stat_vecs.size() != 0) {
         variance_stat_vecs.clear();
         variance_stat_vecs.shrink_to_fit();
     }
-
     for (int i = 0; i < local_feature_num; i++) {
         // free split_ivs
         if (features[i].split_ivs_left.size() != 0) {
             features[i].split_ivs_left.clear();
             features[i].split_ivs_left.shrink_to_fit();
         }
-
         if (features[i].split_ivs_right.size() != 0) {
             features[i].split_ivs_right.clear();
             features[i].split_ivs_right.shrink_to_fit();
         }
-
         // free sorted_indexes
         if (features[i].sorted_indexes.size() != 0) {
             features[i].sorted_indexes.clear();
             features[i].sorted_indexes.shrink_to_fit();
         }
-
         // free original_feature_values
         if (features[i].original_feature_values.size() != 0) {
             features[i].original_feature_values.clear();
             features[i].original_feature_values.shrink_to_fit();
         }
     }
-
 }
 
-
 DecisionTree::~DecisionTree() {
-
+    delete [] tree_nodes;
+    delete [] features;
     // free local data
     if (training_data.size() != 0) {
         training_data.clear();
         training_data.shrink_to_fit();
     }
-
     if (testing_data.size() != 0) {
         testing_data.clear();
         testing_data.shrink_to_fit();
     }
-
     if (feature_types.size() != 0) {
         feature_types.clear();
         feature_types.shrink_to_fit();
     }
-
     if (split_num_each_client.size() != 0) {
         split_num_each_client.clear();
         split_num_each_client.shrink_to_fit();
     }
-
-    delete [] tree_nodes;
-    delete [] features;
-
     // free labels if not empty
     if (training_data_labels.size() != 0) {
         training_data_labels.clear();
         training_data_labels.shrink_to_fit();
     }
-
     if (testing_data_labels.size() != 0) {
         testing_data_labels.clear();
         testing_data_labels.shrink_to_fit();
     }
-
     if (indicator_class_vecs.size() != 0) {
         indicator_class_vecs.clear();
         indicator_class_vecs.shrink_to_fit();
     }
-
     if (variance_stat_vecs.size() != 0) {
         variance_stat_vecs.clear();
         variance_stat_vecs.shrink_to_fit();

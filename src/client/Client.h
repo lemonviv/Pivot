@@ -55,7 +55,6 @@ public:
     Client(int param_client_id, int param_client_num, int param_has_label,
             std::string param_network_config_file, std::string param_local_data_file);
 
-
     /**
      * copy constructor
      *
@@ -68,7 +67,6 @@ public:
      */
     ~Client();
 
-
     /**
      * generate paillier keys (currently the client who owns labels)
      * @param epsilon : layered cryptosystem with default epsilon_s = 1 (current Paillier)
@@ -78,7 +76,6 @@ public:
      * @return
      */
     bool generate_djcs_t_keys(int epsilon_s, int key_size, int client_num, int required_client_num);
-
 
     /**
      * set the client key when receiving messages from the trusted third party
@@ -97,7 +94,6 @@ public:
      */
     void recv_set_keys(std::string recv_keys);
 
-
     /**
      * serialize the generated keys for other clients
      *
@@ -107,7 +103,6 @@ public:
      * @param i
      */
     void serialize_send_keys(std::string & send_keys, djcs_t_public_key *pk, mpz_t si, int i);
-
 
     /**
      * share decrypt a batch ciphertexts
@@ -120,7 +115,6 @@ public:
      */
     void share_batch_decrypt(EncodedNumber *ciphers, EncodedNumber *& decrypted_res, int size = 1, int parallel = 0);
 
-
     /**
      * decrypt batch pieces and return
      *
@@ -130,7 +124,6 @@ public:
      * @param parallel 0 no parallelism, 1 parallelism
      */
     void decrypt_batch_piece(std::string s, std::string & response_s, int src_client_id, int parallel = 0);
-
 
     /**
      * This function converts the ciphertexts to secret shares, provide a building block
@@ -147,7 +140,6 @@ public:
      */
     void ciphers_conversion_to_shares(EncodedNumber * src_ciphers, std::vector<float> & shares, int size = 1, int precision = FLOAT_PRECISION);
 
-
     /**
      * After the mpc program is finished, call this function.
      * conversion from secret shares to homomorphic encryption
@@ -162,7 +154,6 @@ public:
     void secret_shares_2_djcs_t_batch(std::string path,
             EncodedNumber *src_shares, EncodedNumber *& dest_ciphers, int size = 1);
 
-
     /**
      * Multiply two ciphertext vectors with the help of secret shares
      *
@@ -173,7 +164,6 @@ public:
      */
     void cipher_vectors_multiplication(EncodedNumber * cipher_vec1, EncodedNumber * cipher_vec2, EncodedNumber * & res, int size = 1);
 
-
     /**
      * Before sending the partial sums to the super client, add random shares
      * to each element in the batch, and write these shares to designated file
@@ -182,7 +172,6 @@ public:
      * @param path
      */
     void write_random_shares(std::vector<float> shares, std::string path);
-
 
     /**
      * After mpc computation, read shares from designated file, and later
@@ -203,7 +192,6 @@ public:
      */
     void send_messages(int i, std::string message);
 
-
     /**
      * send long message via commParty
      *
@@ -211,7 +199,6 @@ public:
      * @param message
      */
     void send_long_messages(int i, string message);
-
 
     /**
      * receive message from channel comm_party
@@ -256,5 +243,7 @@ public:
     void print_labels();
 };
 
-
 #endif //PIVOT_CLIENT_H
+
+
+

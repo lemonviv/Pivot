@@ -122,7 +122,7 @@ public:
      * @param node_index
      * @return
      */
-    bool check_pruning_conditions_revise(Client & client, int node_index);
+    bool check_pruning_conditions(Client & client, int node_index);
 
 
     /**
@@ -220,12 +220,6 @@ public:
      * information has already been freed.
      */
     void intermediate_memory_free();
-
-//    void test_indicator_vector_correctness();
-//
-//    void test_sample_iv_update_correctness(Client & client, int node_index, int i_star);
-//
-//    void test_encrypted_statistics_correctness(Client & client, EncodedNumber * stats, int size, int split_index);
 
 };
 
