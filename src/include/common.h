@@ -16,6 +16,8 @@
 
 /********************* Decision tree parameters ***********************/
 
+#define FLOAT_PRECISION 8
+#define PRECISION_THRESHOLD 1e-6
 #define GLOBAL_FEATURE_NUM 35
 #define MAX_IMPURITY 2.0
 #define MAX_VARIANCE 10000.0

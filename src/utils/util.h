@@ -11,8 +11,7 @@
 #include <string>
 #include "../include/common.h"
 
-#define FLOAT_PRECISION 8
-#define PRECISION_THRESHOLD 1e-6
+
 #define REQUIRED_CLIENT_DECRYPTION 3 // for test
 
 /**
