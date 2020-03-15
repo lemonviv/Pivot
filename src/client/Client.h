@@ -164,7 +164,7 @@ public:
      */
     void cipher_vectors_multiplication(EncodedNumber * cipher_vec1, EncodedNumber * cipher_vec2, EncodedNumber * & res, int size = 1);
 
-    /**
+    /** DEPRECATED
      * Before sending the partial sums to the super client, add random shares
      * to each element in the batch, and write these shares to designated file
      *
@@ -173,7 +173,7 @@ public:
      */
     void write_random_shares(std::vector<float> shares, std::string path);
 
-    /**
+    /** DEPRECATED
      * After mpc computation, read shares from designated file, and later
      * encrypted before sending to the super client for aggregation
      *
