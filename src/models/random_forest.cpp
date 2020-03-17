@@ -87,7 +87,6 @@ void RandomForest::init_datasets(Client & client, float split) {
 
 void RandomForest::init_datasets_with_indexes(Client & client, int new_indexes[], float split) {
     logger(logger_out, "Begin init dataset with indexes\n");
-
     int training_data_size = client.sample_num * split;
 
     // select the former training data size as training data, and the latter as testing data
@@ -106,7 +105,6 @@ void RandomForest::init_datasets_with_indexes(Client & client, int new_indexes[]
             }
         }
     }
-
     logger(logger_out, "End init dataset with indexes\n");
 }
 
@@ -189,7 +187,6 @@ void RandomForest::shuffle_and_assign_training_data(int tree_id, Client & client
 void RandomForest::shuffle_and_assign_training_data_with_indexes(int tree_id, Client & client, int new_indexes[], float sample_rate) {
 
     logger(logger_out, "Begin shuffle training dataset with indexes for Tree[%d]\n", tree_id);
-
     int sampled_training_data_size = training_data.size() * sample_rate;
 
     // assign the training dataset and labels
@@ -199,7 +196,6 @@ void RandomForest::shuffle_and_assign_training_data_with_indexes(int tree_id, Cl
             forest[tree_id].training_data_labels.push_back(training_data_labels[new_indexes[i]]);
         }
     }
-
     logger(logger_out, "End shuffle training dataset with indexes\n");
 }
 
@@ -225,7 +221,6 @@ void RandomForest::build_forest(Client & client, float sample_rate) {
         forest[i].build_tree_node(client, 0);
         forest[i].intermediate_memory_free();
     }
-
     logger(logger_out, "End build forest\n");
 }
 
@@ -296,7 +291,6 @@ std::vector<int> RandomForest::compute_binary_vector(int tree_id, int sample_id,
 
 void RandomForest::test_accuracy(Client & client, float & accuracy) {
     logger(logger_out, "Begin test accuracy on testing dataset\n");
-
     std::vector<float> predicted_label_vector;
     for (int i = 0; i < testing_data.size(); i++) {
         predicted_label_vector.push_back(0.0);
@@ -336,9 +330,7 @@ void RandomForest::test_accuracy(Client & client, float & accuracy) {
                 std::string send_s;
                 serialize_batch_sums(updated_label_vector, binary_vector.size(), send_s);
                 client.send_long_messages(client.client_id - 1, send_s);
-
             } else if (client.client_id > 0) {
-
                 std::string recv_s;
                 client.recv_long_messages(client.client_id + 1, recv_s);
                 int recv_size; // should be same as binary_vector.size()
@@ -351,9 +343,7 @@ void RandomForest::test_accuracy(Client & client, float & accuracy) {
                 std::string resend_s;
                 serialize_batch_sums(updated_label_vector, binary_vector.size(), resend_s);
                 client.send_long_messages(client.client_id - 1, resend_s);
-
             } else {
-
                 // the super client update the last, and aggregate before calling share decryption
                 std::string final_recv_s;
                 client.recv_long_messages(client.client_id + 1, final_recv_s);
@@ -366,7 +356,6 @@ void RandomForest::test_accuracy(Client & client, float & accuracy) {
             }
             // aggregate and call share decryption
             if (client.client_id == 0) {
-
                 EncodedNumber *encrypted_aggregation = new EncodedNumber[1];
                 encrypted_aggregation[0].set_float(client.m_pk->n[0], 0, 2 * FLOAT_PRECISION);
                 djcs_t_aux_encrypt(client.m_pk, client.m_hr, encrypted_aggregation[0], encrypted_aggregation[0]);
@@ -379,7 +368,6 @@ void RandomForest::test_accuracy(Client & client, float & accuracy) {
 
                 float decoded_label;
                 decrypted_label[0].decode(decoded_label);
-
                 if (results.find(decoded_label) == results.end()) {
                     results[decoded_label] = 1;
                 } else {
@@ -388,7 +376,6 @@ void RandomForest::test_accuracy(Client & client, float & accuracy) {
 
                 delete [] encrypted_aggregation;
                 delete [] decrypted_label;
-
             } else {
                 std::string s, response_s;
                 client.recv_long_messages(0, s);
@@ -400,7 +387,6 @@ void RandomForest::test_accuracy(Client & client, float & accuracy) {
         }
 
         if (client.client_id == 0) {
-
             if (forest[0].type == 0) { // classification, find the mode class label
                 float mode = 0;
                 int maximum_votes = 0;
@@ -445,9 +431,7 @@ void RandomForest::test_accuracy(Client & client, float & accuracy) {
 
 
 void RandomForest::test_accuracy_with_spdz(Client &client, float &accuracy) {
-
     logger(logger_out, "Begin test accuracy on testing dataset\n");
-
     std::vector<float> predicted_label_vector;
     for (int i = 0; i < testing_data.size(); i++) {
         predicted_label_vector.push_back(0.0);
@@ -459,10 +443,8 @@ void RandomForest::test_accuracy_with_spdz(Client &client, float &accuracy) {
         //  for each decision tree
         for (int tree_index = 0; tree_index < num_trees; ++tree_index) {
             // logger(logger_out, "Processing tree[%d]:\n", tree_index);
-
             // step 1: organize the leaf label vector, compute the map
             EncodedNumber *label_vector = new EncodedNumber[forest[tree_index].internal_node_num + 1];
-
             std::map<int, int> node_index_2_leaf_index_map;
             int leaf_cur_index = 0;
             for (int j = 0; j < pow(2, forest[tree_index].max_depth + 1) - 1; j++) {
@@ -487,9 +469,7 @@ void RandomForest::test_accuracy_with_spdz(Client &client, float &accuracy) {
                 std::string send_s;
                 serialize_batch_sums(updated_label_vector, binary_vector.size(), send_s);
                 client.send_long_messages(client.client_id - 1, send_s);
-
             } else if (client.client_id > 0) {
-
                 std::string recv_s;
                 client.recv_long_messages(client.client_id + 1, recv_s);
                 int recv_size; // should be same as binary_vector.size()
@@ -502,9 +482,7 @@ void RandomForest::test_accuracy_with_spdz(Client &client, float &accuracy) {
                 std::string resend_s;
                 serialize_batch_sums(updated_label_vector, binary_vector.size(), resend_s);
                 client.send_long_messages(client.client_id - 1, resend_s);
-
             } else {
-
                 // the super client update the last, and aggregate before calling share decryption
                 std::string final_recv_s;
                 client.recv_long_messages(client.client_id + 1, final_recv_s);
@@ -517,17 +495,14 @@ void RandomForest::test_accuracy_with_spdz(Client &client, float &accuracy) {
             }
             // aggregate and call share decryption
             if (client.client_id == 0) {
-
                 EncodedNumber *encrypted_aggregation = new EncodedNumber[1];
                 encrypted_aggregation[0].set_float(client.m_pk->n[0], 0, 2 * FLOAT_PRECISION);
                 djcs_t_aux_encrypt(client.m_pk, client.m_hr, encrypted_aggregation[0], encrypted_aggregation[0]);
                 for (int j = 0; j < binary_vector.size(); j++) {
                     djcs_t_aux_ee_add(client.m_pk, encrypted_aggregation[0], encrypted_aggregation[0], updated_label_vector[j]);
                 }
-
                 prediction_trees[tree_index] = encrypted_aggregation[0];
                 delete [] encrypted_aggregation;
-
             }
             delete [] encoded_binary_vector;
             delete [] updated_label_vector;
@@ -563,7 +538,6 @@ void RandomForest::test_accuracy_with_spdz(Client &client, float &accuracy) {
                 EncodedNumber *decrypted_label = new EncodedNumber[1];
                 client.share_batch_decrypt(encrypted_label_aggregation, decrypted_label, 1);
                 decrypted_label[0].decode(label);
-
                 predicted_label_vector[i] = (label / num_trees);
 
                 delete [] encrypted_label_aggregation;
@@ -615,7 +589,6 @@ void RandomForest::test_accuracy_with_spdz(Client &client, float &accuracy) {
 
 
 RandomForest::~RandomForest() {
-
     // free local data
     forest.clear();
     forest.shrink_to_fit();

@@ -332,7 +332,7 @@ bool DecisionTree::check_pruning_conditions(Client & client, int node_index) {
         }
 
         // pack pruning condition result pb string and sends to the other clients
-        if (is_satisfied) {  // TODO: here should find majority class as label for classification, should modify later
+        if (is_satisfied) {
             // compute label information
             // for classification, the label is djcs_t_aux_dot_product(labels, sample_ivs) / available_num (might incorrect)
             // for regression, the label is djcs_t_aux_dot_product(labels, sample_ivs) / available_num

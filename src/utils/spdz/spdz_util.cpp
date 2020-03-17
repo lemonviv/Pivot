@@ -7,7 +7,6 @@
 #include "../util.h"
 #include "../../include/common.h"
 
-#define SPDZ_FIXED_PRECISION 8
 extern FILE * logger_out;
 
 void send_private_batch_shares(std::vector<float> shares, std::vector<int>& sockets, int n_parties) {
