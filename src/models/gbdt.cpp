@@ -18,6 +18,7 @@
 #include <stack>
 #include "../utils/score.h"
 #include "../utils/spdz/spdz_util.h"
+
 extern FILE * logger_out;
 
 GBDT::GBDT() {}
@@ -35,7 +36,7 @@ GBDT::GBDT(int m_tree_num, int m_global_feature_num, int m_local_feature_num, in
     }
     learning_rates.reserve(num_trees);
     for (int i = 0; i < num_trees; i++) {
-        learning_rates.emplace_back(1.0);
+        learning_rates.emplace_back(GBDT_LEARNING_RATE);
     }
     forest_size = classes_num * num_trees;
     forest.reserve(forest_size);
@@ -150,7 +151,8 @@ void GBDT::init_single_tree_data(Client &client, int class_id, int tree_id, std:
             }
         } else { // should use the predicted labels of first tree
             for (int i = 0; i < training_data.size(); i++) {
-                forest[real_tree_id].training_data_labels.push_back(forest[class_id * num_trees].training_data_labels[i] - GBDT_LEARNING_RATE * cur_predicted_labels[i]);
+                forest[real_tree_id].training_data_labels.push_back(
+                        forest[class_id * num_trees].training_data_labels[i] - GBDT_LEARNING_RATE * cur_predicted_labels[i]);
             }
         }
 
@@ -225,9 +227,7 @@ void GBDT::build_gbdt(Client &client) {
 
     // build trees iteratively
     for (int tree_id = 0; tree_id < num_trees; tree_id++) {
-
         logger(logger_out, "------------------- build the %d-th tree ----------------------\n", tree_id);
-
         std::vector< std::vector<float> > softmax_predicted_labels;
         for (int class_id = 0; class_id < classes_num; class_id++) {
             std::vector<float> t;
@@ -461,11 +461,8 @@ std::vector<int> GBDT::compute_binary_vector(int class_id, int tree_id, std::vec
 
 
 void GBDT::test_accuracy(Client & client, float & accuracy) {
-
     logger(logger_out, "Begin test accuracy on testing dataset\n");
-
     std::vector<float> predicted_label_vector;
-
     std::vector< std::vector<float> > predicted_forest_labels;
     for (int class_id = 0; class_id < classes_num; class_id++) {
         std::vector<float> t;

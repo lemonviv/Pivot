@@ -17,6 +17,7 @@
 /********************* Decision tree parameters ***********************/
 
 #define FLOAT_PRECISION 8
+#define SPDZ_FIXED_PRECISION 4 // should be careful for regression tree
 #define PRECISION_THRESHOLD 1e-6
 #define GLOBAL_FEATURE_NUM 35
 #define MAX_IMPURITY 2.0
@@ -40,7 +41,7 @@ enum OptimizationType {Non, CombiningSplits, Parallelism, All};
 /************************** GBDT parameters ***************************/
 
 #define GBDT_FLAG 0
-#define GBDT_LEARNING_RATE 0.1
+#define GBDT_LEARNING_RATE 1.0
 
 /************************* Program parameters *************************/
 
