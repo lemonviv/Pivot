@@ -126,6 +126,16 @@ public:
 
 
     /**
+     * check whether pruning conditions are satisfied with the help of SPDZ
+     *
+     * @param client
+     * @param node_index
+     * @return
+     */
+    bool check_pruning_conditions_spdz(Client & client, int node_index);
+
+
+    /**
      * compute encrypted impurity gain for each feature and each split
      *
      * @param client

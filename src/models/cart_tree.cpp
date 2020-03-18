@@ -448,6 +448,214 @@ bool DecisionTree::check_pruning_conditions(Client & client, int node_index) {
 }
 
 
+bool DecisionTree::check_pruning_conditions_spdz(Client &client, int node_index) {
+    int is_satisfied = 0;
+    EncodedNumber *encrypted_sample_num = new EncodedNumber[1];
+    EncodedNumber *encrypted_impurity = new EncodedNumber[1];
+    std::vector<float> condition_shares, condition_shares_1, condition_shares_2;
+
+    // client check the pruning conditions (condition 2 and condition 3 are checked by SPDZ)
+    // 1. available global feature num is 0
+    // 2. the number of samples is less than a threshold
+    // 3. the number of class is 1 (impurity == 0) or variance less than a threshold
+    if ((tree_nodes[node_index].depth == max_depth) || (tree_nodes[node_index].available_global_feature_num == 0)) {
+        // case 1
+        is_satisfied = 1;
+        logger(logger_out, "Pruning condition case 1 satisfied\n");
+    } else {
+        /*** init static gfp for sending private batch shares and setup sockets ***/
+        string prep_data_prefix = get_prep_dir(NUM_SPDZ_PARTIES, 128, gf2n::default_degree());
+        initialise_fields(prep_data_prefix);
+        bigint::init_thread();
+        std::vector<int> sockets = setup_sockets(NUM_SPDZ_PARTIES, client.client_id, client.host_names, SPDZ_PORT_NUM_DT);
+
+        if (client.client_id == 0) {
+            // compute the available sample_num as well as the impurity of the current node
+            encrypted_sample_num[0].set_integer(client.m_pk->n[0], 0);
+            djcs_t_aux_encrypt(client.m_pk, client.m_hr, encrypted_sample_num[0], encrypted_sample_num[0]);
+            for (int i = 0; i < tree_nodes[node_index].sample_size; i++) {
+                djcs_t_aux_ee_add(client.m_pk, encrypted_sample_num[0], encrypted_sample_num[0], tree_nodes[node_index].sample_iv[i]);
+            }
+            // check if available_samples_num is less than a threshold (prune_sample_num), together with impurity
+            encrypted_impurity[0] = tree_nodes[node_index].impurity;
+
+            // the super client sends computation id for SPDZ computation of a specific branch
+            std::vector<int> computation_id;
+            computation_id.push_back(0);
+            send_public_values(computation_id, sockets, NUM_SPDZ_PARTIES);
+
+            // convert encrypted_conditions into secret shares and send to SPDZ parties
+            client.ciphers_conversion_to_shares(encrypted_sample_num, condition_shares_1, 1, 0);
+            client.ciphers_conversion_to_shares(encrypted_impurity, condition_shares_2, 1, FLOAT_PRECISION);
+            condition_shares.push_back(condition_shares_1[0]);
+            condition_shares.push_back(condition_shares_2[0]);
+
+            std::vector<int> tree_type;
+            tree_type.push_back(type);
+            send_public_values(tree_type, sockets, NUM_SPDZ_PARTIES);
+
+            for (int i = 0; i < 2; i++) {
+                vector<float> x;
+                x.push_back(condition_shares[i]);
+                send_private_batch_shares(x, sockets, NUM_SPDZ_PARTIES);
+            }
+        } else {
+            client.ciphers_conversion_to_shares(encrypted_sample_num, condition_shares_1, 1, 0);
+            client.ciphers_conversion_to_shares(encrypted_impurity, condition_shares_2, 1, FLOAT_PRECISION);
+            condition_shares.push_back(condition_shares_1[0]);
+            condition_shares.push_back(condition_shares_2[0]);
+
+            // send shares
+            for (int i = 0; i < 2; i++) {
+                vector<float> x;
+                x.push_back(condition_shares[i]);
+                send_private_batch_shares(x, sockets, NUM_SPDZ_PARTIES);
+            }
+        }
+        std::vector<float> satisfied = receive_result(sockets, NUM_SPDZ_PARTIES, 1);
+
+        // close connection with the SPDZ parties, otherwise, the next node cannot connect
+        for (unsigned int i = 0; i < sockets.size(); i++) {
+            close_client_socket(sockets[i]);
+        }
+        is_satisfied = (int) satisfied[0];
+        logger(logger_out, "is_satisfied = %d\n", is_satisfied);
+    }
+
+    // leaf node, compute the label
+    // for classification, the label is djcs_t_aux_dot_product(labels, sample_ivs) / available_num (might incorrect)
+    // for regression, the label is djcs_t_aux_dot_product(labels, sample_ivs) / available_num
+    if (is_satisfied) {
+        /*** init static gfp for sending private batch shares and setup sockets ***/
+        string prep_data_prefix = get_prep_dir(NUM_SPDZ_PARTIES, 128, gf2n::default_degree());
+        initialise_fields(prep_data_prefix);
+        bigint::init_thread();
+        std::vector<int> sockets = setup_sockets(NUM_SPDZ_PARTIES, client.client_id, client.host_names, SPDZ_PORT_NUM_DT);
+        std::vector<float> label_info_shares, label_info_shares_1, label_info_shares_2;
+
+        if (client.client_id == 0) {
+            // the super client sends computation id for SPDZ computation of a specific branch
+            std::vector<int> computation_id;
+            computation_id.push_back(1);
+            send_public_values(computation_id, sockets, NUM_SPDZ_PARTIES);
+
+            if (type == 0) {
+                // compute sample num of each class
+                int size = indicator_class_vecs.size();
+                EncodedNumber *class_sample_nums = new EncodedNumber[size];
+                for (int xx = 0; xx < size; xx++) {
+                    class_sample_nums[xx].set_integer(client.m_pk->n[0], 0);
+                    djcs_t_aux_encrypt(client.m_pk, client.m_hr, class_sample_nums[xx], class_sample_nums[xx]);
+                    for (int j = 0; j < indicator_class_vecs[xx].size(); j++) {
+                        if (indicator_class_vecs[xx][j] == 1) {
+                            djcs_t_aux_ee_add(client.m_pk, class_sample_nums[xx], class_sample_nums[xx], tree_nodes[node_index].sample_iv[j]);
+                        }
+                    }
+                }
+                client.ciphers_conversion_to_shares(class_sample_nums, label_info_shares, size, 0);
+
+                // send tree type and value num
+                std::vector<int> tree_type;
+                tree_type.push_back(type);
+                send_public_values(tree_type, sockets, NUM_SPDZ_PARTIES);
+                std::vector<int> value_num;
+                value_num.push_back(indicator_class_vecs.size());
+                send_public_values(value_num, sockets, NUM_SPDZ_PARTIES);
+
+                // send shares
+                for (int i = 0; i < size; i++) {
+                    vector<float> x;
+                    x.push_back(label_info_shares[i]);
+                    send_private_batch_shares(x, sockets, NUM_SPDZ_PARTIES);
+                }
+
+                delete [] class_sample_nums;
+            } else {
+                EncodedNumber *label_info = new EncodedNumber[1];
+                // compute available sample num and encrypted label sums
+                EncodedNumber *encoded_labels = new EncodedNumber[training_data_labels.size()];
+                for (int i = 0; i < training_data_labels.size(); i++) {
+                    encoded_labels[i].set_float(client.m_pk->n[0], training_data_labels[i]);
+                }
+                djcs_t_aux_inner_product(client.m_pk, client.m_hr, label_info[0],
+                                         tree_nodes[node_index].sample_iv, encoded_labels, training_data_labels.size());
+
+                encrypted_sample_num[0].set_integer(client.m_pk->n[0], 0);
+                djcs_t_aux_encrypt(client.m_pk, client.m_hr, encrypted_sample_num[0], encrypted_sample_num[0]);
+                for (int i = 0; i < tree_nodes[node_index].sample_size; i++) {
+                    djcs_t_aux_ee_add(client.m_pk, encrypted_sample_num[0], encrypted_sample_num[0], tree_nodes[node_index].sample_iv[i]);
+                }
+                client.ciphers_conversion_to_shares(label_info, label_info_shares_1, 1, FLOAT_PRECISION);
+                client.ciphers_conversion_to_shares(encrypted_sample_num, label_info_shares_2, 1, 0);
+                label_info_shares.push_back(label_info_shares_1[0]);
+                label_info_shares.push_back(label_info_shares_2[0]);
+
+                // send tree type and value num
+                std::vector<int> tree_type;
+                tree_type.push_back(type);
+                send_public_values(tree_type, sockets, NUM_SPDZ_PARTIES);
+                std::vector<int> value_num;
+                value_num.push_back(2);
+                send_public_values(value_num, sockets, NUM_SPDZ_PARTIES);
+
+                // send shares
+                for (int i = 0; i < 2; i++) {
+                    vector<float> x;
+                    x.push_back(label_info_shares[i]);
+                    send_private_batch_shares(x, sockets, NUM_SPDZ_PARTIES);
+                }
+
+                delete [] label_info;
+                delete [] encoded_labels;
+            }
+        } else {
+            if (type == 0) {
+                EncodedNumber *class_sample_nums = new EncodedNumber[classes_num];
+                client.ciphers_conversion_to_shares(class_sample_nums, label_info_shares, classes_num, 0);
+
+                // send shares
+                for (int i = 0; i < classes_num; i++) {
+                    vector<float> x;
+                    x.push_back(label_info_shares[i]);
+                    send_private_batch_shares(x, sockets, NUM_SPDZ_PARTIES);
+                }
+                delete [] class_sample_nums;
+            } else {
+                EncodedNumber *label_info = new EncodedNumber[1];
+                client.ciphers_conversion_to_shares(label_info, label_info_shares_1, 1, FLOAT_PRECISION);
+                client.ciphers_conversion_to_shares(encrypted_sample_num, label_info_shares_2, 1, 0);
+                label_info_shares.push_back(label_info_shares_1[0]);
+                label_info_shares.push_back(label_info_shares_2[0]);
+
+                // send shares
+                for (int i = 0; i < 2; i++) {
+                    vector<float> x;
+                    x.push_back(label_info_shares[i]);
+                    send_private_batch_shares(x, sockets, NUM_SPDZ_PARTIES);
+                }
+                delete [] label_info;
+            }
+        }
+        std::vector<float> label = receive_result(sockets, NUM_SPDZ_PARTIES, 1);
+        logger(logger_out, "label = %f\n", label[0]);
+        EncodedNumber enc_label;
+        enc_label.set_float(client.m_pk->n[0], label[0], 2 * FLOAT_PRECISION);
+        djcs_t_aux_encrypt(client.m_pk, client.m_hr, enc_label, enc_label);
+        tree_nodes[node_index].is_leaf = 1;
+        tree_nodes[node_index].label = enc_label;
+
+        // close connection with the SPDZ parties, otherwise, the next node cannot connect
+        for (unsigned int i = 0; i < sockets.size(); i++) {
+            close_client_socket(sockets[i]);
+        }
+    }
+    logger(logger_out, "Pruning conditions check finished\n");
+    delete [] encrypted_sample_num;
+    delete [] encrypted_impurity;
+    return is_satisfied;
+}
+
+
 void DecisionTree::build_tree_node(Client & client, int node_index) {
 
     logger(logger_out, "************* Begin build tree node %d, tree depth = %d *************\n", node_index, tree_nodes[node_index].depth);
@@ -480,7 +688,7 @@ void DecisionTree::build_tree_node(Client & client, int node_index) {
     }
 
     /** step 1: check pruning conditions and update tree node accordingly */
-    if (check_pruning_conditions(client, node_index)) {
+    if (check_pruning_conditions_spdz(client, node_index)) {
         return; // the corresponding process is in the check function
     }
 
@@ -519,8 +727,9 @@ void DecisionTree::build_tree_node(Client & client, int node_index) {
                 djcs_t_aux_ep_mul(client.m_pk, encrypted_labels[i * sample_num + j], tree_nodes[node_index].sample_iv[j], tmp);
             }
         }
-        // TODO: simulate the running time when using GBDT model
+        // TODO: currently simulate the computation of encrypted labels for the next tree
         if (GBDT_FLAG == 1) {
+            logger(logger_out, "The used_classes_num = %d\n", used_classes_num);
             for (int i = 0; i < used_classes_num; i++) {
                 EncodedNumber * tmp = new EncodedNumber[sample_num];
                 for (int j = 0; j < sample_num; j++) {
@@ -870,6 +1079,12 @@ void DecisionTree::build_tree_node(Client & client, int node_index) {
     gettimeofday(&spdz_1, NULL);
 
     if (client.client_id == 0) {
+
+        // first send computation id
+        std::vector<int> computation_id;
+        computation_id.push_back(2);
+        send_public_values(computation_id, sockets, NUM_SPDZ_PARTIES);
+
         send_public_parameters(type, global_split_num, classes_num, used_classes_num, sockets, NUM_SPDZ_PARTIES);
         //logger(logger_out, "Finish send public parameters to SPDZ engines\n");
     }

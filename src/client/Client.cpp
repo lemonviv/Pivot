@@ -427,9 +427,15 @@ void Client::ciphers_conversion_to_shares(EncodedNumber *src_ciphers, std::vecto
 
         // decode
         for (int i = 0; i < size; i++) {
-            float x;
-            decrypted_shares[i].decode(x);
-            shares.push_back(x);
+            if (precision != 0) {
+                float x;
+                decrypted_shares[i].decode(x);
+                shares.push_back(x);
+            } else {
+                long v;
+                decrypted_shares[i].decode(v);
+                shares.push_back((float) v);
+            }
         }
 
         delete [] decrypted_shares;
@@ -438,10 +444,17 @@ void Client::ciphers_conversion_to_shares(EncodedNumber *src_ciphers, std::vecto
         // generate secret shares
         EncodedNumber * encrypted_shares = new EncodedNumber[size];
         for (int i = 0; i < size; i++) {
-            float s = static_cast<float> (rand() % MAXIMUM_RAND_VALUE);
-            shares.push_back(0 - s);
-            encrypted_shares[i].set_float(m_pk->n[0], s, precision);
-            djcs_t_aux_encrypt(m_pk, m_hr, encrypted_shares[i], encrypted_shares[i]);
+            if (precision != 0) {
+                float s = static_cast<float> (rand() % MAXIMUM_RAND_VALUE);
+                shares.push_back(0 - s);
+                encrypted_shares[i].set_float(m_pk->n[0], s, precision);
+                djcs_t_aux_encrypt(m_pk, m_hr, encrypted_shares[i], encrypted_shares[i]);
+            } else {
+                int s = rand() % MAXIMUM_RAND_VALUE;
+                encrypted_shares[i].set_integer(m_pk->n[0], s);
+                djcs_t_aux_encrypt(m_pk, m_hr, encrypted_shares[i], encrypted_shares[i]);
+                shares.push_back(0 - s);
+            }
         }
 
         // serialize encrypted_shares and send to client 0
