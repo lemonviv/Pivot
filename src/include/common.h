@@ -46,7 +46,6 @@ enum OptimizationType {Non, CombiningSplits, Parallelism, All};
 /************************* Program parameters *************************/
 
 #define SPLIT_PERCENTAGE 0.8
-#define NUM_TRIALS 10
 #define DEFAULT_NETWORK_FILE "/home/wuyuncheng/Documents/projects/Pivot/data/networks/Parties.txt"
 #define DEFAULT_DATA_FILE_PREFIX "/home/wuyuncheng/Documents/projects/Pivot/data/"
 #define DEFAULT_HOST_NAME "localhost"
