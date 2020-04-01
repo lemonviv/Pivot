@@ -14,12 +14,14 @@ TreeNode::TreeNode() {
     best_split_id = -1;
     type = -1;
     sample_size = -1;
+    classes_num = -1;
     left_child = -1;
     right_child = -1;
     available_global_feature_num = -1;
 }
 
-TreeNode::TreeNode(int m_depth, int m_type, int m_sample_size, EncodedNumber *m_sample_iv) {
+TreeNode::TreeNode(int m_depth, int m_type, int m_sample_size, int m_classes_num,
+        EncodedNumber *m_sample_iv, EncodedNumber **m_encrypted_labels) {
     is_leaf = -1;
     depth = m_depth;
     type = m_type;
@@ -28,7 +30,20 @@ TreeNode::TreeNode(int m_depth, int m_type, int m_sample_size, EncodedNumber *m_
     best_feature_id = -1;
     best_split_id = -1;
     sample_size = m_sample_size;
-    sample_iv = m_sample_iv;
+    sample_iv = new EncodedNumber[sample_size];
+    for (int i = 0; i < sample_size; i++) {
+        sample_iv[i] = m_sample_iv[i];
+    }
+    classes_num = m_classes_num;
+    encrypted_labels = new EncodedNumber*[classes_num];
+    for (int i = 0; i < classes_num; i++) {
+        encrypted_labels[i] = new EncodedNumber[sample_size];
+    }
+    for (int i = 0; i < classes_num; i++) {
+        for (int j = 0; j < sample_size; j++) {
+            encrypted_labels[i][j] = m_encrypted_labels[i][j];
+        }
+    }
     left_child = -1;
     right_child = -1;
     available_global_feature_num = -1;
@@ -46,10 +61,20 @@ TreeNode::TreeNode(const TreeNode &node) {
     available_global_feature_num = node.available_global_feature_num;
     type = node.type;
     sample_size = node.sample_size;
+    classes_num = node.classes_num;
     impurity = node.impurity;
     sample_iv = new EncodedNumber[sample_size];
     for (int i = 0; i < sample_size; i++) {
         sample_iv[i] = node.sample_iv[i];
+    }
+    encrypted_labels = new EncodedNumber*[classes_num];
+    for (int i = 0; i < classes_num; i++) {
+        encrypted_labels[i] = new EncodedNumber[sample_size];
+    }
+    for (int i = 0; i < classes_num; i++) {
+        for (int j = 0; j < sample_size; j++) {
+            encrypted_labels[i][j] = node.encrypted_labels[i][j];
+        }
     }
     label = node.label;
     left_child = node.left_child;
@@ -67,10 +92,20 @@ TreeNode& TreeNode::operator=(TreeNode *node) {
     available_global_feature_num = node->available_global_feature_num;
     type = node->type;
     sample_size = node->sample_size;
+    classes_num = node->classes_num;
     sample_iv = new EncodedNumber[sample_size];
     impurity = node->impurity;
     for (int i = 0; i < sample_size; i++) {
         sample_iv[i] = node->sample_iv[i];
+    }
+    encrypted_labels = new EncodedNumber*[classes_num];
+    for (int i = 0; i < classes_num; i++) {
+        encrypted_labels[i] = new EncodedNumber[sample_size];
+    }
+    for (int i = 0; i < classes_num; i++) {
+        for (int j = 0; j < sample_size; j++) {
+            encrypted_labels[i][j] = node->encrypted_labels[i][j];
+        }
     }
     label = node->label;
     left_child = node->left_child;
@@ -106,5 +141,9 @@ TreeNode::~TreeNode() {
 
     if (is_leaf != -1) {
         delete [] sample_iv;
+        for (int i = 0; i < classes_num; i++) {
+            delete [] encrypted_labels[i];
+        }
+        delete [] encrypted_labels;
     }
 }
