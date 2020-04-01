@@ -12,11 +12,11 @@ extern FILE * logger_out;
 void send_private_batch_shares(std::vector<float> shares, std::vector<int>& sockets, int n_parties) {
 
     int number_inputs = shares.size();
-    std::vector<long> long_shares(number_inputs);
+    std::vector<int64_t> long_shares(number_inputs);
 
     // step 1: convert to int or long according to the fixed precision
     for (int i = 0; i < number_inputs; ++i) {
-        long_shares[i] = static_cast<int>(round(shares[i] * pow(2, SPDZ_FIXED_PRECISION)));
+        long_shares[i] = static_cast<int64_t>(round(shares[i] * pow(2, SPDZ_FIXED_PRECISION)));
     }
 
     // step 2: convert to the gfp value and call send_private_inputs
@@ -35,14 +35,14 @@ void send_private_batch_shares_packing(std::vector<float> shares, std::vector<in
     int number_inputs = shares.size();
 
     // store the base
-    long base = pow(2, SPDZ_FIXED_PRECISION);
+    int64_t base = pow(2, SPDZ_FIXED_PRECISION);
     gfp helper;
     helper.assign(base);
 
     // init the values
     vector<gfp> input_values_gfp(number_inputs);
     for (int i = 0; i < number_inputs; i++) {
-        long aa = round(shares[i]);
+        int64_t aa = round(shares[i]);
         input_values_gfp[i].assign(aa);
         input_values_gfp[i].mul(helper);
     }
@@ -193,7 +193,7 @@ std::vector<float> receive_result(std::vector<int>& sockets, int n_parties, int 
         gfp val = output_values[i];
         bigint aa;
         to_signed_bigint(aa, val);
-        long t = aa.get_si();
+        int64_t t = aa.get_si();
         //cout<< "i = " << i << ", t = " << t <<endl;
         res_shares[i] = static_cast<float>(t * pow(2, -SPDZ_FIXED_PRECISION));
     }
@@ -225,7 +225,7 @@ std::vector<float> receive_result_dt(std::vector<int>& sockets, int n_parties, i
         gfp val = output_values[i];
         bigint aa;
         to_signed_bigint(aa, val);
-        long t = aa.get_si();
+        int64_t t = aa.get_si();
         //cout<< "i = " << i << ", t = " << t <<endl;
         res_shares[i] = static_cast<float>(t * pow(2, -SPDZ_FIXED_PRECISION));
     }
@@ -260,7 +260,7 @@ std::vector<float> receive_mode(std::vector<int>& sockets, int n_parties, int si
         gfp val = output_values[i];
         bigint aa;
         to_signed_bigint(aa, val);
-        long t = aa.get_si();
+        int64_t t = aa.get_si();
         //cout<< "i = " << i << ", t = " << t <<endl;
         modes[i] = static_cast<float>(t * pow(2, -SPDZ_FIXED_PRECISION));
     }
