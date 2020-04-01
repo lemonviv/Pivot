@@ -158,42 +158,13 @@ void GBDT::init_single_tree_data(Client &client, int class_id, int tree_id, std:
 
         // pre-compute indicator vectors or variance vectors for labels
         // here already assume that client_id == 0 (super client)
-        if (forest[real_tree_id].type == 0) {
-            // classification, compute binary vectors and store
-            int * sample_num_per_class = new int[classes_num];
-            for (int i = 0; i < classes_num; i++) {sample_num_per_class[i] = 0;}
-            for (int i = 0; i < classes_num; i++) {
-                std::vector<int> indicator_vec;
-                for (int j = 0; j < training_data_labels.size(); j++) {
-                    if (training_data_labels[j] == (float) i) {
-                        indicator_vec.push_back(1);
-                        sample_num_per_class[i] += 1;
-                    } else {
-                        indicator_vec.push_back(0);
-                    }
-                }
-                forest[real_tree_id].indicator_class_vecs.push_back(indicator_vec);
-
-                indicator_vec.clear();
-                indicator_vec.shrink_to_fit();
-            }
-            for (int i = 0; i < classes_num; i++) {
-                logger(logger_out, "Class %d sample num = %d\n", i, sample_num_per_class[i]);
-            }
-
-            delete [] sample_num_per_class;
-        } else {
-            // regression, compute variance necessary stats
-            std::vector<float> label_square_vec;
-            for (int j = 0; j < training_data_labels.size(); j++) {
-                label_square_vec.push_back(training_data_labels[j] * training_data_labels[j]);
-            }
-            forest[real_tree_id].variance_stat_vecs.push_back(training_data_labels); // the first vector is the actual label vector
-            forest[real_tree_id].variance_stat_vecs.push_back(label_square_vec);     // the second vector is the squared label vector
-
-            label_square_vec.clear();
-            label_square_vec.shrink_to_fit();
+        // regression, compute variance necessary stats
+        std::vector<float> label_square_vec;
+        for (int j = 0; j < training_data_labels.size(); j++) {
+            label_square_vec.push_back(forest[real_tree_id].training_data_labels[j] * forest[real_tree_id].training_data_labels[j]);
         }
+        forest[real_tree_id].variance_stat_vecs.push_back(forest[real_tree_id].training_data_labels); // the first vector is the actual label vector
+        forest[real_tree_id].variance_stat_vecs.push_back(label_square_vec);     // the second vector is the squared label vector
     }
 
 }
