@@ -21,7 +21,7 @@ TreeNode::TreeNode() {
 }
 
 TreeNode::TreeNode(int m_depth, int m_type, int m_sample_size, int m_classes_num,
-        EncodedNumber *m_sample_iv, EncodedNumber **m_encrypted_labels) {
+        EncodedNumber *m_sample_iv, EncodedNumber *m_encrypted_labels) {
     is_leaf = -1;
     depth = m_depth;
     type = m_type;
@@ -35,14 +35,9 @@ TreeNode::TreeNode(int m_depth, int m_type, int m_sample_size, int m_classes_num
         sample_iv[i] = m_sample_iv[i];
     }
     classes_num = m_classes_num;
-    encrypted_labels = new EncodedNumber*[classes_num];
-    for (int i = 0; i < classes_num; i++) {
-        encrypted_labels[i] = new EncodedNumber[sample_size];
-    }
-    for (int i = 0; i < classes_num; i++) {
-        for (int j = 0; j < sample_size; j++) {
-            encrypted_labels[i][j] = m_encrypted_labels[i][j];
-        }
+    encrypted_labels = new EncodedNumber[classes_num * sample_size];
+    for (int i = 0; i < classes_num * sample_size; i++) {
+        encrypted_labels[i] = m_encrypted_labels[i];
     }
     left_child = -1;
     right_child = -1;
@@ -67,14 +62,9 @@ TreeNode::TreeNode(const TreeNode &node) {
     for (int i = 0; i < sample_size; i++) {
         sample_iv[i] = node.sample_iv[i];
     }
-    encrypted_labels = new EncodedNumber*[classes_num];
+    encrypted_labels = new EncodedNumber[classes_num * sample_size];
     for (int i = 0; i < classes_num; i++) {
-        encrypted_labels[i] = new EncodedNumber[sample_size];
-    }
-    for (int i = 0; i < classes_num; i++) {
-        for (int j = 0; j < sample_size; j++) {
-            encrypted_labels[i][j] = node.encrypted_labels[i][j];
-        }
+        encrypted_labels[i] = node.encrypted_labels[i];
     }
     label = node.label;
     left_child = node.left_child;
@@ -98,14 +88,9 @@ TreeNode& TreeNode::operator=(TreeNode *node) {
     for (int i = 0; i < sample_size; i++) {
         sample_iv[i] = node->sample_iv[i];
     }
-    encrypted_labels = new EncodedNumber*[classes_num];
+    encrypted_labels = new EncodedNumber[classes_num * sample_size];
     for (int i = 0; i < classes_num; i++) {
-        encrypted_labels[i] = new EncodedNumber[sample_size];
-    }
-    for (int i = 0; i < classes_num; i++) {
-        for (int j = 0; j < sample_size; j++) {
-            encrypted_labels[i][j] = node->encrypted_labels[i][j];
-        }
+        encrypted_labels[i] = node->encrypted_labels[i];
     }
     label = node->label;
     left_child = node->left_child;
@@ -140,10 +125,7 @@ TreeNode::~TreeNode() {
     }
 
     if (is_leaf != -1) {
-        delete [] sample_iv;
-        for (int i = 0; i < classes_num; i++) {
-            delete [] encrypted_labels[i];
-        }
-        delete [] encrypted_labels;
+        //delete [] sample_iv;
+        //delete [] encrypted_labels;
     }
 }

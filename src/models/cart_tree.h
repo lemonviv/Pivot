@@ -147,7 +147,7 @@ public:
      */
     void compute_encrypted_statistics(Client & client, int node_index,
             EncodedNumber ** & encrypted_statistics,
-            EncodedNumber ** encrypted_label_vecs,
+            EncodedNumber * encrypted_label_vecs,
             EncodedNumber * & encrypted_left_sample_nums,
             EncodedNumber * & encrypted_right_sample_nums);
 
