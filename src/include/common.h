@@ -17,7 +17,7 @@
 /********************* Decision tree parameters ***********************/
 
 #define FLOAT_PRECISION 8
-#define SPDZ_FIXED_PRECISION 4 // should be careful for regression tree
+#define SPDZ_FIXED_PRECISION 8 // should be careful for regression tree
 #define PRECISION_THRESHOLD 1e-6
 #define GLOBAL_FEATURE_NUM 35
 #define MAX_IMPURITY 2.0
