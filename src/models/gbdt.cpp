@@ -152,7 +152,7 @@ void GBDT::init_single_tree_data(Client &client, int class_id, int tree_id, std:
         } else { // should use the predicted labels of first tree
             for (int i = 0; i < training_data.size(); i++) {
                 forest[real_tree_id].training_data_labels.push_back(
-                        forest[class_id * num_trees].training_data_labels[i] - GBDT_LEARNING_RATE * cur_predicted_labels[i]);
+                        forest[class_id * num_trees].training_data_labels[i] - cur_predicted_labels[i]);
             }
         }
 
@@ -241,7 +241,7 @@ void GBDT::build_gbdt(Client &client) {
             // after the tree has been built, compute the predicted labels for the current tree
             std::vector<float> predicted_training_labels = compute_predicted_labels(client, class_id, tree_id, 0);
             for (int i = 0; i < training_data.size(); i++) {
-                cur_predicted_labels[class_id][i] += predicted_training_labels[i];
+                cur_predicted_labels[class_id][i] += (GBDT_LEARNING_RATE * predicted_training_labels[i]);
             }
 
             forest[real_tree_id].intermediate_memory_free();
