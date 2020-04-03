@@ -156,21 +156,24 @@ if False:
 # vary numTree
 if True:
     basic_solution_RF_PP_Classification = np.array([969793.061, 1944277.87, 3957691.258, 7855930.299, 15662272.89]) / (60000*60)
-    basic_solution_GBDT_PP_Classification = np.array([70764000.23, 141634146.5, 282783904.1, 566458577.6, 1132917155]) / (60000*60)
+    #basic_solution_GBDT_PP_Classification = np.array([70764000.23, 141634146.5, 282783904.1, 566458577.6, 1132917155]) / (60000*60)
+    basic_solution_GBDT_PP_Classification = np.array([15614170.854, 37528341.708, 81356683.416, 169013366.832, 344326733.664]) / (60000*60)
     basic_solution_RF_PP_Regression = np.array([938691.05, 1911267.56, 3827353.518, 7655725.31, 15218943.76]) / (60000*60)
-    basic_solution_GBDT_PP_Regression = np.array([17237523.9, 35336923.99, 70673847.98, 141347696, 282695391.9]) / (60000*60)
+    #basic_solution_GBDT_PP_Regression = np.array([17237523.9, 35336923.99, 70673847.98, 141347696, 282695391.9]) / (60000*60)
+    basic_solution_GBDT_PP_Regression = np.array([2331123.216, 4662246.432, 9324492.864, 18648985.728, 37297971.456]) / (60000*60)
 
     lines = [basic_solution_RF_PP_Classification, basic_solution_GBDT_PP_Classification, basic_solution_RF_PP_Regression, basic_solution_GBDT_PP_Regression]
+    #lines = [basic_solution_RF_PP_Classification, basic_solution_RF_PP_Regression, basic_solution_GBDT_PP_Regression]
     shapes = ['-', '-', '-', '-']
     markers = ['s', 'o', 'D', '^']
     labels = ['Pivot-RF-Classification', 'Pivot-GBDT-Classification', 'Pivot-RF-Regression', 'Pivot-GBDT-Regression']
     colors = ['b', 'g', 'r', 'm']
     xlim = [-0.2, 4.2]
-    ylim = [0, 400]
+    ylim = [0, 100]
     xticks = range(5)
-    yticks = [0, 100, 200, 300, 400]
+    yticks = [0, 20, 40, 60, 80, 100]
     xtick_label = ['2', '4', '8', '16', '32']
-    ytick_label = ['0', '100', '200', '300', '400']
+    ytick_label = ['0', '20', '40', '60', '80', '100']
 
     plot_learning_curve(lines=lines, shapes=shapes, colors=colors, labels=labels, markers=markers,
                         save_path='figs/vary_numTree.pdf',
