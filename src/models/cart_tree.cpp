@@ -525,7 +525,7 @@ bool DecisionTree::check_pruning_conditions_spdz(Client &client, int node_index)
 
             // the super client sends computation id for SPDZ computation of a specific branch
             std::vector<int> computation_id;
-            computation_id.push_back(0);
+            computation_id.push_back(LeafCheck);
             send_public_values(computation_id, sockets, NUM_SPDZ_PARTIES);
 
             // convert encrypted_conditions into secret shares and send to SPDZ parties
@@ -580,7 +580,7 @@ bool DecisionTree::check_pruning_conditions_spdz(Client &client, int node_index)
         if (client.client_id == 0) {
             // the super client sends computation id for SPDZ computation of a specific branch
             std::vector<int> computation_id;
-            computation_id.push_back(1);
+            computation_id.push_back(LeafLabelComp);
             send_public_values(computation_id, sockets, NUM_SPDZ_PARTIES);
 
             if (type == 0) {
@@ -1099,7 +1099,7 @@ void DecisionTree::build_tree_node(Client & client, int node_index) {
     if (client.client_id == 0) {
         // first send computation id
         std::vector<int> computation_id;
-        computation_id.push_back(2);
+        computation_id.push_back(FindBestSplit);
         send_public_values(computation_id, sockets, NUM_SPDZ_PARTIES);
 
         send_public_parameters(type, global_split_num, classes_num, used_classes_num, sockets, NUM_SPDZ_PARTIES);
