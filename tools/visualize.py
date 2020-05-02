@@ -25,13 +25,36 @@ def plot_learning_curve(lines, shapes, colors, labels, markers,
     plt.legend(loc=legend_loc, fontsize=legend_font)
     plt.savefig(save_path, dpi=900, bbox_inches='tight', pad_inches=0)
 
+def plot_learning_curve_uneven(lines, shapes, colors, labels, markers,
+                        save_path, title='', logy=False,
+                        ms=5., linewidth=5.,
+                        xlabel=None, ylabel=None,
+                        ylim=None, yticks=None, xlim=None, xticks=None, xtick_label=None, ytick_label=None,
+                        legend_font=12., legend_loc='upper right'):
+    plt.figure()
+    plt.title(title)
+    plt.xlabel(xlabel, fontsize=24); plt.ylabel(ylabel, fontsize=24)
+    if xlim or xticks: plt.xticks(xticks, xtick_label, fontsize=24); plt.xlim(xlim)
+    if ylim or yticks: plt.yticks(yticks, ytick_label, fontsize=24); plt.ylim(ylim);
+    plt.grid(linestyle='dotted',axis='y')
+
+    for idx, line in enumerate(lines):
+        if not logy:
+            plt.plot(xticks, line, shapes[idx], color=colors[idx], label=labels[idx],
+                     linewidth=linewidth, marker=markers[idx], ms=ms)
+        else:
+            plt.semilogy(xticks, line, shapes[idx], color=colors[idx], label=labels[idx],
+                         linewidth=linewidth, marker=markers[idx], ms=ms)
+
+    plt.legend(loc=legend_loc, fontsize=legend_font)
+    plt.savefig(save_path, dpi=900, bbox_inches='tight', pad_inches=0)
 
 # vary m
-if False:
-    basic_solution = np.array([822689.788, 1330343.275, 2019677.863, 2806841.81, 3768041.58])/(60000)
-    basic_solution_pp = np.array([672001.545, 981328.654, 1405888.996, 1789179.203, 2310591.49])/(60000)
-    enhanced_solution = np.array([8759830.066, 11632274.13, 14547773.78, 17610923.62, 20880090.19])/(60000)
-    enhanced_solution_pp = np.array([4976876.39, 5775811.063, 6812708.759, 7656300.29, 8636597.903])/(60000)
+if True:
+    basic_solution = np.array([822689.788, 1330343.275, 2019677.863, 3768041.58, 6168518.202, 9092962.537])/(60000)
+    basic_solution_pp = np.array([672001.545, 981328.654, 1405888.996, 2310591.49, 3598752.027, 4914150.694])/(60000)
+    enhanced_solution = np.array([8759830.066, 11632274.13, 14547773.78, 20880090.19, 28016917.77, 35933279.48])/(60000)
+    enhanced_solution_pp = np.array([4976876.39, 5775811.063, 6812708.759, 8636597.903, 11084675.21, 13384859.64])/(60000)
 
     lines = [basic_solution, basic_solution_pp, enhanced_solution, enhanced_solution_pp]
     shapes = ['-', '-.', '-', '-.']
@@ -39,14 +62,15 @@ if False:
     labels = ['Pivot-Basic', 'Pivot-Basic-PP', 'Pivot-Enhanced', 'Pivot-Enhanced-PP']
     #colors = ['#009933', '#66ff33', '#0033cc', '#0066ff']
     colors = ['b', 'g', 'r', 'm']
-    xlim = [-0.2, 4.2]
-    ylim = [0, 400]
-    xticks = range(5)
-    yticks = [0, 100, 200, 300, 400]
-    xtick_label = ['2', '3', '4', '5', '6']
-    ytick_label = ['0', '100', '200', '300', '400']
+    xlim = [1.8, 10.2]
+    ylim = [0, 800]
+    #xticks = range(5)
+    xticks = [2, 3, 4, 6, 8, 10]
+    yticks = [0, 200, 400, 600, 800]
+    xtick_label = ['2', '3', '4', '6', '8', '10']
+    ytick_label = ['0', '200', '400', '600', '800']
 
-    plot_learning_curve(lines=lines, shapes=shapes, colors=colors, labels=labels, markers=markers,
+    plot_learning_curve_uneven(lines=lines, shapes=shapes, colors=colors, labels=labels, markers=markers,
                         save_path='figs/vary_m.pdf',
                         title='', logy=False, ms=12, linewidth=3,
                         xlabel='$m$', ylabel='Training Time (min)', ylim=ylim, yticks=yticks,
@@ -80,10 +104,10 @@ if False:
 
 # vary d
 if False:
-    basic_solution = np.array([508702.922, 919301.882, 1330343.275, 1710651.197, 2109158.354])/(60000)
-    basic_solution_pp = np.array([409336.699, 695817.828, 981328.654, 1295237.611, 1560928.826])/(60000)
-    enhanced_solution = np.array([10747758.66, 11147677.36, 11632274.13, 12117448.09, 12354410.37])/(60000)
-    enhanced_solution_pp = np.array([5208559.656, 5463166.901, 5775811.063, 6079214.553, 6347284.226])/(60000)
+    basic_solution = np.array([508702.922, 1330343.275, 2523424.864, 4929702.87, 9991561.719])/(60000)
+    basic_solution_pp = np.array([409336.699, 981328.654, 1880478.914, 3583171.214, 6827141.886])/(60000)
+    enhanced_solution = np.array([10747758.66, 11632274.13, 12871815.88, 15363180.18, 20376077.21])/(60000)
+    enhanced_solution_pp = np.array([5208559.656, 5775811.063, 6667274.732, 8457606.715, 11900533.43])/(60000)
 
     lines = [basic_solution, basic_solution_pp, enhanced_solution, enhanced_solution_pp]
     shapes = ['-', '-.', '-', '-.']
@@ -91,11 +115,11 @@ if False:
     labels = ['Pivot-Basic', 'Pivot-Basic-PP', 'Pivot-Enhanced', 'Pivot-Enhanced-PP']
     colors = ['b', 'g', 'r', 'm']
     xlim = [-0.2, 4.2]
-    ylim = [0, 300]
+    ylim = [0, 400]
     xticks = range(5)
-    yticks = [0, 100, 200, 300]
-    xtick_label = ['5', '10', '15', '20', '25']
-    ytick_label = ['0', '100', '200', '300']
+    yticks = [0, 100, 200, 300, 400]
+    xtick_label = ['5', '15', '30', '60', '120']
+    ytick_label = ['0', '100', '200', '300', '400']
 
     plot_learning_curve(lines=lines, shapes=shapes, colors=colors, labels=labels, markers=markers,
                         save_path='figs/vary_d.pdf',
@@ -154,7 +178,7 @@ if False:
                         xlim=xlim, xticks=xticks, xtick_label=xtick_label, ytick_label=ytick_label, legend_font=16, legend_loc='upper left')
 
 # vary numTree
-if True:
+if False:
     basic_solution_RF_PP_Classification = np.array([969793.061, 1944277.87, 3957691.258, 7855930.299, 15662272.89]) / (60000*60)
     #basic_solution_GBDT_PP_Classification = np.array([70764000.23, 141634146.5, 282783904.1, 566458577.6, 1132917155]) / (60000*60)
     basic_solution_GBDT_PP_Classification = np.array([15614170.854, 37528341.708, 81356683.416, 169013366.832, 344326733.664]) / (60000*60)
@@ -182,23 +206,24 @@ if True:
                         xlim=xlim, xticks=xticks, xtick_label=xtick_label, ytick_label=ytick_label, legend_font=16, legend_loc='upper left')
 
 # vary m_2
-if False:
-    basic_solution = np.array([9.884, 14.132, 19.003, 23.653, 27.878])
-    enhanced_solution = np.array([37.624, 38.978, 39.862, 40.85, 41.612])
+if True:
+    basic_solution = np.array([9.884, 14.132, 19.003, 27.878, 37.125, 46.541])
+    enhanced_solution = np.array([37.624, 38.978, 39.862, 41.612, 45.503, 47.937])
 
     lines = [basic_solution, enhanced_solution]
     shapes = ['-', '-']
     markers = ['s', 'D']
     labels = ['Pivot-Basic', 'Pivot-Enhanced']
     colors = ['b', 'r']
-    xlim = [-0.2, 4.2]
-    ylim = [0, 50]
-    xticks = range(5)
-    yticks = [0, 10, 20, 30, 40, 50]
-    xtick_label = ['2', '3', '4', '5', '6']
-    ytick_label = ['0', '10', '20', '30', '40', '50']
+    xlim = [1.8, 10.2]
+    ylim = [0, 60]
+    #xticks = range(5)
+    xticks = [2, 3, 4, 6, 8, 10]
+    yticks = [0, 20, 40, 60]
+    xtick_label = ['2', '3', '4', '6', '8', '10']
+    ytick_label = ['0', '20', '40', '60']
 
-    plot_learning_curve(lines=lines, shapes=shapes, colors=colors, labels=labels, markers=markers,
+    plot_learning_curve_uneven(lines=lines, shapes=shapes, colors=colors, labels=labels, markers=markers,
                         save_path='figs/vary_m_prediction.pdf',
                         title='', logy=False, ms=12, linewidth=3,
                         xlabel='$m$', ylabel='Prediction Time (ms)', ylim=ylim, yticks=yticks,
@@ -249,40 +274,43 @@ if False:
                         xlim=xlim, xticks=xticks, xtick_label=xtick_label, legend_font=8, legend_loc='upper left')
 
 # vary m_3
-if False:
-    basic_solution = np.array([822689.788, 1330343.275, 2019677.863, 2806841.81, 3768041.58])/(60000)
-    enhanced_solution = np.array([8759830.066, 11632274.13, 14547773.78, 17610923.62, 20880090.19])/(60000)
-    SPDZ_DZ = np.array([8307152.885, 19876233.69, 35191066.55, 53773722.08, 74834308.21])/(60000)
+if True:
+    basic_solution = np.array([822689.788, 1330343.275, 2019677.863, 3768041.58, 6168518.202, 9092962.537])/(60000)
+    enhanced_solution = np.array([8759830.066, 11632274.13, 14547773.78, 20880090.19, 28016917.77, 35933279.48])/(60000)
+    SPDZ_DZ = np.array([8307152.885, 19876233.69, 35191066.55, 74834308.21, 115319597.9, 168851399.6])/(60000)
+    Non_private = np.array([3041, 4666, 6231, 9548, 12674, 15591])/(60000)
 
-    lines = [basic_solution, enhanced_solution, SPDZ_DZ]
-    shapes = ['-', '-', '-']
-    markers = ['s', 'D', 'P']
-    labels = ['Pivot-Basic', 'Pivot-Enhanced', 'SPDZ-DT']
-    colors = ['b', 'r', 'c']
-    xlim = [-0.2, 4.2]
-    ylim = [0, 1300]
-    xticks = range(5)
-    yticks = [0, 300, 600, 900, 1200]
-    xtick_label = ['2', '3', '4', '5', '6']
-    ytick_label = ['0', '300', '600', '900', '1200']
+    lines = [basic_solution, enhanced_solution, SPDZ_DZ, Non_private]
+    shapes = ['-', '-', '-', '-']
+    markers = ['s', 'D', 'P', 'v']
+    labels = ['Pivot-Basic', 'Pivot-Enhanced', 'SPDZ-DT', 'NP-DT']
+    colors = ['b', 'r', 'c', 'm']
+    xlim = [1.8, 10.2]
+    ylim = [0, 3000]
+    #xticks = range(6)
+    xticks = [2, 3, 4, 6, 8, 10]
+    yticks = [0, 1000, 2000, 3000]
+    xtick_label = ['2', '3', '4', '6','8', '10']
+    ytick_label = ['0', '1000', '2000', '3000']
 
-    plot_learning_curve(lines=lines, shapes=shapes, colors=colors, labels=labels, markers=markers,
+    plot_learning_curve_uneven(lines=lines, shapes=shapes, colors=colors, labels=labels, markers=markers,
                         save_path='figs/vary_m_comparison.pdf',
                         title='', logy=False, ms=12, linewidth=3,
                         xlabel='$m$', ylabel='Training Time (min)', ylim=ylim, yticks=yticks,
                         xlim=xlim, xticks=xticks, xtick_label=xtick_label, ytick_label=ytick_label, legend_font=16, legend_loc='upper left')
 
 # vary n_2
-if False:
+if True:
     basic_solution = np.array([1160786.092, 1176500.369, 1330343.275, 1587529.102, 2076230.819])/(60000)
     enhanced_solution = np.array([2182740.249, 3214100.898, 11632274.13, 22114537.05, 42753624.01])/(60000)
     SPDZ_DZ = np.array([1950356.105, 5102164.833, 19876233.69, 57118889.29, 77949970.76])/(60000)
+    non_private = np.array([1006, 1363, 4666, 8797, 17563])/(60000)
 
-    lines = [basic_solution, enhanced_solution, SPDZ_DZ]
-    shapes = ['-', '-', '-']
-    markers = ['s', 'D', 'P']
-    labels = ['Pivot-Basic', 'Pivot-Enhanced', 'SPDZ-DT']
-    colors = ['b', 'r', 'c']
+    lines = [basic_solution, enhanced_solution, SPDZ_DZ, non_private]
+    shapes = ['-', '-', '-', '-']
+    markers = ['s', 'D', 'P', 'v']
+    labels = ['Pivot-Basic', 'Pivot-Enhanced', 'SPDZ-DT', 'NP-DT']
+    colors = ['b', 'r', 'c', 'm']
     xlim = [-0.2, 4.2]
     ylim = [0, 1500]
     xticks = range(5)
