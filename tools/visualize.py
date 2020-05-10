@@ -50,7 +50,7 @@ def plot_learning_curve_uneven(lines, shapes, colors, labels, markers,
     plt.savefig(save_path, dpi=900, bbox_inches='tight', pad_inches=0)
 
 # vary m
-if True:
+if False:
     basic_solution = np.array([822689.788, 1330343.275, 2019677.863, 3768041.58, 6168518.202, 9092962.537])/(60000)
     basic_solution_pp = np.array([672001.545, 981328.654, 1405888.996, 2310591.49, 3598752.027, 4914150.694])/(60000)
     enhanced_solution = np.array([8759830.066, 11632274.13, 14547773.78, 20880090.19, 28016917.77, 35933279.48])/(60000)
@@ -179,12 +179,12 @@ if False:
 
 # vary numTree
 if False:
-    basic_solution_RF_PP_Classification = np.array([969793.061, 1944277.87, 3957691.258, 7855930.299, 15662272.89]) / (60000*60)
+    basic_solution_RF_PP_Classification = np.array([2470255.588, 5032626.445, 9892574.406, 19983417.36, 39799246.32]) / (60000*60)
     #basic_solution_GBDT_PP_Classification = np.array([70764000.23, 141634146.5, 282783904.1, 566458577.6, 1132917155]) / (60000*60)
-    basic_solution_GBDT_PP_Classification = np.array([15614170.854, 37528341.708, 81356683.416, 169013366.832, 344326733.664]) / (60000*60)
-    basic_solution_RF_PP_Regression = np.array([938691.05, 1911267.56, 3827353.518, 7655725.31, 15218943.76]) / (60000*60)
+    basic_solution_GBDT_PP_Classification = np.array([11882243.96, 28924962.71, 60441964.24, 124446185.3, 253952848.4]) / (60000*60)
+    basic_solution_RF_PP_Regression = np.array([1214161.479, 2450498.055, 4945367.987, 9879509.475, 19538515]) / (60000*60)
     #basic_solution_GBDT_PP_Regression = np.array([17237523.9, 35336923.99, 70673847.98, 141347696, 282695391.9]) / (60000*60)
-    basic_solution_GBDT_PP_Regression = np.array([2331123.216, 4662246.432, 9324492.864, 18648985.728, 37297971.456]) / (60000*60)
+    basic_solution_GBDT_PP_Regression = np.array([1882710.232, 3654598.904, 7235154.055, 14451409.94, 28908112.76]) / (60000*60)
 
     lines = [basic_solution_RF_PP_Classification, basic_solution_GBDT_PP_Classification, basic_solution_RF_PP_Regression, basic_solution_GBDT_PP_Regression]
     #lines = [basic_solution_RF_PP_Classification, basic_solution_RF_PP_Regression, basic_solution_GBDT_PP_Regression]
@@ -193,11 +193,11 @@ if False:
     labels = ['Pivot-RF-Classification', 'Pivot-GBDT-Classification', 'Pivot-RF-Regression', 'Pivot-GBDT-Regression']
     colors = ['b', 'g', 'r', 'm']
     xlim = [-0.2, 4.2]
-    ylim = [0, 100]
+    ylim = [0, 80]
     xticks = range(5)
-    yticks = [0, 20, 40, 60, 80, 100]
+    yticks = [0, 20, 40, 60, 80]
     xtick_label = ['2', '4', '8', '16', '32']
-    ytick_label = ['0', '20', '40', '60', '80', '100']
+    ytick_label = ['0', '20', '40', '60', '80']
 
     plot_learning_curve(lines=lines, shapes=shapes, colors=colors, labels=labels, markers=markers,
                         save_path='figs/vary_numTree.pdf',
@@ -205,16 +205,45 @@ if False:
                         xlabel='$K$', ylabel='Training Time (hour)', ylim=ylim, yticks=yticks,
                         xlim=xlim, xticks=xticks, xtick_label=xtick_label, ytick_label=ytick_label, legend_font=16, legend_loc='upper left')
 
+
+# vary numTree prediction
+if True:
+    basic_solution_RF_PP_Classification = np.array([29.743,59.385,118.347,237.233,475.607])
+    basic_solution_GBDT_PP_Classification = np.array([119.346,239.892,479.242,958.484,1916.97])
+    basic_solution_RF_PP_Regression = np.array([29.583,59.97,118.923,237.092,472.197])
+    basic_solution_GBDT_PP_Regression = np.array([29.739,59.347,117.963,237.438,472.126])
+
+    lines = [basic_solution_RF_PP_Classification, basic_solution_GBDT_PP_Classification, basic_solution_RF_PP_Regression, basic_solution_GBDT_PP_Regression]
+    #lines = [basic_solution_RF_PP_Classification, basic_solution_RF_PP_Regression, basic_solution_GBDT_PP_Regression]
+    shapes = ['-', '-', '-', '-']
+    markers = ['s', 'o', 'D', '^']
+    labels = ['Pivot-RF-Classification', 'Pivot-GBDT-Classification', 'Pivot-RF-Regression', 'Pivot-GBDT-Regression']
+    colors = ['b', 'g', 'r', 'm']
+    xlim = [-0.2, 4.2]
+    ylim = [0, 2000]
+    xticks = range(5)
+    yticks = [0, 500, 1000, 1500, 2000]
+    xtick_label = ['2', '4', '8', '16', '32']
+    ytick_label = ['0', '500', '1000', '1500', '2000']
+
+    plot_learning_curve(lines=lines, shapes=shapes, colors=colors, labels=labels, markers=markers,
+                        save_path='figs/vary_numTree_prediction.pdf',
+                        title='', logy=False, ms=12, linewidth=3,
+                        xlabel='$K$', ylabel='Prediction Time (ms)', ylim=ylim, yticks=yticks,
+                        xlim=xlim, xticks=xticks, xtick_label=xtick_label, ytick_label=ytick_label, legend_font=16, legend_loc='upper left')
+
+
 # vary m_2
 if True:
     basic_solution = np.array([9.884, 14.132, 19.003, 27.878, 37.125, 46.541])
     enhanced_solution = np.array([37.624, 38.978, 39.862, 41.612, 45.503, 47.937])
+    npddt_solution = np.array([0.191, 0.217, 0.27, 0.314, 0.381, 0.371])
 
-    lines = [basic_solution, enhanced_solution]
-    shapes = ['-', '-']
-    markers = ['s', 'D']
-    labels = ['Pivot-Basic', 'Pivot-Enhanced']
-    colors = ['b', 'r']
+    lines = [basic_solution, enhanced_solution, npddt_solution]
+    shapes = ['-', '-', '-']
+    markers = ['s', 'D', 'v']
+    labels = ['Pivot-Basic', 'Pivot-Enhanced', 'NPD-DT']
+    colors = ['b', 'r', 'm']
     xlim = [1.8, 10.2]
     ylim = [0, 60]
     #xticks = range(5)
@@ -230,15 +259,16 @@ if True:
                         xlim=xlim, xticks=xticks, xtick_label=xtick_label, ytick_label=ytick_label, legend_font=16, legend_loc='upper left')
 
 # vary tree_depth_2
-if False:
+if True:
     basic_solution = np.array([13.896, 13.963, 14.132, 14.437, 15.211])
     enhanced_solution = np.array([8.022, 17.908, 38.978, 76.721, 158.525])
+    npddt_solution = np.array([0.006, 0.091, 0.217, 0.245, 0.354])
 
-    lines = [basic_solution, enhanced_solution]
-    shapes = ['-', '-']
-    markers = ['s', 'D']
-    labels = ['Pivot-Basic', 'Pivot-Enhanced']
-    colors = ['b', 'r']
+    lines = [basic_solution, enhanced_solution, npddt_solution]
+    shapes = ['-', '-', '-']
+    markers = ['s', 'D', 'v']
+    labels = ['Pivot-Basic', 'Pivot-Enhanced', 'NPD-DT']
+    colors = ['b', 'r', 'm']
     xlim = [-0.2, 4.2]
     ylim = [0, 165]
     xticks = range(5)
@@ -278,12 +308,12 @@ if True:
     basic_solution = np.array([822689.788, 1330343.275, 2019677.863, 3768041.58, 6168518.202, 9092962.537])/(60000)
     enhanced_solution = np.array([8759830.066, 11632274.13, 14547773.78, 20880090.19, 28016917.77, 35933279.48])/(60000)
     SPDZ_DZ = np.array([8307152.885, 19876233.69, 35191066.55, 74834308.21, 115319597.9, 162280010.6])/(60000)
-    Non_private = np.array([3041, 4666, 6231, 9548, 12674, 15591])/(60000)
+    Non_private = np.array([1462.867, 1982.675, 2514.447, 3545.563, 4606.161, 5642.511])/(60000)
 
     lines = [basic_solution, enhanced_solution, SPDZ_DZ, Non_private]
     shapes = ['-', '-', '-', '-']
     markers = ['s', 'D', 'P', 'v']
-    labels = ['Pivot-Basic', 'Pivot-Enhanced', 'SPDZ-DT', 'NP-DT']
+    labels = ['Pivot-Basic', 'Pivot-Enhanced', 'SPDZ-DT', 'NPD-DT']
     colors = ['b', 'r', 'c', 'm']
     xlim = [1.8, 10.2]
     ylim = [0, 3000]
@@ -303,20 +333,21 @@ if True:
 if True:
     basic_solution = np.array([1160786.092, 1176500.369, 1330343.275, 1587529.102, 2076230.819])/(60000)
     enhanced_solution = np.array([2182740.249, 3214100.898, 11632274.13, 22114537.05, 42753624.01])/(60000)
-    SPDZ_DZ = np.array([1950356.105, 5102164.833, 19876233.69, 57118889.29, 77949970.76])/(60000)
-    non_private = np.array([1006, 1363, 4666, 8797, 17563])/(60000)
+    #SPDZ_DZ = np.array([1950356.105, 5102164.833, 19876233.69, 57118889.29, 77949970.76])/(60000)
+    SPDZ_DZ = np.array([1950356.105, 5102164.833, 21769667.48, 57118889.29, 81954667.13])/(60000)
+    non_private = np.array([657.691, 796.659, 1982.675, 3482.41, 6562.941])/(60000)
 
     lines = [basic_solution, enhanced_solution, SPDZ_DZ, non_private]
     shapes = ['-', '-', '-', '-']
     markers = ['s', 'D', 'P', 'v']
-    labels = ['Pivot-Basic', 'Pivot-Enhanced', 'SPDZ-DT', 'NP-DT']
+    labels = ['Pivot-Basic', 'Pivot-Enhanced', 'SPDZ-DT', 'NPD-DT']
     colors = ['b', 'r', 'c', 'm']
     xlim = [-0.2, 4.2]
-    ylim = [0, 1500]
+    ylim = [0, 1600]
     xticks = range(5)
-    yticks = [0, 300, 600, 900, 1200, 1500]
+    yticks = [0, 400, 800, 1200, 1600]
     xtick_label = ['5k', '10k', '50k', '100k', '200k']
-    ytick_label = ['0', '300', '600', '900', '1200', '1500']
+    ytick_label = ['0', '400', '800', '1200', '1600']
 
     plot_learning_curve(lines=lines, shapes=shapes, colors=colors, labels=labels, markers=markers,
                         save_path='figs/vary_n_comparison.pdf',
