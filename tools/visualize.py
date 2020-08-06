@@ -50,7 +50,7 @@ def plot_learning_curve_uneven(lines, shapes, colors, labels, markers,
     plt.savefig(save_path, dpi=900, bbox_inches='tight', pad_inches=0)
 
 # vary m
-if False:
+if True:
     basic_solution = np.array([822689.788, 1330343.275, 2019677.863, 3768041.58, 6168518.202, 9092962.537])/(60000)
     basic_solution_pp = np.array([672001.545, 981328.654, 1405888.996, 2310591.49, 3598752.027, 4914150.694])/(60000)
     enhanced_solution = np.array([8759830.066, 11632274.13, 14547773.78, 20880090.19, 28016917.77, 35933279.48])/(60000)
@@ -77,7 +77,7 @@ if False:
                         xlim=xlim, xticks=xticks, xtick_label=xtick_label, ytick_label=ytick_label, legend_font=16, legend_loc='upper left')
 
 # vary n
-if False:
+if True:
     basic_solution = np.array([1160786.092, 1176500.369, 1330343.275, 1587529.102, 2076230.819])/(60000)
     basic_solution_pp = np.array([764980.12, 782337.539, 981328.654, 1222573.492, 1711838.596])/(60000)
     enhanced_solution = np.array([2182740.249, 3214100.898, 11632274.13, 22114537.05, 42753624.01])/(60000)
@@ -103,7 +103,7 @@ if False:
                         xlim=xlim, xticks=xticks, xtick_label=xtick_label, ytick_label=ytick_label, legend_font=16, legend_loc='upper left')
 
 # vary d
-if False:
+if True:
     basic_solution = np.array([508702.922, 1330343.275, 2523424.864, 4929702.87, 9991561.719])/(60000)
     basic_solution_pp = np.array([409336.699, 981328.654, 1880478.914, 3583171.214, 6827141.886])/(60000)
     enhanced_solution = np.array([10747758.66, 11632274.13, 12871815.88, 15363180.18, 20376077.21])/(60000)
@@ -128,7 +128,7 @@ if False:
                         xlim=xlim, xticks=xticks, xtick_label=xtick_label, ytick_label=ytick_label, legend_font=16, legend_loc='upper left')
 
 # vary split_num
-if False:
+if True:
     basic_solution = np.array([374593.067, 690494.683, 1330343.275, 2586320.03, 5018416.149])/(60000)
     basic_solution_pp = np.array([335274.584, 558495.617, 981328.654, 1826438.97, 3560476.637])/(60000)
     enhanced_solution = np.array([10567803.76, 10901940.05, 11632274.13, 12768027.69, 15257682.35])/(60000)
@@ -140,17 +140,44 @@ if False:
     labels = ['Pivot-Basic', 'Pivot-Basic-PP', 'Pivot-Enhanced', 'Pivot-Enhanced-PP']
     colors = ['b', 'g', 'r', 'm']
     xlim = [-0.2, 4.2]
-    ylim = [0, 300]
+    ylim = [0, 400]
     xticks = range(5)
-    yticks = [0, 100, 200, 300]
+    yticks = [0, 100, 200, 300, 400]
     xtick_label = ['2', '4', '8', '16', '32']
-    ytick_label = ['0', '100', '200', '300']
+    ytick_label = ['0', '100', '200', '300', '400']
 
     plot_learning_curve(lines=lines, shapes=shapes, colors=colors, labels=labels, markers=markers,
                         save_path='figs/vary_splitNum.pdf',
                         title='', logy=False, ms=12, linewidth=3,
-                        xlabel='$\\beta$', ylabel='Training Time (min)', ylim=ylim, yticks=yticks,
+                        xlabel='$b$', ylabel='Training Time (min)', ylim=ylim, yticks=yticks,
                         xlim=xlim, xticks=xticks, xtick_label=xtick_label, ytick_label=ytick_label, legend_font=16, legend_loc='upper left')
+
+
+# vary class num
+if True:
+    basic_solution = np.array([842635.837, 1330343.275, 2286192.96, 4225067.674, 5980867.946])/(60000)
+    basic_solution_pp = np.array([638548.696, 981328.654, 1660671.765, 2956065.642, 4098042.953])/(60000)
+    enhanced_solution = np.array([11047351.27, 11632274.13, 12716668.54, 14390669.31, 17188417.09])/(60000)
+    enhanced_solution_pp = np.array([5448479.878, 5775811.063, 6472209.304, 7821108.251, 10437695.44])/(60000)
+
+    lines = [basic_solution, basic_solution_pp, enhanced_solution, enhanced_solution_pp]
+    shapes = ['-', '-.', '-', '-.']
+    markers = ['s', 'o', 'D', '^']
+    labels = ['Pivot-Basic', 'Pivot-Basic-PP', 'Pivot-Enhanced', 'Pivot-Enhanced-PP']
+    colors = ['b', 'g', 'r', 'm']
+    xlim = [-0.2, 4.2]
+    ylim = [0, 400]
+    xticks = range(5)
+    yticks = [0, 100, 200, 300, 400]
+    xtick_label = ['2', '4', '8', '16', '32']
+    ytick_label = ['0', '100', '200', '300', '400']
+
+    plot_learning_curve(lines=lines, shapes=shapes, colors=colors, labels=labels, markers=markers,
+                        save_path='figs/vary_classNum.pdf',
+                        title='', logy=False, ms=12, linewidth=3,
+                        xlabel='$c$', ylabel='Training Time (min)', ylim=ylim, yticks=yticks,
+                        xlim=xlim, xticks=xticks, xtick_label=xtick_label, ytick_label=ytick_label, legend_font=16, legend_loc='upper left')
+
 
 # vary tree_depth
 if False:
@@ -178,7 +205,7 @@ if False:
                         xlim=xlim, xticks=xticks, xtick_label=xtick_label, ytick_label=ytick_label, legend_font=16, legend_loc='upper left')
 
 # vary numTree
-if False:
+if True:
     basic_solution_RF_PP_Classification = np.array([2470255.588, 5032626.445, 9892574.406, 19983417.36, 39799246.32]) / (60000*60)
     #basic_solution_GBDT_PP_Classification = np.array([70764000.23, 141634146.5, 282783904.1, 566458577.6, 1132917155]) / (60000*60)
     basic_solution_GBDT_PP_Classification = np.array([11882243.96, 28924962.71, 60441964.24, 124446185.3, 253952848.4]) / (60000*60)
@@ -202,7 +229,7 @@ if False:
     plot_learning_curve(lines=lines, shapes=shapes, colors=colors, labels=labels, markers=markers,
                         save_path='figs/vary_numTree.pdf',
                         title='', logy=False, ms=12, linewidth=3,
-                        xlabel='$K$', ylabel='Training Time (hour)', ylim=ylim, yticks=yticks,
+                        xlabel='$W$', ylabel='Training Time (hour)', ylim=ylim, yticks=yticks,
                         xlim=xlim, xticks=xticks, xtick_label=xtick_label, ytick_label=ytick_label, legend_font=16, legend_loc='upper left')
 
 
@@ -229,12 +256,12 @@ if True:
     plot_learning_curve(lines=lines, shapes=shapes, colors=colors, labels=labels, markers=markers,
                         save_path='figs/vary_numTree_prediction.pdf',
                         title='', logy=False, ms=12, linewidth=3,
-                        xlabel='$K$', ylabel='Prediction Time (ms)', ylim=ylim, yticks=yticks,
+                        xlabel='$W$', ylabel='Prediction Time (ms)', ylim=ylim, yticks=yticks,
                         xlim=xlim, xticks=xticks, xtick_label=xtick_label, ytick_label=ytick_label, legend_font=16, legend_loc='upper left')
 
 
 # vary m_2
-if True:
+if False:
     basic_solution = np.array([9.884, 14.132, 19.003, 27.878, 37.125, 46.541])
     enhanced_solution = np.array([37.624, 38.978, 39.862, 41.612, 45.503, 47.937])
     npddt_solution = np.array([0.191, 0.217, 0.27, 0.314, 0.381, 0.371])
@@ -259,7 +286,7 @@ if True:
                         xlim=xlim, xticks=xticks, xtick_label=xtick_label, ytick_label=ytick_label, legend_font=16, legend_loc='upper left')
 
 # vary tree_depth_2
-if True:
+if False:
     basic_solution = np.array([13.896, 13.963, 14.132, 14.437, 15.211])
     enhanced_solution = np.array([8.022, 17.908, 38.978, 76.721, 158.525])
     npddt_solution = np.array([0.006, 0.091, 0.217, 0.245, 0.354])
@@ -304,7 +331,7 @@ if False:
                         xlim=xlim, xticks=xticks, xtick_label=xtick_label, legend_font=8, legend_loc='upper left')
 
 # vary m_3
-if True:
+if False:
     basic_solution = np.array([822689.788, 1330343.275, 2019677.863, 3768041.58, 6168518.202, 9092962.537])/(60000)
     enhanced_solution = np.array([8759830.066, 11632274.13, 14547773.78, 20880090.19, 28016917.77, 35933279.48])/(60000)
     SPDZ_DZ = np.array([8307152.885, 19876233.69, 35191066.55, 74834308.21, 115319597.9, 162280010.6])/(60000)
@@ -330,7 +357,7 @@ if True:
                         xlim=xlim, xticks=xticks, xtick_label=xtick_label, ytick_label=ytick_label, legend_font=16, legend_loc='upper left')
 
 # vary n_2
-if True:
+if False:
     basic_solution = np.array([1160786.092, 1176500.369, 1330343.275, 1587529.102, 2076230.819])/(60000)
     enhanced_solution = np.array([2182740.249, 3214100.898, 11632274.13, 22114537.05, 42753624.01])/(60000)
     #SPDZ_DZ = np.array([1950356.105, 5102164.833, 19876233.69, 57118889.29, 77949970.76])/(60000)
