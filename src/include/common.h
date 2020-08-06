@@ -13,6 +13,7 @@
 #define SPDZ_PORT_NUM_DT_ENHANCED 19000
 #define SPDZ_PORT_NUM_RF_CLASSIFICATION_PREDICTION 20000
 #define ROUNDED_PRECISION 1e-3
+enum SPDZComputationID {LeafCheck, LeafLabelComp, FindBestSplit, GBDTLabelSquare, GBDTSoftmax};
 
 /********************* Decision tree parameters ***********************/
 
@@ -21,7 +22,7 @@
 #define PRECISION_THRESHOLD 1e-6
 #define GLOBAL_FEATURE_NUM 35
 #define MAX_IMPURITY 2.0
-#define MAX_VARIANCE 10000.0
+#define MAX_VARIANCE 100000.0
 #define MAX_GLOBAL_SPLIT_NUM 6000
 #define MAX_DEPTH 3
 #define MAX_BINS 32

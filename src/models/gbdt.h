@@ -95,11 +95,73 @@ public:
 
 
     /**
+     * init each tree during the training stage
+     *
+     * @param client
+     * @param class_id
+     * @param tree_id
+     */
+    void init_simplified_single_tree_data(Client &client, int class_id, int tree_id);
+
+
+    /**
      * build the gbdt forests
      *
      * @param client
      */
     void build_gbdt(Client & client);
+
+
+    /**
+     * build the gbdt forests with spdz computations
+     *
+     * @param client
+     */
+    void build_gbdt_with_spdz(Client & client);
+
+
+    /**
+     * compute squared encrypted label vector via spdz
+     *
+     * @param client
+     * @param squared_label_vector
+     * @param encrypted_label_vector
+     */
+    void compute_squared_label_vector(Client & client, EncodedNumber * & squared_label_vector, EncodedNumber * encrypted_label_vector);
+
+
+    /**
+     * compute softmax encrypted label vector for each class via spdz
+     *
+     * @param client
+     * @param softmax_label_vector
+     * @param encrypted_classes_label_vector
+     */
+    void compute_softmax_label_vector(Client & client, EncodedNumber * & softmax_label_vector, EncodedNumber * encrypted_classes_label_vector);
+
+
+    /**
+     * init root node with two encrypted label vectors
+     *
+     * @param client
+     * @param real_tree_id
+     * @param encrypted_label_vector
+     * @param encrypted_square_label_vector
+     */
+    void init_root_node_gbdt(Client & client, int real_tree_id,
+            EncodedNumber * encrypted_label_vector, EncodedNumber * encrypted_square_label_vector);
+
+
+    /**
+     * compute encrypted predicted labels
+     *
+     * @param client
+     * @param class_id
+     * @param tree_id
+     * @param encrypted_predicted_labels
+     * @param flag
+     */
+    void compute_encrypted_predicted_labels(Client & client, int class_id, int tree_id, EncodedNumber *& encrypted_predicted_labels, int flag);
 
 
     /**

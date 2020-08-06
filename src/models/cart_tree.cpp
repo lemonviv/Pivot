@@ -221,13 +221,15 @@ void DecisionTree::init_root_node(Client & client) {
     // Note that for the root node, every client can init the encrypted sample mask vector
     // but the label vectors need to be received from the super client
     // assume that the global feature number is known beforehand
+    int sample_num = training_data.size();
     tree_nodes[0].is_leaf = -1;
     tree_nodes[0].available_feature_ids.reserve(local_feature_num);
     for (int i = 0; i < local_feature_num; i++) {
         tree_nodes[0].available_feature_ids.push_back(i);
     }
     tree_nodes[0].available_global_feature_num = global_feature_num;
-    tree_nodes[0].sample_size = training_data.size();
+    tree_nodes[0].sample_size = sample_num;
+    tree_nodes[0].classes_num = classes_num;
     tree_nodes[0].type = type;
     tree_nodes[0].best_feature_id = -1;
     tree_nodes[0].best_client_id = -1;
@@ -236,7 +238,8 @@ void DecisionTree::init_root_node(Client & client) {
     tree_nodes[0].is_self_feature = -1;
     tree_nodes[0].left_child = -1;
     tree_nodes[0].right_child = -1;
-    tree_nodes[0].sample_iv = new EncodedNumber[training_data.size()];
+    tree_nodes[0].sample_iv = new EncodedNumber[sample_num];
+    tree_nodes[0].encrypted_labels = new EncodedNumber[classes_num * sample_num];
 
     EncodedNumber tmp;
     tmp.set_integer(client.m_pk->n[0], 1);
@@ -244,6 +247,46 @@ void DecisionTree::init_root_node(Client & client) {
     // init encrypted mask vector on the root node
     for (int i = 0; i < training_data.size(); i++) {
         djcs_t_aux_encrypt(client.m_pk, client.m_hr, tree_nodes[0].sample_iv[i], tmp);
+    }
+
+    int used_classes_num = classes_num; // default is not packing
+    // if super client, compute the encrypted label information and broadcast to the other clients
+    if (client.client_id == 0) {
+        std::string result_str;
+        EncodedNumber * encrypted_label_vector = new EncodedNumber[used_classes_num * sample_num]; // one dimension encrypted label vector
+        for (int i = 0; i < used_classes_num; i++) {
+            for (int j = 0; j < sample_num; j++) {
+                EncodedNumber tmp_label;
+                if (type == 0) {
+                    tmp_label.set_float(client.m_pk->n[0], indicator_class_vecs[i][j]); // classification use indicator_class_vecs
+                } else {
+                    tmp_label.set_float(client.m_pk->n[0], variance_stat_vecs[i][j]); // regression use variance_stat_vecs
+                }
+                // encrypt the label
+                djcs_t_aux_encrypt(client.m_pk, client.m_hr, encrypted_label_vector[i * sample_num + j], tmp_label);
+                tree_nodes[0].encrypted_labels[i * sample_num + j] = encrypted_label_vector[i * sample_num + j];
+            }
+        }
+
+        // serialize and send to the other client
+        serialize_encrypted_label_vector(0, used_classes_num, training_data_labels.size(), encrypted_label_vector, result_str);
+        for (int i = 0; i < client.client_num; i++) {
+            if (i != client.client_id) {
+                client.send_long_messages(i, result_str);
+            }
+        }
+        delete [] encrypted_label_vector;
+    } else {
+        // if not super client, receive the encrypted label information and set for the root node
+        std::string recv_result_str;
+        EncodedNumber * recv_encrypted_label_vector;
+        client.recv_long_messages(0, recv_result_str);
+        int recv_node_index;
+        deserialize_encrypted_label_vector(recv_node_index, recv_encrypted_label_vector, recv_result_str);
+        for (int i = 0; i < used_classes_num * sample_num; i++) {
+            tree_nodes[0].encrypted_labels[i] = recv_encrypted_label_vector[i];
+        }
+        delete [] recv_encrypted_label_vector;
     }
 
     if (type == 0) {
@@ -392,6 +435,7 @@ bool DecisionTree::check_pruning_conditions(Client & client, int node_index) {
                 delete [] inv_encoded;
                 delete [] encoded_labels;
                 delete [] dot_product_res;
+
             }
 
             // send encrypted impurity and plaintext label
@@ -481,7 +525,7 @@ bool DecisionTree::check_pruning_conditions_spdz(Client &client, int node_index)
 
             // the super client sends computation id for SPDZ computation of a specific branch
             std::vector<int> computation_id;
-            computation_id.push_back(0);
+            computation_id.push_back(LeafCheck);
             send_public_values(computation_id, sockets, NUM_SPDZ_PARTIES);
 
             // convert encrypted_conditions into secret shares and send to SPDZ parties
@@ -536,34 +580,31 @@ bool DecisionTree::check_pruning_conditions_spdz(Client &client, int node_index)
         if (client.client_id == 0) {
             // the super client sends computation id for SPDZ computation of a specific branch
             std::vector<int> computation_id;
-            computation_id.push_back(1);
+            computation_id.push_back(LeafLabelComp);
             send_public_values(computation_id, sockets, NUM_SPDZ_PARTIES);
 
             if (type == 0) {
                 // compute sample num of each class
-                int size = indicator_class_vecs.size();
-                EncodedNumber *class_sample_nums = new EncodedNumber[size];
-                for (int xx = 0; xx < size; xx++) {
-                    class_sample_nums[xx].set_integer(client.m_pk->n[0], 0);
-                    djcs_t_aux_encrypt(client.m_pk, client.m_hr, class_sample_nums[xx], class_sample_nums[xx]);
-                    for (int j = 0; j < indicator_class_vecs[xx].size(); j++) {
-                        if (indicator_class_vecs[xx][j] == 1) {
-                            djcs_t_aux_ee_add(client.m_pk, class_sample_nums[xx], class_sample_nums[xx], tree_nodes[node_index].sample_iv[j]);
-                        }
+                EncodedNumber *class_sample_nums = new EncodedNumber[classes_num];
+                for (int xx = 0; xx < classes_num; xx++) {
+                    class_sample_nums[xx] = tree_nodes[node_index].encrypted_labels[xx * tree_nodes[node_index].sample_size + 0];
+                    for (int j = 1; j < tree_nodes[node_index].sample_size; j++) {
+                        djcs_t_aux_ee_add(client.m_pk, class_sample_nums[xx],
+                                class_sample_nums[xx], tree_nodes[node_index].encrypted_labels[xx * tree_nodes[node_index].sample_size + j]);
                     }
                 }
-                client.ciphers_conversion_to_shares(class_sample_nums, label_info_shares, size, 0);
+                client.ciphers_conversion_to_shares(class_sample_nums, label_info_shares, classes_num, FLOAT_PRECISION);
 
                 // send tree type and value num
                 std::vector<int> tree_type;
                 tree_type.push_back(type);
                 send_public_values(tree_type, sockets, NUM_SPDZ_PARTIES);
                 std::vector<int> value_num;
-                value_num.push_back(indicator_class_vecs.size());
+                value_num.push_back(classes_num);
                 send_public_values(value_num, sockets, NUM_SPDZ_PARTIES);
 
                 // send shares
-                for (int i = 0; i < size; i++) {
+                for (int i = 0; i < classes_num; i++) {
                     vector<float> x;
                     x.push_back(label_info_shares[i]);
                     send_private_batch_shares(x, sockets, NUM_SPDZ_PARTIES);
@@ -572,21 +613,19 @@ bool DecisionTree::check_pruning_conditions_spdz(Client &client, int node_index)
                 delete [] class_sample_nums;
             } else {
                 EncodedNumber *label_info = new EncodedNumber[1];
-                // compute available sample num and encrypted label sums
-                EncodedNumber *encoded_labels = new EncodedNumber[training_data_labels.size()];
-                for (int i = 0; i < training_data_labels.size(); i++) {
-                    encoded_labels[i].set_float(client.m_pk->n[0], training_data_labels[i]);
+                EncodedNumber *encrypted_sample_num_aux = new EncodedNumber[1];
+                label_info[0] = tree_nodes[node_index].encrypted_labels[0];
+                for (int i = 1; i < tree_nodes[node_index].sample_size; i++) {
+                    djcs_t_aux_ee_add(client.m_pk, label_info[0],
+                            label_info[0], tree_nodes[node_index].encrypted_labels[0 * tree_nodes[node_index].sample_size + i]);
                 }
-                djcs_t_aux_inner_product(client.m_pk, client.m_hr, label_info[0],
-                                         tree_nodes[node_index].sample_iv, encoded_labels, training_data_labels.size());
-
-                encrypted_sample_num[0].set_integer(client.m_pk->n[0], 0);
-                djcs_t_aux_encrypt(client.m_pk, client.m_hr, encrypted_sample_num[0], encrypted_sample_num[0]);
+                encrypted_sample_num_aux[0].set_integer(client.m_pk->n[0], 0);
+                djcs_t_aux_encrypt(client.m_pk, client.m_hr, encrypted_sample_num_aux[0], encrypted_sample_num_aux[0]);
                 for (int i = 0; i < tree_nodes[node_index].sample_size; i++) {
-                    djcs_t_aux_ee_add(client.m_pk, encrypted_sample_num[0], encrypted_sample_num[0], tree_nodes[node_index].sample_iv[i]);
+                    djcs_t_aux_ee_add(client.m_pk, encrypted_sample_num_aux[0], encrypted_sample_num_aux[0], tree_nodes[node_index].sample_iv[i]);
                 }
                 client.ciphers_conversion_to_shares(label_info, label_info_shares_1, 1, FLOAT_PRECISION);
-                client.ciphers_conversion_to_shares(encrypted_sample_num, label_info_shares_2, 1, 0);
+                client.ciphers_conversion_to_shares(encrypted_sample_num_aux, label_info_shares_2, 1, 0);
                 label_info_shares.push_back(label_info_shares_1[0]);
                 label_info_shares.push_back(label_info_shares_2[0]);
 
@@ -606,12 +645,12 @@ bool DecisionTree::check_pruning_conditions_spdz(Client &client, int node_index)
                 }
 
                 delete [] label_info;
-                delete [] encoded_labels;
+                delete [] encrypted_sample_num_aux;
             }
         } else {
             if (type == 0) {
                 EncodedNumber *class_sample_nums = new EncodedNumber[classes_num];
-                client.ciphers_conversion_to_shares(class_sample_nums, label_info_shares, classes_num, 0);
+                client.ciphers_conversion_to_shares(class_sample_nums, label_info_shares, classes_num, FLOAT_PRECISION);
 
                 // send shares
                 for (int i = 0; i < classes_num; i++) {
@@ -622,8 +661,9 @@ bool DecisionTree::check_pruning_conditions_spdz(Client &client, int node_index)
                 delete [] class_sample_nums;
             } else {
                 EncodedNumber *label_info = new EncodedNumber[1];
+                EncodedNumber *encrypted_sample_num_aux = new EncodedNumber[1];
                 client.ciphers_conversion_to_shares(label_info, label_info_shares_1, 1, FLOAT_PRECISION);
-                client.ciphers_conversion_to_shares(encrypted_sample_num, label_info_shares_2, 1, 0);
+                client.ciphers_conversion_to_shares(encrypted_sample_num_aux, label_info_shares_2, 1, 0);
                 label_info_shares.push_back(label_info_shares_1[0]);
                 label_info_shares.push_back(label_info_shares_2[0]);
 
@@ -634,6 +674,7 @@ bool DecisionTree::check_pruning_conditions_spdz(Client &client, int node_index)
                     send_private_batch_shares(x, sockets, NUM_SPDZ_PARTIES);
                 }
                 delete [] label_info;
+                delete [] encrypted_sample_num_aux;
             }
         }
         std::vector<float> label = receive_result(sockets, NUM_SPDZ_PARTIES, 1);
@@ -648,6 +689,10 @@ bool DecisionTree::check_pruning_conditions_spdz(Client &client, int node_index)
         for (unsigned int i = 0; i < sockets.size(); i++) {
             close_client_socket(sockets[i]);
         }
+
+        // free tree node sample_iv and encrypted_labels vectors for saving memory usage
+        delete [] tree_nodes[node_index].sample_iv;
+        delete [] tree_nodes[node_index].encrypted_labels;
     }
     logger(logger_out, "Pruning conditions check finished\n");
     delete [] encrypted_sample_num;
@@ -687,16 +732,42 @@ void DecisionTree::build_tree_node(Client & client, int node_index) {
         exit(1);
     }
 
+    // if GBDT should find labels by dot product of two ciphertext vectors
+    if (GBDT_FLAG == 1) {
+        logger(logger_out, "Simulate GBDT ciphertext multiplication\n");
+        // simulate multiplication between [z] and [y]
+        EncodedNumber * encoded_values = new EncodedNumber[training_data.size()];
+        EncodedNumber * encrypted_values = new EncodedNumber[training_data.size()];
+        for (int i = 0; i < training_data.size(); i++) {
+            encoded_values[i].set_float(client.m_pk->n[0], 0.25);
+            djcs_t_aux_encrypt(client.m_pk, client.m_hr, encrypted_values[i], encoded_values[i]);
+        }
+
+        EncodedNumber * encoded_values2 = new EncodedNumber[training_data.size()];
+        EncodedNumber * encrypted_values2 = new EncodedNumber[training_data.size()];
+        for (int i = 0; i < training_data.size(); i++) {
+            encoded_values2[i].set_float(client.m_pk->n[0], 1.5);
+            djcs_t_aux_encrypt(client.m_pk, client.m_hr, encrypted_values2[i], encoded_values2[i]);
+        }
+
+        EncodedNumber * res = new EncodedNumber[training_data.size()];
+        client.cipher_vectors_multiplication(encrypted_values2, encrypted_values, res, training_data.size());
+
+        delete [] encoded_values;
+        delete [] encrypted_values;
+        delete [] encoded_values2;
+        delete [] encrypted_values2;
+        delete [] res;
+    }
+
     /** step 1: check pruning conditions and update tree node accordingly */
     if (check_pruning_conditions_spdz(client, node_index)) {
         return; // the corresponding process is in the check function
     }
 
-    int used_classes_num = classes_num; // default is not packing
-
     // if pruning conditions are not satisfied (note that if satisfied, the handle is in the function)
-    EncodedNumber ** encrypted_label_vecs;
-    EncodedNumber *encrypted_labels; // flatten
+    tree_nodes[node_index].is_leaf = 0;
+    int used_classes_num = classes_num; // default is not packing
     int sample_num = training_data.size();
     std::string result_str;
 
@@ -705,66 +776,15 @@ void DecisionTree::build_tree_node(Client & client, int node_index) {
     //logger(logger_out, "prep_data_prefix = %s \n", prep_data_prefix.c_str());
     initialise_fields(prep_data_prefix);
     bigint::init_thread();
+
     // setup sockets
     std::vector<int> sockets = setup_sockets(NUM_SPDZ_PARTIES, client.client_id, client.host_names, SPDZ_PORT_NUM_DT);
     //for (int i = 0; i < NUM_SPDZ_PARTIES; i++) {
     //    logger(logger_out, "socket %d = %d\n", i, sockets[i]);
     //}
 
-    /** step 3: super client computes some encrypted label information and broadcast to the other clients */
-    tree_nodes[node_index].is_leaf = 0;
-    // super client send encrypted labels to the other clients
-    if (client.client_id == 0) {
-        encrypted_labels = new EncodedNumber[used_classes_num * sample_num];
-        for (int i = 0; i < used_classes_num; i++) {
-            for (int j = 0; j < sample_num; j++) {
-                EncodedNumber tmp;
-                if (type == 0) {
-                    tmp.set_float(client.m_pk->n[0], indicator_class_vecs[i][j]); // classification use indicator_class_vecs
-                } else {
-                    tmp.set_float(client.m_pk->n[0], variance_stat_vecs[i][j]); // regression use variance_stat_vecs
-                }
-                djcs_t_aux_ep_mul(client.m_pk, encrypted_labels[i * sample_num + j], tree_nodes[node_index].sample_iv[j], tmp);
-            }
-        }
-        // TODO: currently simulate the computation of encrypted labels for the next tree
-        if (GBDT_FLAG == 1) {
-            logger(logger_out, "The used_classes_num = %d\n", used_classes_num);
-            for (int i = 0; i < used_classes_num; i++) {
-                EncodedNumber * tmp = new EncodedNumber[sample_num];
-                for (int j = 0; j < sample_num; j++) {
-                    tmp[j].set_float(client.m_pk->n[0], variance_stat_vecs[i][j]);
-                    djcs_t_aux_encrypt(client.m_pk, client.m_hr, tmp[j], tmp[j]);
-                }
-                EncodedNumber * res = new EncodedNumber[sample_num];
-                client.cipher_vectors_multiplication(tree_nodes[node_index].sample_iv, tmp, res, sample_num);
-                delete [] tmp;
-                delete [] res;
-            }
-        }
-
-        // serialize and send to the other client
-        serialize_encrypted_label_vector(node_index, used_classes_num, training_data_labels.size(), encrypted_labels, result_str);
-        for (int i = 0; i < client.client_num; i++) {
-            if (i != client.client_id) {
-                client.send_long_messages(i, result_str);
-            }
-        }
-    } else {
-        client.recv_long_messages(0, result_str);
-        int recv_node_index;
-        deserialize_encrypted_label_vector(recv_node_index, encrypted_labels, result_str);
-    }
-
-    encrypted_label_vecs = new EncodedNumber*[used_classes_num];
-    for (int i = 0; i < used_classes_num; i++) {
-        encrypted_label_vecs[i] = new EncodedNumber[sample_num];
-    }
-    for (int i = 0; i < used_classes_num * sample_num; i++) {
-        int a = i / sample_num;
-        int b = i % sample_num;
-        encrypted_label_vecs[a][b] = encrypted_labels[i];
-    }
+    /** step 3: super client computes some encrypted label information and broadcast to the other clients
+     *      -- re-organize these computation in model update step */
 
     /** step 4: every client locally compute necessary encrypted statistics, i.e., #samples per class for classification or variance info */
     /**
@@ -811,7 +831,7 @@ void DecisionTree::build_tree_node(Client & client, int node_index) {
 
             // call compute function
             compute_encrypted_statistics(client, node_index, encrypted_statistics,
-                    encrypted_label_vecs, encrypted_left_branch_sample_nums, encrypted_right_branch_sample_nums);
+                    tree_nodes[node_index].encrypted_labels, encrypted_left_branch_sample_nums, encrypted_right_branch_sample_nums);
         }
 
         global_encrypted_statistics = new EncodedNumber*[MAX_GLOBAL_SPLIT_NUM];
@@ -901,7 +921,7 @@ void DecisionTree::build_tree_node(Client & client, int node_index) {
 
             // call compute function
             compute_encrypted_statistics(client, node_index, encrypted_statistics,
-                    encrypted_label_vecs, encrypted_left_branch_sample_nums, encrypted_right_branch_sample_nums);
+                    tree_nodes[node_index].encrypted_labels, encrypted_left_branch_sample_nums, encrypted_right_branch_sample_nums);
 
             // send encrypted statistics to the super client
             std::string s;
@@ -917,7 +937,6 @@ void DecisionTree::build_tree_node(Client & client, int node_index) {
     }
 
     /** step 5: encrypted statistics computed finished, convert the encrypted values to secret shares */
-
     struct timeval conversion_1, conversion_2;
     double conversion_time = 0;
     gettimeofday(&conversion_1, NULL);
@@ -1073,16 +1092,14 @@ void DecisionTree::build_tree_node(Client & client, int node_index) {
     logger(logger_out, "Secret share conversion time: %'.3f ms\n", conversion_time);
 
     /** step 6: secret shares conversion finished, talk to SPDZ parties for MPC computations */
-
     struct timeval spdz_1, spdz_2;
     double spdz_time = 0;
     gettimeofday(&spdz_1, NULL);
 
     if (client.client_id == 0) {
-
         // first send computation id
         std::vector<int> computation_id;
-        computation_id.push_back(2);
+        computation_id.push_back(FindBestSplit);
         send_public_values(computation_id, sockets, NUM_SPDZ_PARTIES);
 
         send_public_parameters(type, global_split_num, classes_num, used_classes_num, sockets, NUM_SPDZ_PARTIES);
@@ -1125,7 +1142,6 @@ void DecisionTree::build_tree_node(Client & client, int node_index) {
     logger(logger_out, "SPDZ time: %'.3f ms\n", spdz_time);
 
     /** step 7: update tree nodes, including sample iv for the next tree node computation */
-
     int left_child_index = 2 * node_index + 1;
     int right_child_index = 2 * node_index + 2;
     // convert the index_in_global_split_num to (i_*, index_*) and send to i_* client
@@ -1141,6 +1157,8 @@ void DecisionTree::build_tree_node(Client & client, int node_index) {
             index_tmp = index_tmp - client_split_nums[i];
         }
     }
+
+    logger(logger_out, "Best split client: i_star = %d\n", i_star);
 
     if (i_star == client.client_id) {
         // compute locally and broadcast, find the j_* feature and s_* split
@@ -1228,6 +1246,8 @@ void DecisionTree::build_tree_node(Client & client, int node_index) {
         tree_nodes[right_child_index].impurity = aggregate_enc_impurities[1];
         tree_nodes[left_child_index].sample_size = tree_nodes[node_index].sample_size;
         tree_nodes[right_child_index].sample_size = tree_nodes[node_index].sample_size;
+        tree_nodes[left_child_index].classes_num = tree_nodes[node_index].classes_num;
+        tree_nodes[right_child_index].classes_num = tree_nodes[node_index].classes_num;
         tree_nodes[left_child_index].type = tree_nodes[node_index].type;
         tree_nodes[right_child_index].type = tree_nodes[node_index].type;
         tree_nodes[left_child_index].available_global_feature_num = tree_nodes[node_index].available_global_feature_num - 1;
@@ -1241,7 +1261,7 @@ void DecisionTree::build_tree_node(Client & client, int node_index) {
             }
         }
 
-        // compute between split_left_iv and sample_iv and update
+        // compute between split_iv and sample_iv and update
         std::vector<int> split_left_iv = features[j_star].split_ivs_left[s_star];
         std::vector<int> split_right_iv = features[j_star].split_ivs_right[s_star];
 
@@ -1258,13 +1278,47 @@ void DecisionTree::build_tree_node(Client & client, int node_index) {
         }
 
         // serialize and send to the other clients
-        std::string update_str;
+        std::string update_str_sample_iv;
         serialize_update_info(client.client_id, client.client_id, j_star, s_star, aggregate_enc_impurities[0], aggregate_enc_impurities[1],
                 tree_nodes[left_child_index].sample_iv, tree_nodes[right_child_index].sample_iv,
-                tree_nodes[node_index].sample_size, update_str);
+                tree_nodes[node_index].sample_size, update_str_sample_iv);
         for (int i = 0; i < client.client_num; i++) {
             if (i != client.client_id) {
-                client.send_long_messages(i, update_str);
+                client.send_long_messages(i, update_str_sample_iv);
+            }
+        }
+
+        // compute between split_iv and encrypted_labels and update
+        tree_nodes[left_child_index].encrypted_labels = new EncodedNumber[used_classes_num * sample_num];
+        tree_nodes[right_child_index].encrypted_labels = new EncodedNumber[used_classes_num * sample_num];
+
+        EncodedNumber * encrypted_label_vector_left = new EncodedNumber[used_classes_num * sample_num];
+        EncodedNumber * encrypted_label_vector_right = new EncodedNumber[used_classes_num * sample_num];
+
+        for (int i = 0; i < tree_nodes[node_index].classes_num; i++) {
+            for (int j = 0; j < tree_nodes[node_index].sample_size; j++) {
+                EncodedNumber left, right;
+                left.set_integer(client.m_pk->n[0], split_left_iv[j]);
+                right.set_integer(client.m_pk->n[0], split_right_iv[j]);
+                djcs_t_aux_ep_mul(client.m_pk, tree_nodes[left_child_index].encrypted_labels[i * sample_num + j],
+                        tree_nodes[node_index].encrypted_labels[i * sample_num + j], left);
+                djcs_t_aux_ep_mul(client.m_pk, tree_nodes[right_child_index].encrypted_labels[i * sample_num + j],
+                        tree_nodes[node_index].encrypted_labels[i * sample_num + j], right);
+                encrypted_label_vector_left[i * sample_num + j] = tree_nodes[left_child_index].encrypted_labels[i * sample_num + j];
+                encrypted_label_vector_right[i * sample_num + j] = tree_nodes[right_child_index].encrypted_labels[i * sample_num + j];
+            }
+        }
+
+        // serialize and send to the other client
+        std::string update_str_encrypted_labels_left, update_str_encrypted_labels_right;
+        serialize_encrypted_label_vector(left_child_index, used_classes_num, sample_num,
+                encrypted_label_vector_left, update_str_encrypted_labels_left);
+        serialize_encrypted_label_vector(right_child_index, used_classes_num, sample_num,
+                                         encrypted_label_vector_right, update_str_encrypted_labels_right);
+        for (int i = 0; i < client.client_num; i++) {
+            if (i != client.client_id) {
+                client.send_long_messages(i, update_str_encrypted_labels_left);
+                client.send_long_messages(i, update_str_encrypted_labels_right);
             }
         }
 
@@ -1273,6 +1327,8 @@ void DecisionTree::build_tree_node(Client & client, int node_index) {
         split_left_iv.shrink_to_fit();
         split_right_iv.shrink_to_fit();
         delete [] aggregate_enc_impurities;
+        delete [] encrypted_label_vector_left;
+        delete [] encrypted_label_vector_right;
 
     } else { /** step 8: every client update the local tree model */
         // serialize encrypted impurities and send to i_star
@@ -1301,15 +1357,23 @@ void DecisionTree::build_tree_node(Client & client, int node_index) {
         logger(logger_out, "Enhance solution additional time: %'.3f ms\n", enhanced_time);
 
         // receive from i_star client and update
-        std::string recv_update_str;
-        client.recv_long_messages(i_star, recv_update_str);
+        std::string recv_update_str_sample_iv, recv_update_str_encrypted_labels_left, recv_update_str_encrypted_labels_right;
+        client.recv_long_messages(i_star, recv_update_str_sample_iv);
+        client.recv_long_messages(i_star, recv_update_str_encrypted_labels_left);
+        client.recv_long_messages(i_star, recv_update_str_encrypted_labels_right);
 
-        // deserialize and update
+        logger(logger_out, "Correctly receive update sample iv and label information\n");
+
+        // deserialize and update sample iv
         int recv_source_client_id, recv_best_client_id, recv_best_feature_id, recv_best_split_id;
         EncodedNumber recv_left_impurity, recv_right_impurity;
-        EncodedNumber *recv_left_sample_iv, *recv_right_sample_iv;
+        EncodedNumber *recv_left_sample_iv, *recv_right_sample_iv, *recv_encrypted_label_vector_left, *recv_encrypted_label_vector_right;
         deserialize_update_info(recv_source_client_id, recv_best_client_id, recv_best_feature_id, recv_best_split_id,
-                recv_left_impurity, recv_right_impurity, recv_left_sample_iv, recv_right_sample_iv, recv_update_str);
+                recv_left_impurity, recv_right_impurity, recv_left_sample_iv, recv_right_sample_iv, recv_update_str_sample_iv);
+
+        int recv_node_index;
+        deserialize_encrypted_label_vector(recv_node_index, recv_encrypted_label_vector_left, recv_update_str_encrypted_labels_left);
+        deserialize_encrypted_label_vector(recv_node_index, recv_encrypted_label_vector_right, recv_update_str_encrypted_labels_right);
 
         // update tree nodes
         if (i_star != recv_best_client_id) {
@@ -1334,6 +1398,8 @@ void DecisionTree::build_tree_node(Client & client, int node_index) {
         tree_nodes[right_child_index].impurity = recv_right_impurity;
         tree_nodes[left_child_index].sample_size = tree_nodes[node_index].sample_size;
         tree_nodes[right_child_index].sample_size = tree_nodes[node_index].sample_size;
+        tree_nodes[left_child_index].classes_num = tree_nodes[node_index].classes_num;
+        tree_nodes[right_child_index].classes_num = tree_nodes[node_index].classes_num;
         tree_nodes[left_child_index].type = tree_nodes[node_index].type;
         tree_nodes[right_child_index].type = tree_nodes[node_index].type;
         tree_nodes[left_child_index].available_global_feature_num = tree_nodes[node_index].available_global_feature_num - 1;
@@ -1346,8 +1412,23 @@ void DecisionTree::build_tree_node(Client & client, int node_index) {
             tree_nodes[right_child_index].sample_iv[i] = recv_right_sample_iv[i];
         }
 
+        // update encrypted labels
+        tree_nodes[left_child_index].encrypted_labels = new EncodedNumber[used_classes_num * sample_num];
+        tree_nodes[right_child_index].encrypted_labels = new EncodedNumber[used_classes_num * sample_num];
+
+        for (int i = 0; i < used_classes_num * sample_num; i++) {
+            //int a = i / sample_num;
+            //int b = i % sample_num;
+            tree_nodes[left_child_index].encrypted_labels[i] = recv_encrypted_label_vector_left[i];
+            tree_nodes[right_child_index].encrypted_labels[i] = recv_encrypted_label_vector_right[i];
+        }
+
+        logger(logger_out, "Correctly update tree nodes\n");
+
         delete [] recv_left_sample_iv;
         delete [] recv_right_sample_iv;
+        delete [] recv_encrypted_label_vector_left;
+        delete [] recv_encrypted_label_vector_right;
     }
 
     // close connection with the SPDZ parties, otherwise, the next node cannot connect
@@ -1360,17 +1441,11 @@ void DecisionTree::build_tree_node(Client & client, int node_index) {
     logger(logger_out, "Build a tree node time: %'.3f ms\n", tree_node_time);
 
     /** free memory used before recursive function call to save memory */
-
-    delete [] encrypted_labels;
     delete [] encrypted_left_branch_sample_nums;
     delete [] encrypted_right_branch_sample_nums;
     delete [] global_left_branch_sample_nums;
     delete [] global_right_branch_sample_nums;
     delete [] encrypted_impurities;
-    for (int i = 0; i < used_classes_num; i++) {
-        delete [] encrypted_label_vecs[i];
-    }
-    delete [] encrypted_label_vecs;
 
     if (local_splits_num != 0) {
         for (int i = 0; i < local_splits_num; i++) {
@@ -1398,22 +1473,21 @@ void DecisionTree::build_tree_node(Client & client, int node_index) {
     client_split_nums.clear();
     client_split_nums.shrink_to_fit();
 
-    // sample_iv of the current node will never used again, so free the memory
-    //delete [] tree_nodes[node_index].sample_iv;
+    // free tree node sample_iv and encrypted_labels vectors for saving memory usage
+    delete [] tree_nodes[node_index].sample_iv;
+    delete [] tree_nodes[node_index].encrypted_labels;
 
     /** step 9: recursively build the next child tree nodes */
-
     internal_node_num += 1;
     build_tree_node(client, left_child_index);
     build_tree_node(client, right_child_index);
-
     logger(logger_out, "End build tree node %d\n", node_index);
 }
 
 
 void DecisionTree::compute_encrypted_statistics(Client & client, int node_index,
         EncodedNumber ** & encrypted_statistics,
-        EncodedNumber ** encrypted_label_vecs,
+        EncodedNumber * encrypted_label_vecs,
         EncodedNumber * & encrypted_left_sample_nums,
         EncodedNumber * & encrypted_right_sample_nums) {
 
@@ -1501,7 +1575,7 @@ void DecisionTree::compute_encrypted_statistics(Client & client, int node_index,
             for (int sample_idx = 0; sample_idx < sample_num; sample_idx++) {
                 int sorted_idx = sorted_indices[sample_idx];
                 for (int c = 0; c < used_classes_num; c++) {
-                    djcs_t_aux_ee_add(client.m_pk, sums_stats[c], sums_stats[c], encrypted_label_vecs[c][sorted_idx]);
+                    djcs_t_aux_ee_add(client.m_pk, sums_stats[c], sums_stats[c], encrypted_label_vecs[c * sample_num + sorted_idx]);
                 }
                 if (split_iterator == split_num) {
                     continue;
@@ -1515,7 +1589,7 @@ void DecisionTree::compute_encrypted_statistics(Client & client, int node_index,
                 }
                 for (int c = 0; c < used_classes_num; c++) {
                     djcs_t_aux_ee_add(client.m_pk, left_stats[split_iterator][c],
-                            left_stats[split_iterator][c], encrypted_label_vecs[c][sorted_idx]);
+                            left_stats[split_iterator][c], encrypted_label_vecs[c * sample_num + sorted_idx]);
                 }
             }
 
@@ -1603,10 +1677,10 @@ void DecisionTree::compute_encrypted_statistics(Client & client, int node_index,
 
                     for (int k = 0; k < sample_num; k++) {
                         if (left_iv[k] == 1) {
-                            djcs_t_aux_ee_add(client.m_pk, left_stat, left_stat, encrypted_label_vecs[c][k]);
+                            djcs_t_aux_ee_add(client.m_pk, left_stat, left_stat, encrypted_label_vecs[c * sample_num + k]);
                         }
                         if (right_iv[k] == 1) {
-                            djcs_t_aux_ee_add(client.m_pk, right_stat, right_stat, encrypted_label_vecs[c][k]);
+                            djcs_t_aux_ee_add(client.m_pk, right_stat, right_stat, encrypted_label_vecs[c * sample_num + k]);
                         }
                     }
 

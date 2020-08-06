@@ -34,7 +34,7 @@ void system_setup() {
     pk = djcs_t_init_public_key();
     vk = djcs_t_init_private_key();
 
-    djcs_t_generate_key_pair(pk, vk, hr, 1, 512, TOTAL_CLIENT_NUM, TOTAL_CLIENT_NUM);
+    djcs_t_generate_key_pair(pk, vk, hr, 1, 1024, TOTAL_CLIENT_NUM, TOTAL_CLIENT_NUM);
     hr = hcs_init_random();
     mpz_t *coeff = djcs_t_init_polynomial(vk, hr);
 
@@ -246,9 +246,9 @@ float decision_tree(Client & client, int solution_type, int optimization_type, i
 
     gettimeofday(&decision_tree_training_2, NULL);
     decision_tree_training_time += (double)((decision_tree_training_2.tv_sec - decision_tree_training_1.tv_sec) * 1000 + (double)(decision_tree_training_2.tv_usec - decision_tree_training_1.tv_usec) / 1000);
-    logger(logger_out, "*********************************************************************");
+    logger(logger_out, "*********************************************************************\n");
     logger(logger_out, "******** Decision tree training time: %'.3f ms **********\n", decision_tree_training_time);
-    logger(logger_out, "*********************************************************************");
+    logger(logger_out, "*********************************************************************\n");
 
 
     struct timeval decision_tree_prediction_1, decision_tree_prediction_2;
@@ -262,9 +262,9 @@ float decision_tree(Client & client, int solution_type, int optimization_type, i
     decision_tree_prediction_average_time += (double)((decision_tree_prediction_2.tv_sec - decision_tree_prediction_1.tv_sec) * 1000 +
             (double)(decision_tree_prediction_2.tv_usec - decision_tree_prediction_1.tv_usec) / 1000);
     decision_tree_prediction_average_time = decision_tree_prediction_average_time / (double) model.testing_data.size();
-    logger(logger_out, "*********************************************************************");
+    logger(logger_out, "*********************************************************************\n");
     logger(logger_out, "********* Average decision tree prediction time: %'.3f ms ************\n", decision_tree_prediction_average_time);
-    logger(logger_out, "*********************************************************************");
+    logger(logger_out, "*********************************************************************\n");
 
     if (client.client_id == 0) {
         logger(logger_out, "Accuracy = %f\n", accuracy);
@@ -318,9 +318,9 @@ float random_forest(Client & client, int solution_type, int optimization_type, i
     gettimeofday(&random_forest_training_2, NULL);
     random_forest_training_time += (double)((random_forest_training_2.tv_sec - random_forest_training_1.tv_sec) * 1000 +
             (double)(random_forest_training_2.tv_usec - random_forest_training_1.tv_usec) / 1000);
-    logger(logger_out, "*********************************************************************");
+    logger(logger_out, "*********************************************************************\n");
     logger(logger_out, "******** Random forest training time: %'.3f ms **********\n", random_forest_training_time);
-    logger(logger_out, "*********************************************************************");
+    logger(logger_out, "*********************************************************************\n");
 
     struct timeval random_forest_prediction_1, random_forest_prediction_2;
     double random_forest_prediction_average_time = 0;
@@ -333,9 +333,9 @@ float random_forest(Client & client, int solution_type, int optimization_type, i
     random_forest_prediction_average_time += (double)((random_forest_prediction_2.tv_sec - random_forest_prediction_1.tv_sec) * 1000 +
             (double)(random_forest_prediction_2.tv_usec - random_forest_prediction_1.tv_usec) / 1000);
     random_forest_prediction_average_time = random_forest_prediction_average_time / (double) model.testing_data.size();
-    logger(logger_out, "*********************************************************************");
+    logger(logger_out, "*********************************************************************\n");
     logger(logger_out, "********* Average random forest prediction time: %'.3f ms ************\n", random_forest_prediction_average_time);
-    logger(logger_out, "*********************************************************************");
+    logger(logger_out, "*********************************************************************\n");
 
 
     if (client.client_id == 0) {
@@ -387,14 +387,14 @@ float gbdt(Client & client, int solution_type, int optimization_type, int class_
         delete [] new_indexes;
     }
 
-    model.build_gbdt(client);
+    model.build_gbdt_with_spdz(client);
 
     gettimeofday(&gbdt_training_2, NULL);
     gbdt_training_time += (double)((gbdt_training_2.tv_sec - gbdt_training_1.tv_sec) * 1000 +
                                             (double)(gbdt_training_2.tv_usec - gbdt_training_1.tv_usec) / 1000);
-    logger(logger_out, "*********************************************************************");
+    logger(logger_out, "*********************************************************************\n");
     logger(logger_out, "******** GBDT training time: %'.3f ms **********\n", gbdt_training_time);
-    logger(logger_out, "*********************************************************************");
+    logger(logger_out, "*********************************************************************\n");
 
     struct timeval gbdt_prediction_1, gbdt_prediction_2;
     double gbdt_prediction_average_time = 0;
@@ -407,9 +407,9 @@ float gbdt(Client & client, int solution_type, int optimization_type, int class_
     gbdt_prediction_average_time += (double)((gbdt_prediction_2.tv_sec - gbdt_prediction_1.tv_sec) * 1000 +
                                                       (double)(gbdt_prediction_2.tv_usec - gbdt_prediction_1.tv_usec) / 1000);
     gbdt_prediction_average_time = gbdt_prediction_average_time / (double) model.testing_data.size();
-    logger(logger_out, "*********************************************************************");
+    logger(logger_out, "*********************************************************************\n");
     logger(logger_out, "********* Average GBDT prediction time: %'.3f ms ************\n", gbdt_prediction_average_time);
-    logger(logger_out, "*********************************************************************");
+    logger(logger_out, "*********************************************************************\n");
 
     //model.test_accuracy_with_spdz(client, accuracy);
     if (client.client_id == 0) {

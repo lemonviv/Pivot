@@ -22,16 +22,17 @@ public:
     int available_global_feature_num;           // the number of global features globally
     int type;                                   // 0: classification, 1: regression
     int sample_size;                            // the number of samples on the node
+    int classes_num;                            // the number of classes on the node
     EncodedNumber impurity;                     // the impurity of the current tree node, Gini index for classification, variance for regression
     EncodedNumber *sample_iv;                   // the encrypted indicator vector of which samples are available on this node
+    EncodedNumber *encrypted_labels;            // the encrypted label information, classification: classes_num * sample_num, regression: 2 * sample_num
     EncodedNumber label;                        // if is_leaf is true, a label is assigned
     int left_child;                             // left branch id of the current node, if it is not a leaf node, -1: not decided
     int right_child;                            // right branch id of the current node, if it is not a leaf node, -1: not decided
 
-
 public:
     TreeNode();
-    TreeNode(int m_depth, int type, int sample_size, EncodedNumber *sample_iv);
+    TreeNode(int m_depth, int type, int sample_size, int m_classes_num, EncodedNumber *sample_iv, EncodedNumber *m_encrypted_labels);
     ~TreeNode();
 
     void print_node();
