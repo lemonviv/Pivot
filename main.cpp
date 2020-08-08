@@ -7,7 +7,6 @@
 #include "src/utils/encoder.h"
 #include "src/utils/djcs_t_aux.h"
 #include "src/utils/pb_converter.h"
-#include "src/models/logistic_regression.h"
 #include "src/client/Client.h"
 #include "src/models/cart_tree.h"
 #include "src/models/feature.h"
@@ -17,7 +16,6 @@
 
 #include "tests/test_encoder.h"
 #include "tests/test_djcs_t_aux.h"
-#include "tests/test_logistic_regression.h"
 #include "tests/test_pb_converter.h"
 
 hcs_random *hr;
@@ -160,40 +158,6 @@ void test_share_decrypt(Client client) {
         client.recv_long_messages(0, s);
         client.decrypt_batch_piece(s, response_s, 0);
     }
-}
-
-void logistic_regression(Client client) {
-
-    LogisticRegression model(BATCH_SIZE, MAX_ITERATION, CONVERGENCE_THRESHOLD, ALPHA, client.feature_num);
-
-    logger(logger_out, "init finished\n");
-
-    float split = 0.8;
-    if (client.client_id == 0) {
-        model.init_datasets(client, split);
-    } else {
-        int *new_indexes = new int[client.sample_num];
-        std::string recv_s;
-        client.recv_long_messages(0, recv_s);
-        deserialize_ids_from_string(new_indexes, recv_s);
-        model.init_datasets_with_indexes(client, new_indexes, split);
-
-        delete [] new_indexes;
-    }
-
-    model.train(client);
-
-    int test_size = client.sample_num * (1 - SPLIT_PERCENTAGE);
-    int *sample_ids = new int[test_size];
-    for (int i = 0; i < test_size; i++) {
-        sample_ids[i] = client.sample_num - test_size + i;
-    }
-
-    float accuracy = 0.0;
-    model.test(client, 1, accuracy);
-    logger(logger_out, "Testing accuracy = %f \n", accuracy);
-
-    delete [] sample_ids;
 }
 
 float decision_tree(Client & client, int solution_type, int optimization_type, int class_num, int tree_type,
@@ -574,13 +538,6 @@ int main(int argc, char *argv[]) {
             decision_tree(client, solution_type, optimization_type, class_num, tree_type, max_bins, max_depth, num_trees);
             break;
     }
-
-    //logistic_regression(client)
-    //decision_tree(client, solution_type, optimization_type);
-    //random_forest(client, solution_type, optimization_type, class_num, tree_type);
-    //gbdt(client, solution_type, optimization_type);
-
-    //test_share_decrypt(client);
 
     /**NOTE: the following test is only for single client test with client_id = 0
      * Need to make the test codes independent with the main function

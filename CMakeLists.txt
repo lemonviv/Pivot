@@ -9,8 +9,6 @@ set(SOURCE_FILES main.cpp
         src/client/Client.h
         src/utils/util.h
         src/utils/util.cpp
-        src/models/logistic_regression.h
-        src/models/logistic_regression.cpp
         src/utils/encoder.h
         src/utils/encoder.cpp
         src/utils/djcs_t_aux.h
@@ -19,8 +17,6 @@ set(SOURCE_FILES main.cpp
         tests/test_djcs_t_aux.cpp
         tests/test_encoder.h
         tests/test_djcs_t_aux.h
-        tests/test_logistic_regression.h
-        tests/test_logistic_regression.cpp
         src/utils/pb_converter.h
         src/utils/pb_converter.cpp
         src/include/protobuf/common.pb.h
