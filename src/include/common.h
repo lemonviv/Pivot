@@ -51,18 +51,18 @@ enum OptimizationType {Non, CombiningSplits, Parallelism, All};
 #define DEFAULT_HOST_NAME "localhost"
 
 // ${Program_Home}
-#define PROGRAM_HOME "../../"
+#define PROGRAM_HOME "/home/wuyuncheng/Documents/projects/Pivot/"
 
 // ${Program_Home}/data/networks/Parties.txt
-#define DEFAULT_NETWORK_FILE "../../data/networks/Parties.txt"
+#define DEFAULT_NETWORK_FILE "/home/wuyuncheng/Documents/projects/Pivot/data/networks/Parties.txt"
 
 // ${Program_Home}/data/
-#define DEFAULT_DATA_FILE_PREFIX "../../data/"
+#define DEFAULT_DATA_FILE_PREFIX "/home/wuyuncheng/Documents/projects/Pivot/data/"
 
 // ${Program_Home}/../Pivot-SPDZ/Player-Data/3-128-128/Params-Data
-#define DEFAULT_PARAM_DATA_FILE "../../../Pivot-SPDZ/Player-Data/3-128-128/Params-Data"
+#define DEFAULT_PARAM_DATA_FILE "/home/wuyuncheng/Documents/projects/Pivot-SPDZ/Player-Data/3-128-128/Params-Data"
 
 // ${Program_Home}/log/
-#define LOGGER_HOME "../../log/"
+#define LOGGER_HOME "/home/wuyuncheng/Documents/projects/Pivot/log/"
 
 #endif //PIVOT_COMMON_H
