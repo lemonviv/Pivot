@@ -10,35 +10,28 @@
 extern FILE * logger_out;
 
 void send_private_batch_shares(std::vector<float> shares, std::vector<int>& sockets, int n_parties) {
-
     int number_inputs = shares.size();
     std::vector<int64_t> long_shares(number_inputs);
-
     // step 1: convert to int or long according to the fixed precision
     for (int i = 0; i < number_inputs; ++i) {
         long_shares[i] = static_cast<int64_t>(round(shares[i] * pow(2, SPDZ_FIXED_PRECISION)));
     }
-
     // step 2: convert to the gfp value and call send_private_inputs
     // Map inputs into gfp
     vector<gfp> input_values_gfp(number_inputs);
     for (int i = 0; i < number_inputs; i++) {
         input_values_gfp[i].assign(long_shares[i]);
     }
-
     // Run the computation
     send_private_inputs(input_values_gfp, sockets, n_parties);
 }
 
-
 void send_private_batch_shares_packing(std::vector<float> shares, std::vector<int>& sockets, int n_parties) {
     int number_inputs = shares.size();
-
     // store the base
     int64_t base = pow(2, SPDZ_FIXED_PRECISION);
     gfp helper;
     helper.assign(base);
-
     // init the values
     vector<gfp> input_values_gfp(number_inputs);
     for (int i = 0; i < number_inputs; i++) {
@@ -46,16 +39,12 @@ void send_private_batch_shares_packing(std::vector<float> shares, std::vector<in
         input_values_gfp[i].assign(aa);
         input_values_gfp[i].mul(helper);
     }
-
     // run the computation
     send_private_inputs(input_values_gfp, sockets, n_parties);
 }
 
-
 void send_public_parameters(int type, int global_split_num, int classes_num, int used_classes_num, std::vector<int>& sockets, int n_parties) {
-
     octetStream os;
-
     vector<gfp> parameters(4);
     parameters[0].assign(type);
     parameters[1].assign(global_split_num);
@@ -66,12 +55,10 @@ void send_public_parameters(int type, int global_split_num, int classes_num, int
     parameters[1].pack(os);
     parameters[2].pack(os);
     parameters[3].pack(os);
-
     for (int i = 0; i < n_parties; i++) {
         os.Send(sockets[i]);
     }
 }
-
 
 void send_public_values(std::vector<int> values, std::vector<int>& sockets, int n_parties) {
     octetStream os;
@@ -81,15 +68,12 @@ void send_public_values(std::vector<int> values, std::vector<int>& sockets, int 
         parameters[i].assign(values[i]);
         parameters[i].pack(os);
     }
-
     for (int i = 0; i < n_parties; i++) {
         os.Send(sockets[i]);
     }
 }
 
-
 std::vector<int> setup_sockets(int n_parties, int my_client_id, std::vector<std::string> host_names, int port_base) {
-
     // Setup connections from this client to each party socket
     std::vector<int> sockets(n_parties);
     for (int i = 0; i < n_parties; i++)
@@ -102,14 +86,12 @@ std::vector<int> setup_sockets(int n_parties, int my_client_id, std::vector<std:
     return sockets;
 }
 
-
 void send_private_inputs(const std::vector<gfp>& values, std::vector<int>& sockets, int n_parties)
 {
     int num_inputs = values.size();
     octetStream os;
     std::vector< std::vector<gfp> > triples(num_inputs, vector<gfp>(3));
     std::vector<gfp> triple_shares(3);
-
     // Receive num_inputs triples from SPDZ
     for (int j = 0; j < n_parties; j++)
     {
@@ -125,7 +107,6 @@ void send_private_inputs(const std::vector<gfp>& values, std::vector<int>& socke
             }
         }
     }
-
     // Check triple relations (is a party cheating?)
     for (int i = 0; i < num_inputs; i++)
     {
@@ -135,7 +116,6 @@ void send_private_inputs(const std::vector<gfp>& values, std::vector<int>& socke
             exit(1);
         }
     }
-
     // Send inputs + triple[0], so SPDZ can compute shares of each value
     os.reset_write_head();
     for (int i = 0; i < num_inputs; i++)
@@ -147,29 +127,22 @@ void send_private_inputs(const std::vector<gfp>& values, std::vector<int>& socke
         os.Send(sockets[j]);
 }
 
-
 void initialise_fields(const string& dir_prefix)
 {
     int lg2;
     bigint p;
-
     string filename = DEFAULT_PARAM_DATA_FILE;
     // string filename = "/home/sunxutao/projects/VFL-SPDZ/Player-Data/3-128-128/Params-Data";
-
     //string filename = dir_prefix + "Params-Data";
     //logger(logger_out, "loading params for SPDZ from %s\n", filename.c_str());
-
     ifstream inpf(filename.c_str());
     if (inpf.fail()) { throw file_error(filename.c_str()); }
     inpf >> p;
     inpf >> lg2;
-
     inpf.close();
-
     gfp::init_field(p);
     //gf2n::init_field(lg2);
 }
-
 
 std::vector<float> receive_result(std::vector<int>& sockets, int n_parties, int size)
 {
@@ -186,9 +159,7 @@ std::vector<float> receive_result(std::vector<int>& sockets, int n_parties, int 
             output_values[j] += value;
         }
     }
-
     std::vector<float> res_shares(size);
-
     for (int i = 0; i < size; i++) {
         gfp val = output_values[i];
         bigint aa;
@@ -197,13 +168,10 @@ std::vector<float> receive_result(std::vector<int>& sockets, int n_parties, int 
         //cout<< "i = " << i << ", t = " << t <<endl;
         res_shares[i] = static_cast<float>(t * pow(2, -SPDZ_FIXED_PRECISION));
     }
-
     return res_shares;
 }
 
-
 std::vector<float> receive_result_dt(std::vector<int>& sockets, int n_parties, int size, int & best_split_index) {
-
     logger(logger_out, "Receive result from the SPDZ engine\n");
     std::vector<gfp> output_values(size);
     octetStream os;
@@ -218,9 +186,7 @@ std::vector<float> receive_result_dt(std::vector<int>& sockets, int n_parties, i
             output_values[j] += value;
         }
     }
-
     std::vector<float> res_shares(size - 1);
-
     for (int i = 0; i < size - 1; i++) {
         gfp val = output_values[i];
         bigint aa;
@@ -229,15 +195,12 @@ std::vector<float> receive_result_dt(std::vector<int>& sockets, int n_parties, i
         //cout<< "i = " << i << ", t = " << t <<endl;
         res_shares[i] = static_cast<float>(t * pow(2, -SPDZ_FIXED_PRECISION));
     }
-
     gfp index = output_values[size - 1];
     bigint index_aa;
     to_signed_bigint(index_aa, index);
     best_split_index = index_aa.get_si();
-
     return res_shares;
 }
-
 
 std::vector<float> receive_mode(std::vector<int>& sockets, int n_parties, int size) {
     //logger(logger_out, "Receive mode from the SPDZ engine\n");
@@ -254,7 +217,6 @@ std::vector<float> receive_mode(std::vector<int>& sockets, int n_parties, int si
             output_values[j] += value;
         }
     }
-
     std::vector<float> modes(size);
     for (int i = 0; i < size; i++) {
         gfp val = output_values[i];
@@ -264,6 +226,5 @@ std::vector<float> receive_mode(std::vector<int>& sockets, int n_parties, int si
         //cout<< "i = " << i << ", t = " << t <<endl;
         modes[i] = static_cast<float>(t * pow(2, -SPDZ_FIXED_PRECISION));
     }
-
     return modes;
 }

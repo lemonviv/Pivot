@@ -9,7 +9,6 @@
 #include "gmp.h"
 #include "util.h"
 
-
 /**
  * After decryption, there are four states for the decrypted number:
  *
@@ -20,7 +19,6 @@
  */
 enum EncodedNumberState {Invalid, Positive, Negative, Overflow};
 
-
 /**
  * describe the type of the EncodedNumber, three types
  *
@@ -29,7 +27,6 @@ enum EncodedNumberState {Invalid, Positive, Negative, Overflow};
  * SecretShare: the secret shared value in SCALE-MAMBA
  */
 enum EncodedNumberType {Plaintext, Ciphertext, SecretShare};
-
 
 class EncodedNumber {
 public:
@@ -81,7 +78,6 @@ public:
      */
     ~EncodedNumber();
 
-
     /**
      * make two EncodedNumber exponent the same for computation
      * on the same level, only reasonable when is on plaintexts
@@ -89,7 +85,6 @@ public:
      * @param new_exponent
      */
     void decrease_exponent(int new_exponent);
-
 
     /**
      * given a mpz_t value, increase its exponent for control
@@ -99,7 +94,6 @@ public:
      * @param new_exponent
      */
     void increase_exponent(int new_exponent);
-
 
     /**
      * decode to long value
@@ -116,7 +110,6 @@ public:
      */
     void decode(float & v);
 
-
     /**
      * when exponent is large, decode with truncation
      *
@@ -125,14 +118,12 @@ public:
      */
     void decode_with_truncation(float & v, int truncated_exponent);
 
-
     /**
     * when exponent is large, decode with truncation
     *
     * @param truncated_exponent
     */
     //void truncate_exponent(int truncated_exponent);
-
 
     /**
      * check encoded number
@@ -150,7 +141,6 @@ public:
      */
     EncodedNumberState check_encoded_number();
 
-
     /**
      * compute n // 3 - 1 as max_int
      *
@@ -163,7 +153,6 @@ public:
      */
     void print_encoded_number();
 };
-
 
 /**
  * represent a float with fixed pointed integer
@@ -183,7 +172,6 @@ long long fixed_pointed_integer_representation(float value, int precision);
  */
 void fixed_pointed_encode(long value, mpz_t res, int & exponent);
 
-
 /**
  * encode a float with mpz_t
  *
@@ -194,7 +182,6 @@ void fixed_pointed_encode(long value, mpz_t res, int & exponent);
  */
 void fixed_pointed_encode(float value, int precision, mpz_t res, int & exponent);
 
-
 /**
  * decode a mpz_t to a long value when exponent is 0
  *
@@ -202,7 +189,6 @@ void fixed_pointed_encode(float value, int precision, mpz_t res, int & exponent)
  * @param res
  */
 void fixed_pointed_decode(long & value, mpz_t res);
-
 
 /**
  * decode a mpz_t to a float value when exponent is not 0
@@ -212,7 +198,6 @@ void fixed_pointed_decode(long & value, mpz_t res);
  * @param exponent
  */
 void fixed_pointed_decode(float & value, mpz_t res, int exponent);
-
 
 /**
  * decode a mpz_t to a float value when exponent is not 0 with precision truncation
@@ -224,7 +209,6 @@ void fixed_pointed_decode(float & value, mpz_t res, int exponent);
  * @param truncated_exponent : truncate the res to desired precision to avoid overflow
  */
 void fixed_pointed_decode_truncated(float & value, mpz_t res, int exponent, int truncated_exponent);
-
 
 /**
  * temporary decrypt for debugging, should remove in practical use

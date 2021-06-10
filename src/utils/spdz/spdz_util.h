@@ -19,8 +19,6 @@
 #include <sstream>
 #include <fstream>
 
-
-
 /**
  * send the private partial sums of the current batch to the spdz parties
  *
@@ -71,7 +69,6 @@ void send_public_values(std::vector<int> values, std::vector<int>& sockets, int 
  */
 std::vector<int> setup_sockets(int n_parties, int my_client_id, std::vector<std::string> host_names, int port_base);
 
-
 /**
  * Send the private inputs masked with a random value.
  * Receive shares of a preprocessed triple from each SPDZ engine, combine and check the triples are valid.
@@ -99,7 +96,6 @@ void initialise_fields(const string& dir_prefix);
  */
 std::vector<float> receive_result(std::vector<int>& sockets, int n_parties, int size);
 
-
 /**
  * receive result from spdz for decision tree
  *
@@ -111,7 +107,6 @@ std::vector<float> receive_result(std::vector<int>& sockets, int n_parties, int 
  */
 std::vector<float> receive_result_dt(std::vector<int>& sockets, int n_parties, int size, int & best_split_index);
 
-
 /**
  * receive mode from spdz
  *
@@ -121,6 +116,5 @@ std::vector<float> receive_result_dt(std::vector<int>& sockets, int n_parties, i
  * @return
  */
 std::vector<float> receive_mode(std::vector<int>& sockets, int n_parties, int size);
-
 
 #endif //PIVOT_SPDZ_UTIL_H

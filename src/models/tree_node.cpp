@@ -44,7 +44,6 @@ TreeNode::TreeNode(int m_depth, int m_type, int m_sample_size, int m_classes_num
     available_global_feature_num = -1;
 }
 
-
 TreeNode::TreeNode(const TreeNode &node) {
     is_leaf = node.is_leaf;
     depth = node.depth;
@@ -99,7 +98,6 @@ TreeNode& TreeNode::operator=(TreeNode *node) {
 
 
 void TreeNode::print_node() {
-
     logger(logger_out, "Node depth = %d\n", depth);
     logger(logger_out, "Is leaf = %d\n", is_leaf);
     logger(logger_out, "Is self feature = %d\n", is_self_feature);
@@ -116,16 +114,9 @@ void TreeNode::print_node() {
 
 }
 
-
 TreeNode::~TreeNode() {
-
-    if (available_feature_ids.size() != 0) {
-        available_feature_ids.clear();
-        available_feature_ids.shrink_to_fit();
-    }
-
     if (is_leaf != -1) {
-        //delete [] sample_iv;
-        //delete [] encrypted_labels;
+//        delete [] sample_iv;
+//        delete [] encrypted_labels;
     }
 }

@@ -75,7 +75,8 @@ public:
      * @param required_client_num
      * @return
      */
-    bool generate_djcs_t_keys(int epsilon_s, int key_size, int client_num, int required_client_num);
+    bool generate_djcs_t_keys(int epsilon_s, int key_size,
+        int client_num, int required_client_num);
 
     /**
      * set the client key when receiving messages from the trusted third party
@@ -85,7 +86,8 @@ public:
      * @param si
      * @param i
      */
-    void set_keys(djcs_t_public_key *param_pk, hcs_random* param_hr, mpz_t si, unsigned long i);
+    void set_keys(djcs_t_public_key *param_pk,
+        hcs_random* param_hr, mpz_t si, unsigned long i);
 
     /**
      * set the client keys when receiving from the trusted third party
@@ -102,7 +104,8 @@ public:
      * @param si
      * @param i
      */
-    void serialize_send_keys(std::string & send_keys, djcs_t_public_key *pk, mpz_t si, int i);
+    void serialize_send_keys(std::string & send_keys,
+        djcs_t_public_key *pk, mpz_t si, int i);
 
     /**
      * share decrypt a batch ciphertexts
@@ -113,7 +116,8 @@ public:
      * @param size
      * @param parallel 0 no parallelism, 1 parallelism
      */
-    void share_batch_decrypt(EncodedNumber *ciphers, EncodedNumber *& decrypted_res, int size = 1, int parallel = 0);
+    void share_batch_decrypt(EncodedNumber *ciphers,
+        EncodedNumber *& decrypted_res, int size = 1, int parallel = 0);
 
     /**
      * decrypt batch pieces and return
@@ -123,7 +127,8 @@ public:
      * @param src_client_id
      * @param parallel 0 no parallelism, 1 parallelism
      */
-    void decrypt_batch_piece(std::string s, std::string & response_s, int src_client_id, int parallel = 0);
+    void decrypt_batch_piece(std::string s, std::string & response_s,
+        int src_client_id, int parallel = 0);
 
     /**
      * This function converts the ciphertexts to secret shares, provide a building block
@@ -138,21 +143,8 @@ public:
      * @param size
      * @param precision: default precision of src_ciphers
      */
-    void ciphers_conversion_to_shares(EncodedNumber * src_ciphers, std::vector<float> & shares, int size = 1, int precision = FLOAT_PRECISION);
-
-    /**
-     * After the mpc program is finished, call this function.
-     * conversion from secret shares to homomorphic encryption
-     * for local computations.
-     * When size = 1, is a prediction request
-     *
-     * @param path
-     * @param src_shares
-     * @param dest_ciphers
-     * @param size
-     */
-    void secret_shares_2_djcs_t_batch(std::string path,
-            EncodedNumber *src_shares, EncodedNumber *& dest_ciphers, int size = 1);
+    void ciphers_conversion_to_shares(EncodedNumber * src_ciphers,
+        std::vector<float> & shares, int size = 1, int precision = FLOAT_PRECISION);
 
     /**
      * Multiply two ciphertext vectors with the help of secret shares
@@ -162,7 +154,8 @@ public:
      * @param res
      * @param size
      */
-    void cipher_vectors_multiplication(EncodedNumber * cipher_vec1, EncodedNumber * cipher_vec2, EncodedNumber * & res, int size = 1);
+    void cipher_vectors_multiplication(EncodedNumber * cipher_vec1,
+        EncodedNumber * cipher_vec2, EncodedNumber * & res, int size = 1);
 
     /** DEPRECATED
      * Before sending the partial sums to the super client, add random shares

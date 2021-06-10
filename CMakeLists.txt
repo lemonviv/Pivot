@@ -3,6 +3,8 @@ project(Pivot)
 set(CMAKE_CXX_STANDARD 11)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -fopenmp")
+#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -fopenmp -lboost_program_options -fsanitize=address -fno-common -fno-omit-frame-pointer")
+#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -fopenmp -lboost_program_options -fsanitize=address")
 
 set(SOURCE_FILES main.cpp
         src/client/Client.cpp
@@ -67,21 +69,3 @@ target_link_libraries(Pivot
         libboost_thread.a libboost_system.a pthread crypto ssl mpirxx mpir cryptopp sodium
         ${PROTOBUF_LIBRARY})
 
-#set(TEST_DIR "tests/")
-#set(BINARY_DIR "bin/")
-
-#set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${BINARY_DIR})
-
-# BEGIN: Test commands
-#enable_testing()
-#set(CMAKE_CTEST_COMMAND "${CMAKE_CTEST_COMMAND} --verbose")
-
-#file(GLOB test_srcs "${TEST_DIR}/*.cpp")
-#foreach(f ${test_srcs})
-#    get_filename_component(test_prog ${f} NAME_WE)
-#    add_executable(${test_prog} "${TEST_DIR}/${test_prog}.cpp")
-#    target_link_libraries(${test_prog} $ENV{HOME}/Documents/projects/libhcs/lib/libhcs.so
-#            /usr/lib/x86_64-linux-gnu/libgmp.so /usr/lib/x86_64-linux-gnu/libgmpxx.so)
-#    add_test(${test_prog} "${BINARY_DIR}/${test_prog}")
-#endforeach()
-# EN: Test commands

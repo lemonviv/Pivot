@@ -13,7 +13,10 @@
 #define SPDZ_PORT_NUM_DT_ENHANCED 19000
 #define SPDZ_PORT_NUM_RF_CLASSIFICATION_PREDICTION 20000
 #define ROUNDED_PRECISION 1e-3
-enum SPDZComputationID {LeafCheck, LeafLabelComp, FindBestSplit, GBDTLabelSquare, GBDTSoftmax};
+#define SPDZ_LG2P 128
+#define SUPER_CLIENT_ID 0
+enum SPDZComputationID {LeafCheck, LeafLabelComp,
+    FindBestSplit, GBDTLabelSquare, GBDTSoftmax};
 
 /********************* Decision tree parameters ***********************/
 
@@ -24,15 +27,17 @@ enum SPDZComputationID {LeafCheck, LeafLabelComp, FindBestSplit, GBDTLabelSquare
 #define MAX_IMPURITY 2.0
 #define MAX_VARIANCE 100000.0
 #define MAX_GLOBAL_SPLIT_NUM 6000
-#define MAX_DEPTH 3
+#define MAX_DEPTH 2
 #define MAX_BINS 32
 #define DEFAULT_CLASSES_NUM 3
 #define TREE_TYPE 0  // 0: classification tree, 1: regression tree
 #define PRUNE_SAMPLE_NUM 5
 #define PRUNE_VARIANCE_THRESHOLD 0.0001
 #define MAXIMUM_RAND_VALUE 32767
+#define CLASS_NUM_FOR_REGRESSION 2
 enum SolutionType {Basic, Enhanced};
 enum OptimizationType {Non, CombiningSplits, Parallelism, All};
+enum TreeType {Classification, Regression};
 
 /********************* Random forest parameters ***********************/
 
@@ -43,12 +48,15 @@ enum OptimizationType {Non, CombiningSplits, Parallelism, All};
 
 #define GBDT_FLAG 0
 #define GBDT_LEARNING_RATE 1.0
+#define SIMULATE_VALUE1 0.25
+#define SIMULATE_VALUE2 1.5
 
 /************************* Program parameters *************************/
 
 #define SPLIT_PERCENTAGE 0.8
 #define NUM_OMP_THREADS 4
 #define DEFAULT_HOST_NAME "localhost"
+enum Algorithm{DecisionTreeAlg, RandomForestAlg, GBDTAlg};
 
 // ${Program_Home}
 #define PROGRAM_HOME "/home/wuyuncheng/Documents/projects/Pivot/"

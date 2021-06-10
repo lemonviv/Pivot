@@ -4,7 +4,6 @@
 #include "cart_tree.h"
 
 class RandomForest {
-
 public:
     int num_trees;
     std::vector<DecisionTree> forest;
@@ -18,7 +17,6 @@ public:
      * default constructor
      */
     RandomForest();
-
 
     /**
      * constructor
@@ -49,12 +47,10 @@ public:
             int solution_type,
             int optimization_type);
 
-
     /**
      * destructor
      */
     ~RandomForest();
-
 
     /**
      * init training data and test data according to split fraction
@@ -65,7 +61,6 @@ public:
      */
     void init_datasets(Client & client, float split);
 
-
     /**
      * init training data and test data according to new indexes received
      *
@@ -75,7 +70,6 @@ public:
      */
     void init_datasets_with_indexes(Client & client, int new_indexes[], float split);
 
-
     /**
      * shuffle and assign training data to a decision tree of random forest
      * 
@@ -84,7 +78,6 @@ public:
      * @param sample_rate
      */
     void shuffle_and_assign_training_data(int tree_id, Client & client, float sample_rate);
-
 
     /**
      * shuffle and assign training data to a decision tree of random forest according to new indexes received
@@ -96,7 +89,6 @@ public:
      */
     void shuffle_and_assign_training_data_with_indexes(int tree_id, Client & client, int new_indexes[], float sample_rate);
 
-
     /**
      * build each tree of random forest
      * 
@@ -104,7 +96,6 @@ public:
      * @param sample_rate
      */
     void build_forest(Client & client, float sample_rate);
-
 
     /**
      * predict a result given a sample id
@@ -115,7 +106,6 @@ public:
      */
     std::vector<int> compute_binary_vector(int tree_id, int sample_id, std::map<int, int> node_index_2_leaf_index_map);
 
-
     /**
      * test the accuracy on the test data
      *
@@ -123,7 +113,6 @@ public:
      * @param accuracy
      */
     void test_accuracy(Client & client, float & accuracy);
-
 
     /**
      * test the accuracy on the test data, using spdz to find the majority class for classification

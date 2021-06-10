@@ -102,7 +102,6 @@ void serialize_pruning_condition_result(int node_index, int is_satisfied, Encode
 void deserialize_pruning_condition_result(int & node_index, int & is_satisfied,
         EncodedNumber **& encrypted_label_vecs, EncodedNumber & label, std::string input_str);
 
-
 /**
  * pb serialize encrypted statistics
  *
@@ -135,7 +134,6 @@ void deserialize_encrypted_statistics(int & client_id, int & node_index, int & s
         EncodedNumber * & left_sample_nums, EncodedNumber * & right_sample_nums,
         EncodedNumber ** & encrypted_statistics, std::string input_str);
 
-
 /**
  * serialize update information
  *
@@ -152,7 +150,6 @@ void deserialize_encrypted_statistics(int & client_id, int & node_index, int & s
 void serialize_update_info(int source_client_id, int best_client_id, int best_feature_id, int best_split_id,
         EncodedNumber left_branch_impurity, EncodedNumber right_branch_impurity,
         EncodedNumber* left_branch_sample_iv, EncodedNumber *right_branch_sample_iv, int sample_size, std::string & output_str);
-
 
 /**
  * deserialize update information
@@ -180,7 +177,6 @@ void deserialize_update_info(int & source_client_id, int & best_client_id, int &
  */
 void serialize_split_info(int global_split_num, std::vector<int> client_split_nums, std::string & output_str);
 
-
 /**
  * deserialize split nums
  *
@@ -189,7 +185,6 @@ void serialize_split_info(int global_split_num, std::vector<int> client_split_nu
  * @param input_str
  */
 void deserialize_split_info(int & global_split_num, std::vector<int> & client_split_nums, std::string input_str);
-
 
 /**
  * serialize prune check result
@@ -201,7 +196,6 @@ void deserialize_split_info(int & global_split_num, std::vector<int> & client_sp
  */
 void serialize_prune_check_result(int node_index, int is_satisfied, EncodedNumber label, std::string & output_str);
 
-
 /**
  * deserialize prune check result
  *
@@ -211,7 +205,6 @@ void serialize_prune_check_result(int node_index, int is_satisfied, EncodedNumbe
  * @param input_str
  */
 void deserialize_prune_check_result(int & node_index, int & is_satisfied, EncodedNumber & label, std::string input_str);
-
 
 /**
  * serialize encrypted vector
@@ -224,7 +217,6 @@ void deserialize_prune_check_result(int & node_index, int & is_satisfied, Encode
  */
 void serialize_encrypted_label_vector(int node_index, int classes_num,
         int sample_num, EncodedNumber * encrypted_label_vector, std::string & output_str);
-
 
 /**
  * deserialize encrypted label vector

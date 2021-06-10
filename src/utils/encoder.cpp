@@ -16,7 +16,6 @@ EncodedNumber::EncodedNumber()
     type = Plaintext;
 }
 
-
 EncodedNumber::EncodedNumber(const EncodedNumber &number)
 {
     mpz_init(n);
@@ -36,7 +35,6 @@ EncodedNumber& EncodedNumber::operator=(const EncodedNumber &number) {
     type = number.type;
 }
 
-
 void EncodedNumber::set_integer(mpz_t pn, int v)
 {
     mpz_set(n, pn);
@@ -44,13 +42,11 @@ void EncodedNumber::set_integer(mpz_t pn, int v)
     //set_float(pn, (float) v);
 }
 
-
 void EncodedNumber::set_float(mpz_t pn, float v, int precision)
 {
     mpz_set(n, pn);
     fixed_pointed_encode(v, precision, value, exponent);
 }
-
 
 EncodedNumber::~EncodedNumber()
 {
@@ -60,7 +56,6 @@ EncodedNumber::~EncodedNumber()
     mpz_clear(value);
 }
 
-
 void EncodedNumber::decrease_exponent(int new_exponent)
 {
     if (new_exponent > exponent) {
@@ -68,9 +63,7 @@ void EncodedNumber::decrease_exponent(int new_exponent)
                        "than old exponent %d", new_exponent, exponent);
         return;
     }
-
     if (new_exponent == exponent) return;
-
     unsigned long int exp_diff = exponent - new_exponent;
     mpz_t t;
     mpz_init(t);
@@ -80,7 +73,6 @@ void EncodedNumber::decrease_exponent(int new_exponent)
     exponent = new_exponent;
 }
 
-
 void EncodedNumber::increase_exponent(int new_exponent)
 {
     if (new_exponent < exponent) {
@@ -88,13 +80,10 @@ void EncodedNumber::increase_exponent(int new_exponent)
                        "than old exponent %d", new_exponent, exponent);
         return;
     }
-
     if (new_exponent == exponent) return;
-
     // 1. convert to string value
     char *t = mpz_get_str(NULL, 10, value);
     std::string s = t;
-
     // 2. truncate, should preserve the former (s_size - exp_diff) elements
     unsigned long int exp_diff = new_exponent - exponent;
     int v_size = s.size() - exp_diff;
@@ -103,13 +92,11 @@ void EncodedNumber::increase_exponent(int new_exponent)
         logger(logger_out, "increase exponent error when truncating\n");
         return;
     }
-
     char *r = new char[v_size + 1];
     for (int j = 0; j < v_size; ++j) {
         r[j] = t[j];
     }
     r[v_size] = '\0';  // if miss this line, new_value would be any value unexpected
-
     // 3. convert back
     exponent = new_exponent;
     mpz_t new_value;
@@ -120,58 +107,6 @@ void EncodedNumber::increase_exponent(int new_exponent)
     mpz_clear(new_value);
 }
 
-
-//void EncodedNumber::truncate_exponent(int truncated_exponent)
-//{
-//    switch (check_encoded_number()) {
-//        case Positive:
-//            break;
-//        case Negative:
-//            mpz_sub(value, value, n);
-//            break;
-//        case Overflow:
-//            logger(logger_out, "encoded number %Zd is overflow\n", value);
-//            return;
-//        default:
-//            logger(logger_out, "encoded number %Zd is corrupted\n", value);
-//            return;
-//    }
-//
-//    if (exponent >= 0 || truncated_exponent >= 0) {
-//        logger(logger_out, "truncate mpz_t failed\n");
-//        return;
-//    }
-//
-//    int real_exponent = exponent >= truncated_exponent ? exponent : truncated_exponent;
-//
-//    // convert to string and truncate string before assign to long
-//    mpz_t res;
-//    mpz_init(res);
-//    char *t = mpz_get_str(NULL, 10, res);
-//    std::string s = t;
-//
-//    // should preserve the former (s_size - exponent + real_exponent) elements
-//    int v_size = s.size() - exponent + real_exponent;
-//
-//    if (v_size <= 0) {
-//        logger(logger_out, "error when truncating to desired exponent\n");
-//        return;
-//    }
-//
-//    char *r = new char[v_size];
-//    for (int j = 0; j < v_size; ++j) {
-//        r[j] = t[j];
-//    }
-//
-//    long v = ::atol(r);
-//    float vv = (float) (v * pow(10, real_exponent));
-//
-//    long rr = fixed_pointed_integer_representation(vv, -truncated_exponent);
-//    mpz_set_si(value, rr);
-//    exponent = truncated_exponent;
-//}
-
-
 void EncodedNumber::decode(long &v)
 {
     if (exponent != 0) {
@@ -179,7 +114,6 @@ void EncodedNumber::decode(long &v)
         logger(logger_out, "exponent is not zero, failed, should call decode with float\n");
         return;
     }
-
     switch (check_encoded_number()) {
         case Positive:
             fixed_pointed_decode(v, value);
@@ -196,7 +130,6 @@ void EncodedNumber::decode(long &v)
             return;
     }
 }
-
 
 void EncodedNumber::decode(float &v)
 {
@@ -217,7 +150,6 @@ void EncodedNumber::decode(float &v)
     }
 }
 
-
 void EncodedNumber::decode_with_truncation(float &v, int truncated_exponent)
 {
     switch (check_encoded_number()) {
@@ -237,7 +169,6 @@ void EncodedNumber::decode_with_truncation(float &v, int truncated_exponent)
     }
 }
 
-
 EncodedNumberState EncodedNumber::check_encoded_number()
 {
     // max_int is the threshold of positive number
@@ -247,9 +178,7 @@ EncodedNumberState EncodedNumber::check_encoded_number()
     compute_decode_threshold(max_int);
     mpz_init(neg_int);
     mpz_sub(neg_int, n, max_int);
-
     EncodedNumberState state;
-
     if (mpz_cmp(value, n) >= 0) {
         state = Invalid;
     } else if (mpz_cmp(value, max_int) <= 0) {
@@ -265,7 +194,6 @@ EncodedNumberState EncodedNumber::check_encoded_number()
     return state;
 }
 
-
 void EncodedNumber::compute_decode_threshold(mpz_t max_int)
 {
     mpz_t t;
@@ -274,7 +202,6 @@ void EncodedNumber::compute_decode_threshold(mpz_t max_int)
     mpz_sub_ui(max_int, t, 1);  // this is max int
     mpz_clear(t);
 }
-
 
 long long fixed_pointed_integer_representation(float value, int precision){
     long long ex = (long long) pow(10, precision);
@@ -285,12 +212,10 @@ long long fixed_pointed_integer_representation(float value, int precision){
     return r;
 }
 
-
 void fixed_pointed_encode(long value, mpz_t res, int & exponent) {
     mpz_set_si(res, value);
     exponent = 0;
 }
-
 
 void fixed_pointed_encode(float value, int precision, mpz_t res, int & exponent) {
     long long r = fixed_pointed_integer_representation(value, precision);
@@ -298,19 +223,15 @@ void fixed_pointed_encode(float value, int precision, mpz_t res, int & exponent)
     exponent = 0 - precision;
 }
 
-
 void fixed_pointed_decode(long & value, mpz_t res) {
     value = mpz_get_si(res);
 }
 
-
 void fixed_pointed_decode(float & value, mpz_t res, int exponent) {
-
     if (exponent >= 0) {
         logger(logger_out, "decode mpz_t for float value failed\n");
         return;
     }
-
     if (exponent <= 0 - 2 * FLOAT_PRECISION) {
         fixed_pointed_decode_truncated(value, res, exponent, 0 - 2 * FLOAT_PRECISION);
     } else {
@@ -328,38 +249,30 @@ void fixed_pointed_decode(float & value, mpz_t res, int exponent) {
 
 
 void fixed_pointed_decode_truncated(float & value, mpz_t res, int exponent, int truncated_exponent) {
-
     if (exponent >= 0 || truncated_exponent >= 0) {
         logger(logger_out, "decode mpz_t for float value failed\n");
         return;
     }
-
     int real_exponent = exponent >= truncated_exponent ? exponent : truncated_exponent;
-
     // convert to string and truncate string before assign to long
     char *t = mpz_get_str(NULL, 10, res);
     std::string s(t);
-
     // handle the case that the result value is 0
     if (::atol(t) == 0) {
         value = 0;
         return;
     }
-
     // should preserve the former (s_size - exponent + real_exponent) elements
     int v_size = s.size() + exponent - real_exponent;
-
     if (v_size <= 0) {
         logger(logger_out, "decode error when truncating to desired exponent\n");
         return;
     }
-
     char *r = new char[v_size + 1];
     for (int j = 0; j < v_size; ++j) {
         r[j] = t[j];
     }
     r[v_size] = '\0';
-
     long v = ::atol(r);
     value = (float) (v * pow(10, real_exponent));
 
@@ -367,21 +280,16 @@ void fixed_pointed_decode_truncated(float & value, mpz_t res, int exponent, int 
     delete [] r;
 }
 
-
 void decrypt_temp(djcs_t_public_key *pk, djcs_t_auth_server **au, int required_client_num, EncodedNumber & rop, EncodedNumber v) {
-
     mpz_t t;
     mpz_init(t);
-
     rop.exponent = v.exponent;
     rop.type = Plaintext;
     mpz_set(rop.n, v.n);
-
     auto *dec = (mpz_t *) malloc (required_client_num * sizeof(mpz_t));
     for (int j = 0; j < required_client_num; j++) {
         mpz_init(dec[j]);
     }
-
     for (int j = 0; j < required_client_num; j++) {
         //djcs_t_share_decrypt(pk1, au[j], dec[j], ciphers[2].value);
         djcs_t_share_decrypt(pk, au[j], dec[j], v.value);
@@ -395,7 +303,6 @@ void decrypt_temp(djcs_t_public_key *pk, djcs_t_auth_server **au, int required_c
     }
     free(dec);
 }
-
 
 void EncodedNumber::print_encoded_number() {
     logger(logger_out, "****** Print encoded number ******\n");

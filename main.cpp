@@ -51,120 +51,25 @@ void system_setup() {
 }
 
 void system_free() {
-
     // free memory
     hcs_free_random(hr);
     djcs_t_free_public_key(pk);
     djcs_t_free_private_key(vk);
-
     mpz_clear(n);
     mpz_clear(positive_threshold);
     mpz_clear(negative_threshold);
-
     for (int i = 0; i < TOTAL_CLIENT_NUM; i++) {
         mpz_clear(si[i]);
         djcs_t_free_auth_server(au[i]);
     }
-
     free(si);
     free(au);
 }
 
-void test_share_decrypt(Client client) {
-
-    for (int i = 0; i < client.client_num; i++) {
-        if (i != client.client_id){
-            std::string send_message = "Hello world from client " + std::to_string(client.client_id);
-            int size = send_message.size();
-            std::string recv_message;
-            byte buffer[100];
-            client.send_messages(i, send_message);
-            client.recv_messages(i, recv_message, buffer, size);
-
-            string longMessage = "Hi, this is a long message to test the writeWithSize approach";
-            client.channels[i]->writeWithSize(longMessage);
-
-            vector<byte> resMsg;
-            client.channels[i]->readWithSizeIntoVector(resMsg);
-            const byte * uc = &(resMsg[0]);
-            string resMsgStr(reinterpret_cast<char const*>(uc), resMsg.size());
-            string eq = (resMsgStr == longMessage)? "yes" : "no";
-            cout << "Got long message: " << resMsgStr << ".\nequal? " << eq << "!" << endl;
-        }
-    }
-
-    if (client.client_id == 0) {
-        // client with label
-        EncodedNumber a;
-        a.set_float(n, 0.123456);
-        //djcs_t_aux_encrypt(pk, hr, a, a);
-        a.print_encoded_number();
-
-        for (int i = 1; i < client.client_num; i++) {
-            std::string s;
-            serialize_encoded_number(a, s);
-            //std::string s1 = "hello world" + std::to_string(i);
-            client.channels[i]->writeWithSize(s);
-            //client.send_messages(client.channels[i], s);
-            //logger(logger_out, "send message: %s\n", s.c_str());
-        }
-    } else {
-        vector<byte> resMsg;
-        client.channels[0]->readWithSizeIntoVector(resMsg);
-        const byte * uc = &(resMsg[0]);
-        std::string s(reinterpret_cast<char const*>(uc), resMsg.size());
-        EncodedNumber t, tt;
-        deserialize_number_from_string(t, s);
-        t.print_encoded_number();
-        //client.recv_messages(client.channels[0], s, buffer, 999);
-        //logger(logger_out, "receive message: %s\n", s.c_str());
-    }
-
-
-    // test share decrypt
-    if (client.client_id == 0) {
-
-        EncodedNumber *ciphers = new EncodedNumber[2];
-        ciphers[0].set_float(n, 0.123456);
-        ciphers[1].set_float(n, 0.654321);
-
-        djcs_t_aux_encrypt(client.m_pk, client.m_hr, ciphers[0], ciphers[0]);
-        djcs_t_aux_encrypt(client.m_pk, client.m_hr, ciphers[1], ciphers[1]);
-
-        ciphers[0].print_encoded_number();
-
-        // decrypt using global key
-        EncodedNumber dec_t0, dec_t1;
-        decrypt_temp(pk, au, TOTAL_CLIENT_NUM, dec_t0, ciphers[0]);
-        decrypt_temp(pk, au, TOTAL_CLIENT_NUM, dec_t1, ciphers[1]);
-        float x0, x1;
-        dec_t0.decode(x0);
-        dec_t1.decode(x1);
-        logger(logger_out, "The decrypted value of ciphers[0] using global keys = %f\n", x0);
-        logger(logger_out, "The decrypted value of ciphers[1] using global keys = %f\n", x1);
-
-        EncodedNumber *share_decrypted_res = new EncodedNumber[2];
-        client.share_batch_decrypt(ciphers, share_decrypted_res, 2);
-
-        float share_x0, share_x1;
-        share_decrypted_res[0].decode(share_x0);
-        share_decrypted_res[1].decode(share_x1);
-        logger(logger_out, "The decrypted value of ciphers[0] using share decryption = %f\n", share_x0);
-        logger(logger_out, "The decrypted value of ciphers[1] using share decryption = %f\n", share_x1);
-        delete [] share_decrypted_res;
-    } else {
-
-        std::string s, response_s;
-        client.recv_long_messages(0, s);
-        client.decrypt_batch_piece(s, response_s, 0);
-    }
-}
-
-float decision_tree(Client & client, int solution_type, int optimization_type, int class_num, int tree_type,
-                    int max_bins, int max_depth, int num_trees) {
-
+float decision_tree(Client & client, int solution_type,
+    int optimization_type, int class_num, int tree_type,
+    int max_bins, int max_depth, int num_trees) {
     logger(logger_out, "Begin decision tree training\n");
-
     struct timeval decision_tree_training_1, decision_tree_training_2;
     double decision_tree_training_time = 0;
     gettimeofday(&decision_tree_training_1, NULL);
@@ -174,47 +79,46 @@ float decision_tree(Client & client, int solution_type, int optimization_type, i
     int m_internal_node_num = 0;
     int m_type = tree_type;
     int m_classes_num = class_num;
-    if (m_type == 1) {m_classes_num = 2;}
+    if (m_type == Regression) m_classes_num = CLASS_NUM_FOR_REGRESSION;
     int m_max_depth = max_depth;
     int m_max_bins = max_bins;
     int m_prune_sample_num = PRUNE_SAMPLE_NUM;
     float m_prune_threshold = PRUNE_VARIANCE_THRESHOLD;
     int m_solution_type = solution_type;
     int m_optimization_type = optimization_type;
-
-    DecisionTree model(m_global_feature_num, m_local_feature_num, m_internal_node_num, m_type, m_classes_num,
-            m_max_depth, m_max_bins, m_prune_sample_num, m_prune_threshold, m_solution_type, m_optimization_type);
-
+    DecisionTree model(m_global_feature_num, m_local_feature_num,
+        m_internal_node_num, m_type, m_classes_num,
+        m_max_depth, m_max_bins, m_prune_sample_num,
+        m_prune_threshold, m_solution_type, m_optimization_type);
     logger(logger_out, "Init decision tree model succeed\n");
 
     float split = SPLIT_PERCENTAGE;
-    if (client.client_id == 0) {
+    if (client.client_id == SUPER_CLIENT_ID) {
         model.init_datasets(client, split);
         //model.test_indicator_vector_correctness();
     } else {
         int *new_indexes = new int[client.sample_num];
         std::string recv_s;
-        client.recv_long_messages(0, recv_s);
+        client.recv_long_messages(SUPER_CLIENT_ID, recv_s);
         deserialize_ids_from_string(new_indexes, recv_s);
         model.init_datasets_with_indexes(client, new_indexes, split);
         delete [] new_indexes;
     }
-
     logger(logger_out, "Training data size = %d\n", model.training_data.size());
+
     model.init_features();
     model.init_root_node(client);
     model.build_tree_node(client, 0);
-
     logger(logger_out, "End decision tree training\n");
     logger(logger_out, "The internal node number is %d\n", model.internal_node_num);
 
     gettimeofday(&decision_tree_training_2, NULL);
-    decision_tree_training_time += (double)((decision_tree_training_2.tv_sec - decision_tree_training_1.tv_sec) * 1000 + (double)(decision_tree_training_2.tv_usec - decision_tree_training_1.tv_usec) / 1000);
+    decision_tree_training_time +=
+        (double)((decision_tree_training_2.tv_sec - decision_tree_training_1.tv_sec) * 1000 +
+        (double)(decision_tree_training_2.tv_usec - decision_tree_training_1.tv_usec) / 1000);
     logger(logger_out, "*********************************************************************\n");
     logger(logger_out, "******** Decision tree training time: %'.3f ms **********\n", decision_tree_training_time);
     logger(logger_out, "*********************************************************************\n");
-
-
     struct timeval decision_tree_prediction_1, decision_tree_prediction_2;
     double decision_tree_prediction_average_time = 0;
     gettimeofday(&decision_tree_prediction_1, NULL);
@@ -223,14 +127,16 @@ float decision_tree(Client & client, int solution_type, int optimization_type, i
     model.test_accuracy(client, accuracy);
 
     gettimeofday(&decision_tree_prediction_2, NULL);
-    decision_tree_prediction_average_time += (double)((decision_tree_prediction_2.tv_sec - decision_tree_prediction_1.tv_sec) * 1000 +
-            (double)(decision_tree_prediction_2.tv_usec - decision_tree_prediction_1.tv_usec) / 1000);
+    decision_tree_prediction_average_time +=
+        (double)((decision_tree_prediction_2.tv_sec - decision_tree_prediction_1.tv_sec) * 1000 +
+        (double)(decision_tree_prediction_2.tv_usec - decision_tree_prediction_1.tv_usec) / 1000);
     decision_tree_prediction_average_time = decision_tree_prediction_average_time / (double) model.testing_data.size();
     logger(logger_out, "*********************************************************************\n");
-    logger(logger_out, "********* Average decision tree prediction time: %'.3f ms ************\n", decision_tree_prediction_average_time);
+    logger(logger_out, "********* Average decision tree prediction time: %'.3f ms ************\n",
+        decision_tree_prediction_average_time);
     logger(logger_out, "*********************************************************************\n");
 
-    if (client.client_id == 0) {
+    if (client.client_id == SUPER_CLIENT_ID) {
         logger(logger_out, "Accuracy = %f\n", accuracy);
         std::string result_log_file = LOGGER_HOME;
         result_log_file += "result.log";
@@ -240,10 +146,10 @@ float decision_tree(Client & client, int solution_type, int optimization_type, i
     return accuracy;
 }
 
-float random_forest(Client & client, int solution_type, int optimization_type, int class_num, int tree_type,
-                    int max_bins, int max_depth, int num_trees) {
+float random_forest(Client & client, int solution_type,
+    int optimization_type, int class_num, int tree_type,
+    int max_bins, int max_depth, int num_trees) {
     logger(logger_out, "Begin random forest training\n");
-
     struct timeval random_forest_training_1, random_forest_training_2;
     double random_forest_training_time = 0;
     gettimeofday(&random_forest_training_1, NULL);
@@ -254,34 +160,34 @@ float random_forest(Client & client, int solution_type, int optimization_type, i
     int m_internal_node_num = 0;
     int m_type = tree_type;
     int m_classes_num = class_num;
-    if (m_type == 1) m_classes_num = 2;
+    if (m_type == Regression) m_classes_num = CLASS_NUM_FOR_REGRESSION;
     int m_max_depth = max_depth;
     int m_max_bins = max_bins;
     int m_prune_sample_num = PRUNE_SAMPLE_NUM;
     float m_prune_threshold = PRUNE_VARIANCE_THRESHOLD;
-
-    RandomForest model(m_tree_num, m_global_feature_num, m_local_feature_num, m_internal_node_num, m_type, m_classes_num,
-                           m_max_depth, m_max_bins, m_prune_sample_num, m_prune_threshold, solution_type, optimization_type);
-
+    RandomForest model(m_tree_num, m_global_feature_num, m_local_feature_num,
+        m_internal_node_num, m_type, m_classes_num,
+        m_max_depth, m_max_bins, m_prune_sample_num,
+        m_prune_threshold, solution_type, optimization_type);
     // split datasets to training part and testing part
     float split = SPLIT_PERCENTAGE;
-    if (client.client_id == 0) {
+    if (client.client_id == SUPER_CLIENT_ID) {
         model.init_datasets(client, split);
     } else {
         int *new_indexes = new int[client.sample_num];
         std::string recv_s;
-        client.recv_long_messages(0, recv_s);
+        client.recv_long_messages(SUPER_CLIENT_ID, recv_s);
         deserialize_ids_from_string(new_indexes, recv_s);
         model.init_datasets_with_indexes(client, new_indexes, split);
         delete [] new_indexes;
     }
-
     float sample_rate = RF_SAMPLE_RATE;
     model.build_forest(client, sample_rate);
 
     gettimeofday(&random_forest_training_2, NULL);
-    random_forest_training_time += (double)((random_forest_training_2.tv_sec - random_forest_training_1.tv_sec) * 1000 +
-            (double)(random_forest_training_2.tv_usec - random_forest_training_1.tv_usec) / 1000);
+    random_forest_training_time +=
+        (double)((random_forest_training_2.tv_sec - random_forest_training_1.tv_sec) * 1000 +
+        (double)(random_forest_training_2.tv_usec - random_forest_training_1.tv_usec) / 1000);
     logger(logger_out, "*********************************************************************\n");
     logger(logger_out, "******** Random forest training time: %'.3f ms **********\n", random_forest_training_time);
     logger(logger_out, "*********************************************************************\n");
@@ -294,15 +200,16 @@ float random_forest(Client & client, int solution_type, int optimization_type, i
     model.test_accuracy(client, accuracy);
 
     gettimeofday(&random_forest_prediction_2, NULL);
-    random_forest_prediction_average_time += (double)((random_forest_prediction_2.tv_sec - random_forest_prediction_1.tv_sec) * 1000 +
-            (double)(random_forest_prediction_2.tv_usec - random_forest_prediction_1.tv_usec) / 1000);
+    random_forest_prediction_average_time +=
+        (double)((random_forest_prediction_2.tv_sec - random_forest_prediction_1.tv_sec) * 1000 +
+        (double)(random_forest_prediction_2.tv_usec - random_forest_prediction_1.tv_usec) / 1000);
     random_forest_prediction_average_time = random_forest_prediction_average_time / (double) model.testing_data.size();
     logger(logger_out, "*********************************************************************\n");
-    logger(logger_out, "********* Average random forest prediction time: %'.3f ms ************\n", random_forest_prediction_average_time);
+    logger(logger_out, "********* Average random forest prediction time: %'.3f ms ************\n",
+        random_forest_prediction_average_time);
     logger(logger_out, "*********************************************************************\n");
 
-
-    if (client.client_id == 0) {
+    if (client.client_id == SUPER_CLIENT_ID) {
         logger(logger_out, "Accuracy = %f\n", accuracy);
         std::string result_log_file = LOGGER_HOME;
         result_log_file += "result.log";
@@ -312,11 +219,10 @@ float random_forest(Client & client, int solution_type, int optimization_type, i
     return accuracy;
 }
 
-float gbdt(Client & client, int solution_type, int optimization_type, int class_num, int tree_type,
-           int max_bins, int max_depth, int num_trees) {
-
+float gbdt(Client & client, int solution_type,
+    int optimization_type, int class_num, int tree_type,
+    int max_bins, int max_depth, int num_trees) {
     logger(logger_out, "Begin GBDT training\n");
-
     struct timeval gbdt_training_1, gbdt_training_2;
     double gbdt_training_time = 0;
     gettimeofday(&gbdt_training_1, NULL);
@@ -327,35 +233,34 @@ float gbdt(Client & client, int solution_type, int optimization_type, int class_
     int m_internal_node_num = 0;
     int m_type = tree_type;
     int m_classes_num = class_num;
-    if (m_type == 1) m_classes_num = 2;
+    if (m_type == Regression) m_classes_num = CLASS_NUM_FOR_REGRESSION;
     int m_max_depth = max_depth;
     int m_max_bins = max_bins;
     int m_prune_sample_num = PRUNE_SAMPLE_NUM;
     float m_prune_threshold = PRUNE_VARIANCE_THRESHOLD;
-
-    GBDT model(m_tree_num, m_global_feature_num, m_local_feature_num, m_internal_node_num, m_type, m_classes_num,
-                       m_max_depth, m_max_bins, m_prune_sample_num, m_prune_threshold, solution_type, optimization_type);
-
+    GBDT model(m_tree_num, m_global_feature_num, m_local_feature_num,
+        m_internal_node_num, m_type, m_classes_num,
+        m_max_depth, m_max_bins, m_prune_sample_num,
+        m_prune_threshold, solution_type, optimization_type);
     logger(logger_out, "Correct init gbdt\n");
 
     float split = SPLIT_PERCENTAGE;
-    if (client.client_id == 0) {
+    if (client.client_id == SUPER_CLIENT_ID) {
         model.init_datasets(client, split);
         //model.test_indicator_vector_correctness();
     } else {
         int *new_indexes = new int[client.sample_num];
         std::string recv_s;
-        client.recv_long_messages(0, recv_s);
+        client.recv_long_messages(SUPER_CLIENT_ID, recv_s);
         deserialize_ids_from_string(new_indexes, recv_s);
         model.init_datasets_with_indexes(client, new_indexes, split);
         delete [] new_indexes;
     }
-
     model.build_gbdt_with_spdz(client);
 
     gettimeofday(&gbdt_training_2, NULL);
     gbdt_training_time += (double)((gbdt_training_2.tv_sec - gbdt_training_1.tv_sec) * 1000 +
-                                            (double)(gbdt_training_2.tv_usec - gbdt_training_1.tv_usec) / 1000);
+        (double)(gbdt_training_2.tv_usec - gbdt_training_1.tv_usec) / 1000);
     logger(logger_out, "*********************************************************************\n");
     logger(logger_out, "******** GBDT training time: %'.3f ms **********\n", gbdt_training_time);
     logger(logger_out, "*********************************************************************\n");
@@ -368,15 +273,16 @@ float gbdt(Client & client, int solution_type, int optimization_type, int class_
     model.test_accuracy(client, accuracy);
 
     gettimeofday(&gbdt_prediction_2, NULL);
-    gbdt_prediction_average_time += (double)((gbdt_prediction_2.tv_sec - gbdt_prediction_1.tv_sec) * 1000 +
-                                                      (double)(gbdt_prediction_2.tv_usec - gbdt_prediction_1.tv_usec) / 1000);
+    gbdt_prediction_average_time +=
+        (double)((gbdt_prediction_2.tv_sec - gbdt_prediction_1.tv_sec) * 1000 +
+        (double)(gbdt_prediction_2.tv_usec - gbdt_prediction_1.tv_usec) / 1000);
     gbdt_prediction_average_time = gbdt_prediction_average_time / (double) model.testing_data.size();
     logger(logger_out, "*********************************************************************\n");
     logger(logger_out, "********* Average GBDT prediction time: %'.3f ms ************\n", gbdt_prediction_average_time);
     logger(logger_out, "*********************************************************************\n");
 
     //model.test_accuracy_with_spdz(client, accuracy);
-    if (client.client_id == 0) {
+    if (client.client_id == SUPER_CLIENT_ID) {
         logger(logger_out, "Accuracy = %f\n", accuracy);
         std::string result_log_file = LOGGER_HOME;
         result_log_file += "result.log";
@@ -386,18 +292,15 @@ float gbdt(Client & client, int solution_type, int optimization_type, int class_
     return accuracy;
 }
 
-
 int main(int argc, char *argv[]) {
-
     int client_num = TOTAL_CLIENT_NUM;
-    int client_id;
+    int client_id = 0;
     if (argv[1] != NULL) {
         client_id = atoi(argv[1]);
     }
-    bool has_label = (client_id == 0);
+    bool has_label = (client_id == SUPER_CLIENT_ID);
     std::string network_file = DEFAULT_NETWORK_FILE;
     std::string s1 = DEFAULT_DATA_FILE_PREFIX;
-
     int solution_type = 0;  // type = 0, basic solution; type = 1, enhanced solution
     int optimization_type = 0;  // type = 0, no optimization; type = 1, combining splits; type = 2, parallelism; type = 3, full optimization
     int class_num = DEFAULT_CLASSES_NUM;
@@ -406,7 +309,6 @@ int main(int argc, char *argv[]) {
     int max_bins = MAX_BINS;
     int max_depth = MAX_DEPTH;
     int num_trees = NUM_TREES;
-
     if (argc > 2) {
         if (argv[2] != NULL) {
             client_num = atoi(argv[2]);
@@ -442,7 +344,6 @@ int main(int argc, char *argv[]) {
             network_file = argv[8];
         }
     }
-
     std::string dataset = "datasets"; // default dataset
     if (argc > 9) {
         if (argv[9] != NULL) {
@@ -453,39 +354,34 @@ int main(int argc, char *argv[]) {
 
     std::string s2 = std::to_string(client_id);
     std::string data_file = s1 + "/client_" + s2 + ".txt";
-
     if (argc > 10) {
         if (argv[10] != NULL) {
             max_bins = atoi(argv[10]);
         }
     }
-
     if (argc > 11) {
         if (argv[11] != NULL) {
             max_depth = atoi(argv[11]);
         }
     }
-
     if (argc > 12) {
         if (argv[12] != NULL) {
             num_trees = atoi(argv[12]);
         }
     }
-
     //test_pb();
 
-    if (client_id == 0) {
+    if (client_id == SUPER_CLIENT_ID) {
         system_setup();
     }
-
     // create logger file
     std::string logger_file_name = LOGGER_HOME;
     std::string alg_name;
     switch (algorithm_type) {
-        case 1:
+        case RandomForestAlg:
             alg_name = "RF";
             break;
-        case 2:
+        case GBDTAlg:
             alg_name = "GBDT";
             break;
         default:
@@ -503,11 +399,9 @@ int main(int argc, char *argv[]) {
     logger_out = fopen(logger_file_name.c_str(), "wb");
 
     Client client(client_id, client_num, has_label, network_file, data_file);
-
     // set up keys
-    if (client.client_id == 0) {
+    if (client.client_id == SUPER_CLIENT_ID) {
         client.set_keys(pk, hr, si[client.client_id], client.client_id);
-
         // send keys
         for (int i = 0; i < client.client_num; i++) {
             if (i != client.client_id) {
@@ -519,7 +413,7 @@ int main(int argc, char *argv[]) {
     } else {
         // receive keys from client 0
         std::string recv_keys;
-        client.recv_long_messages(0, recv_keys);
+        client.recv_long_messages(SUPER_CLIENT_ID, recv_keys);
         client.recv_set_keys(recv_keys);
         mpz_init(n);
         mpz_init(positive_threshold);
@@ -528,34 +422,27 @@ int main(int argc, char *argv[]) {
     }
 
     switch(algorithm_type) {
-        case 1:
-            random_forest(client, solution_type, optimization_type, class_num, tree_type, max_bins, max_depth, num_trees);
+        case RandomForestAlg:
+            random_forest(client, solution_type, optimization_type,
+                class_num, tree_type, max_bins, max_depth, num_trees);
             break;
-        case 2:
-            gbdt(client, solution_type, optimization_type, class_num, tree_type, max_bins, max_depth, num_trees);
+        case GBDTAlg:
+            gbdt(client, solution_type, optimization_type,
+                class_num, tree_type, max_bins, max_depth, num_trees);
             break;
         default:
-            decision_tree(client, solution_type, optimization_type, class_num, tree_type, max_bins, max_depth, num_trees);
+            decision_tree(client, solution_type, optimization_type,
+                class_num, tree_type, max_bins, max_depth, num_trees);
             break;
     }
 
-    /**NOTE: the following test is only for single client test with client_id = 0
-     * Need to make the test codes independent with the main function
-     * */
-    //test_encoder();
-    //test_djcs_t_aux();
-    //test_lr();
-    //test_pb();
-
-    if (client_id == 0) {
+    if (client_id == SUPER_CLIENT_ID) {
         system_free();
     } else {
         mpz_clear(n);
         mpz_clear(positive_threshold);
         mpz_clear(negative_threshold);
     }
-
     logger(logger_out, "The End\n");
-
     return 0;
 }

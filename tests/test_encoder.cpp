@@ -34,7 +34,6 @@ int total_cases_num, passed_cases_num;
 //    mpz_clear(t);
 //}
 
-
 void test_positive_int(int x) {
     EncodedNumber a;
     float y;
@@ -65,7 +64,6 @@ void test_negative_int(int x) {
     }
 }
 
-
 void test_positive_float(float x) {
     EncodedNumber a;
     float y;
@@ -80,7 +78,6 @@ void test_positive_float(float x) {
         passed_cases_num += 1;
     }
 }
-
 
 void test_negative_float(float x) {
     EncodedNumber a;
@@ -97,7 +94,6 @@ void test_negative_float(float x) {
     }
 }
 
-
 void test_encoded_number_state() {
     EncodedNumber a, b, c, d;
     mpz_t t1, t2, t3, t4;
@@ -105,7 +101,6 @@ void test_encoded_number_state() {
     mpz_init(t2);
     mpz_init(t3);
     mpz_init(t4);
-
     mpz_set(a.n, n);
     mpz_set(t1, positive_threshold);
     mpz_sub_ui(t1, t1, 1);
@@ -119,8 +114,6 @@ void test_encoded_number_state() {
         total_cases_num += 1;
         passed_cases_num += 1;
     }
-
-
     mpz_set(b.n, n);
     mpz_set(t2, negative_threshold);
     mpz_add_ui(t2, t2, 1);
@@ -134,7 +127,6 @@ void test_encoded_number_state() {
         total_cases_num += 1;
         passed_cases_num += 1;
     }
-
     mpz_set(c.n, n);
     mpz_set(t3, positive_threshold);
     mpz_add_ui(t3, t3, 1);
@@ -148,7 +140,6 @@ void test_encoded_number_state() {
         total_cases_num += 1;
         passed_cases_num += 1;
     }
-
     mpz_set(d.n, n);
     mpz_set(t4, n);
     mpz_add_ui(t4, t4, 1);
@@ -162,19 +153,16 @@ void test_encoded_number_state() {
         total_cases_num += 1;
         passed_cases_num += 1;
     }
-
     mpz_clear(t1);
     mpz_clear(t2);
     mpz_clear(t3);
     mpz_clear(t4);
 }
 
-
 void test_decrease_exponent_positive_int() {
     EncodedNumber a;
     a.set_integer(n, 1);
     a.decrease_exponent(0 - FLOAT_PRECISION);
-
     mpz_t t;
     mpz_init(t);
     long x = (long) pow(10, FLOAT_PRECISION);
@@ -183,7 +171,6 @@ void test_decrease_exponent_positive_int() {
     str_stream << x;
     str_stream >> str;
     mpz_set_str(t, str.c_str(), 10);
-
     if ( (mpz_cmp(t, a.value) != 0) || (a.exponent != 0 - FLOAT_PRECISION)) {
         logger(logger_out, "test_decrease_exponent_positive_int failed\n");
         total_cases_num += 1;
@@ -199,7 +186,6 @@ void test_decrease_exponent_negative_int() {
     EncodedNumber a;
     a.set_integer(n, -5);
     a.decrease_exponent(0 - FLOAT_PRECISION);
-
     mpz_t t;
     mpz_init(t);
     long x = -5 * (long) pow(10, FLOAT_PRECISION);
@@ -208,7 +194,6 @@ void test_decrease_exponent_negative_int() {
     str_stream << x;
     str_stream >> str;
     mpz_set_str(t, str.c_str(), 10);
-
     if ( (mpz_cmp(t, a.value) != 0) || (a.exponent != 0 - FLOAT_PRECISION)) {
         logger(logger_out, "test_decrease_exponent_negative_int failed\n");
         total_cases_num += 1;
@@ -220,12 +205,10 @@ void test_decrease_exponent_negative_int() {
     mpz_clear(t);
 }
 
-
 void test_decrease_exponent_positive_float() {
     EncodedNumber a;
     a.set_float(n, 0.123456, FLOAT_PRECISION);
     a.decrease_exponent(0 - 2 * FLOAT_PRECISION);
-
     mpz_t t;
     mpz_init(t);
     long x = 0.123456 * (long) pow(10, 2 * FLOAT_PRECISION);
@@ -234,7 +217,6 @@ void test_decrease_exponent_positive_float() {
     str_stream << x;
     str_stream >> str;
     mpz_set_str(t, str.c_str(), 10);
-
     if ( (mpz_cmp(t, a.value) != 0) || (a.exponent != 0 - 2 * FLOAT_PRECISION)) {
         logger(logger_out, "test_decrease_exponent_positive_float failed\n");
         total_cases_num += 1;
@@ -251,7 +233,6 @@ void test_decrease_exponent_negative_float() {
     //a.set_float(n, -0.654321, FLOAT_PRECISION); // will fail due to float representation
     a.set_float(n, -0.000005, FLOAT_PRECISION);
     a.decrease_exponent(0 - 2 * FLOAT_PRECISION);
-
     mpz_t t;
     mpz_init(t);
     long x = -0.000005 * (long) pow(10, 2 * FLOAT_PRECISION);
@@ -277,12 +258,10 @@ void test_decrease_exponent_negative_float() {
     mpz_clear(t);
 }
 
-
 void test_increase_exponent_positive_float() {
     EncodedNumber a;
     a.set_float(n, 0.0000000105, 2 * FLOAT_PRECISION);
     a.increase_exponent(0 - FLOAT_PRECISION);
-
     mpz_t t;
     mpz_init(t);
     long x = 0.00000001 * (long) pow(10, FLOAT_PRECISION);
@@ -291,7 +270,6 @@ void test_increase_exponent_positive_float() {
     str_stream << x;
     str_stream >> str;
     mpz_set_str(t, str.c_str(), 10);
-
     if ( (mpz_cmp(t, a.value) != 0) || (a.exponent != 0 - FLOAT_PRECISION)) {
         logger(logger_out, "test_increase_exponent_positive_float failed\n");
         total_cases_num += 1;
@@ -307,7 +285,6 @@ void test_increase_exponent_negative_float() {
     EncodedNumber a;
     a.set_float(n, -0.0000000105, 2 * FLOAT_PRECISION);
     a.increase_exponent(0 - FLOAT_PRECISION);
-
     mpz_t t;
     mpz_init(t);
     long x = -0.00000001 * (long) pow(10, FLOAT_PRECISION);
@@ -333,7 +310,6 @@ void test_increase_exponent_negative_float() {
     mpz_clear(t);
 }
 
-
 void test_decode_with_truncation_float() {
     EncodedNumber a;
     a.set_float(n, -0.0000000105, 2 * FLOAT_PRECISION);
@@ -349,76 +325,52 @@ void test_decode_with_truncation_float() {
     }
 }
 
-
-
 int test_encoder()
 {
     logger(logger_out, "****** Test encode and decode functions ******\n");
-
 //    hr = hcs_init_random();
 //    pk = djcs_t_init_public_key();
 //    vk = djcs_t_init_private_key();
-
 //    djcs_t_generate_key_pair(pk, vk, hr, 1, 512, 3, 3);
-
 //    mpz_init(n);
 //    mpz_init(positive_threshold);
 //    mpz_init(negative_threshold);
-
     total_cases_num = 0;
     passed_cases_num = 0;
-
     // compute thresholds
     // compute_thresholds();
-
     // 1. test positive int
     test_positive_int(5);
-
     // 2. test negative int
     test_negative_int(-5);
-
     // 3. test positive float
     test_positive_float(0.123456);
-
     // 4. test negative float
     test_negative_float(-0.654321);
-
     // 5. test encoded number state
     test_encoded_number_state();
-
     // 6. test decrease exponent positive int
     test_decrease_exponent_positive_int();
-
     // 7. test decrease exponent negative int
     test_decrease_exponent_negative_int();
-
     // 8. test decrease exponent positive float
     test_decrease_exponent_positive_float();
-
     // 9. test decrease exponent negative float
     test_decrease_exponent_negative_float();
-
     // 10. test increase exponent positive float
     test_increase_exponent_positive_float();
-
     // 11. test increase exponent negative float
     test_increase_exponent_negative_float();
-
     // 12. test decode with truncation positive float
     test_decode_with_truncation_float();
-
-
     logger(logger_out, "****** total_cases_num = %d, passed_cases_num = %d ******\n",
             total_cases_num, passed_cases_num);
-
     // free memory
 //    hcs_free_random(hr);
 //    djcs_t_free_public_key(pk);
 //    djcs_t_free_private_key(vk);
-
 //    mpz_clear(n);
 //    mpz_clear(positive_threshold);
 //    mpz_clear(negative_threshold);
-
     return 0;
 }

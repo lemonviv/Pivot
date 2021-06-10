@@ -35,7 +35,6 @@ bool rounded_comparison(float a, float b);
  */
 std::vector<float> softmax(std::vector<float> inputs);
 
-
 /**
  * return the argmax index of an input vector
  *
@@ -43,6 +42,5 @@ std::vector<float> softmax(std::vector<float> inputs);
  * @return
  */
 float argmax(std::vector<float> inputs);
-
 
 #endif //PIVOT_SCORE_H

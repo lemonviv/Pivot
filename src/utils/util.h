@@ -36,7 +36,6 @@ void logger(FILE* out, const char *format, ...);
  */
 void print_string(const char *str);
 
-
 void compute_thresholds(djcs_t_public_key *pk, mpz_t n, mpz_t positive_threshold, mpz_t negative_threshold);
 
 

@@ -16,7 +16,6 @@
 #include "../include/common.h"
 
 class DecisionTree {
-
 public:
     SolutionType solution_type;                      // denote basic solution and enhanced solution, 0 for basic and 1 for enhanced
     OptimizationType optimization_type;              // denote optimization types, 0 non, 1 combining splits, 2 parallelism, 3 all
@@ -46,7 +45,6 @@ public:
      */
     DecisionTree();
 
-
     /**
      * constructor
      *
@@ -74,12 +72,10 @@ public:
             int m_solution_type = 0,
             int m_optimization_type = 0);
 
-
     /**
      * destructor
      */
     ~DecisionTree();
-
 
     /**
      * init training data and test data according to split fraction
@@ -90,7 +86,6 @@ public:
      */
     void init_datasets(Client & client, float split);
 
-
     /**
      * init training data and test data according to new indexes received
      *
@@ -100,12 +95,10 @@ public:
      */
     void init_datasets_with_indexes(Client & client, int new_indexes[], float split);
 
-
     /**
      * pre-compute feature information
      */
     void init_features();
-
 
     /**
      * init root node before recursively building tree
@@ -113,17 +106,6 @@ public:
      * @param client
      */
     void init_root_node(Client & client);
-
-
-    /**
-     * check whether pruning conditions are satisfied
-     *
-     * @param client
-     * @param node_index
-     * @return
-     */
-    bool check_pruning_conditions(Client & client, int node_index);
-
 
     /**
      * check whether pruning conditions are satisfied with the help of SPDZ
@@ -133,7 +115,6 @@ public:
      * @return
      */
     bool check_pruning_conditions_spdz(Client & client, int node_index);
-
 
     /**
      * compute encrypted impurity gain for each feature and each split
@@ -151,7 +132,6 @@ public:
             EncodedNumber * & encrypted_left_sample_nums,
             EncodedNumber * & encrypted_right_sample_nums);
 
-
     /**
      * build a tree recursively
      *
@@ -160,15 +140,14 @@ public:
      */
     void build_tree_node(Client & client, int node_index);
 
-
     /**
      * predict a result given a sample id
      *
      * @param sample_id
      * @param node_index_2_leaf_index_map
      */
-    std::vector<int> compute_binary_vector(int sample_id, std::map<int,int> node_index_2_leaf_index_map);
-
+    std::vector<int> compute_binary_vector(int sample_id,
+        std::map<int,int> node_index_2_leaf_index_map);
 
     /**
      * test accuracy
@@ -178,7 +157,6 @@ public:
      */
     void test_accuracy(Client & client, float & accuracy);
 
-
     /**
      * test the accuracy on the test data
      *
@@ -187,7 +165,6 @@ public:
      */
     void test_accuracy_basic(Client & client, float & accuracy);
 
-
     /**
      * test accuracy of the enhanced solution
      *
@@ -195,7 +172,6 @@ public:
      * @param accuracy
      */
     void test_accuracy_enhanced(Client & client, float & accuracy);
-
 
     /**
      * private select the split iv for a private split num
@@ -208,7 +184,9 @@ public:
      * @param split_num
      */
     void private_split_selection(Client & client, EncodedNumber * & result_iv,
-            EncodedNumber * selection_iv, std::vector< std::vector<int> > split_iv_matrix, int sample_num, int split_num);
+            EncodedNumber * selection_iv,
+            std::vector< std::vector<int> > split_iv_matrix,
+            int sample_num, int split_num);
 
     /**
      * update the encrypted mask vector
@@ -219,8 +197,9 @@ public:
      * @param right_selection_result
      * @param node_index
      */
-    void update_sample_iv(Client & client, int i_star, EncodedNumber * left_selection_result,
-            EncodedNumber * right_selection_result, int node_index);
+    void update_sample_iv(Client & client, int i_star,
+        EncodedNumber * left_selection_result,
+        EncodedNumber * right_selection_result, int node_index);
 
     /**
      * this function is called after a tree is trained in the ensemble models
@@ -230,7 +209,6 @@ public:
      * information has already been freed.
      */
     void intermediate_memory_free();
-
 };
 
 #endif //PIVOT_CART_TREE_H

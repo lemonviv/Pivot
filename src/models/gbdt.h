@@ -8,7 +8,6 @@
 #include "cart_tree.h"
 
 class GBDT {
-
 public:
     int num_trees;                                          // number of trees for gbdt
     int gbdt_type;                                          // type = 0, classification; type = 1, regression
@@ -62,7 +61,6 @@ public:
      */
     ~GBDT();
 
-
     /**
      * init training data and test data according to split fraction
      * call by client 0
@@ -72,7 +70,6 @@ public:
      */
     void init_datasets(Client & client, float split);
 
-
     /**
      * init training data and test data according to new indexes received
      *
@@ -81,7 +78,6 @@ public:
      * @param split
      */
     void init_datasets_with_indexes(Client & client, int new_indexes[], float split);
-
 
     /**
      * init each tree during the training stage, using the predicted labels of previous trees
@@ -93,7 +89,6 @@ public:
      */
     void init_single_tree_data(Client & client, int class_id, int tree_id, std::vector<float> cur_predicted_labels);
 
-
     /**
      * init each tree during the training stage
      *
@@ -103,7 +98,6 @@ public:
      */
     void init_simplified_single_tree_data(Client &client, int class_id, int tree_id);
 
-
     /**
      * build the gbdt forests
      *
@@ -111,14 +105,12 @@ public:
      */
     void build_gbdt(Client & client);
 
-
     /**
      * build the gbdt forests with spdz computations
      *
      * @param client
      */
     void build_gbdt_with_spdz(Client & client);
-
 
     /**
      * compute squared encrypted label vector via spdz
@@ -129,7 +121,6 @@ public:
      */
     void compute_squared_label_vector(Client & client, EncodedNumber * & squared_label_vector, EncodedNumber * encrypted_label_vector);
 
-
     /**
      * compute softmax encrypted label vector for each class via spdz
      *
@@ -138,7 +129,6 @@ public:
      * @param encrypted_classes_label_vector
      */
     void compute_softmax_label_vector(Client & client, EncodedNumber * & softmax_label_vector, EncodedNumber * encrypted_classes_label_vector);
-
 
     /**
      * init root node with two encrypted label vectors
@@ -151,7 +141,6 @@ public:
     void init_root_node_gbdt(Client & client, int real_tree_id,
             EncodedNumber * encrypted_label_vector, EncodedNumber * encrypted_square_label_vector);
 
-
     /**
      * compute encrypted predicted labels
      *
@@ -163,7 +152,6 @@ public:
      */
     void compute_encrypted_predicted_labels(Client & client, int class_id, int tree_id, EncodedNumber *& encrypted_predicted_labels, int flag);
 
-
     /**
      * test the accuracy
      *
@@ -171,7 +159,6 @@ public:
      * @param accuracy
      */
     void test_accuracy(Client & client, float & accuracy);
-
 
     /**
      * compute the data labels for a dataset
@@ -184,7 +171,6 @@ public:
      */
     std::vector<float> compute_predicted_labels(Client & client, int class_id, int tree_id, int flag);
 
-
     /**
      * predict a result given a sample id
      *
@@ -194,7 +180,6 @@ public:
      * @param node_index_2_leaf_index_map
      */
     std::vector<int> compute_binary_vector(int class_id, int tree_id, std::vector<float> sample_values, std::map<int, int> node_index_2_leaf_index_map);
-
 };
 
 #endif //PIVOT_GBDT_H
