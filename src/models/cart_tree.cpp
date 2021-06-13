@@ -21,6 +21,7 @@
 #include "../utils/score.h"
 #include "../utils/spdz/spdz_util.h"
 extern FILE * logger_out;
+extern bool gbdt_flag;
 
 DecisionTree::DecisionTree() {}
 
@@ -300,7 +301,7 @@ bool DecisionTree::check_pruning_conditions_spdz(Client &client, int node_index)
         // init static gfp for sending private batch shares and setup sockets
         string prep_data_prefix = get_prep_dir(NUM_SPDZ_PARTIES, SPDZ_LG2P, gf2n::default_degree());
         initialise_fields(prep_data_prefix);
-        bigint::init_thread();
+        // bigint::init_thread();
         std::vector<int> sockets = setup_sockets(NUM_SPDZ_PARTIES,
             client.client_id, client.host_names, SPDZ_PORT_NUM_DT);
         if (client.client_id == SUPER_CLIENT_ID) {
@@ -363,7 +364,7 @@ bool DecisionTree::check_pruning_conditions_spdz(Client &client, int node_index)
         // init static gfp for sending private batch shares and setup sockets
         string prep_data_prefix = get_prep_dir(NUM_SPDZ_PARTIES, SPDZ_LG2P, gf2n::default_degree());
         initialise_fields(prep_data_prefix);
-        bigint::init_thread();
+        // bigint::init_thread();
         std::vector<int> sockets = setup_sockets(NUM_SPDZ_PARTIES,
             client.client_id, client.host_names, SPDZ_PORT_NUM_DT);
         std::vector<float> label_info_shares, label_info_shares_1, label_info_shares_2;
@@ -484,8 +485,8 @@ bool DecisionTree::check_pruning_conditions_spdz(Client &client, int node_index)
             close_client_socket(sockets[i]);
         }
         // free tree node sample_iv and encrypted_labels vectors for saving memory usage
-        delete [] tree_nodes[node_index].sample_iv;
-        delete [] tree_nodes[node_index].encrypted_labels;
+        // delete [] tree_nodes[node_index].sample_iv;
+        // delete [] tree_nodes[node_index].encrypted_labels;
     }
     logger(logger_out, "Pruning conditions check finished\n");
     delete [] encrypted_sample_num;
@@ -523,7 +524,7 @@ void DecisionTree::build_tree_node(Client & client, int node_index) {
         exit(1);
     }
     // if GBDT should find labels by dot product of two ciphertext vectors
-    if (GBDT_FLAG) {
+    if (gbdt_flag) {
         logger(logger_out, "Simulate GBDT ciphertext multiplication\n");
         // simulate multiplication between [z] and [y]
         EncodedNumber * encoded_values = new EncodedNumber[training_data.size()];
@@ -894,22 +895,25 @@ void DecisionTree::build_tree_node(Client & client, int node_index) {
             send_private_batch_shares(x, sockets, NUM_SPDZ_PARTIES);
         }
     }
+    logger(logger_out, "correct 1st");
     for (int i = 0; i < global_split_num; i++) {
         vector<gfp> input_values_gfp(1);
         input_values_gfp[0].assign(left_sample_nums_shares[i]);
         send_private_inputs(input_values_gfp, sockets, NUM_SPDZ_PARTIES);
     }
+    logger(logger_out, "correct 2nd");
     for (int i = 0; i < global_split_num; i++) {
         vector<gfp> input_values_gfp(1);
         input_values_gfp[0].assign(right_sample_nums_shares[i]);
         send_private_inputs(input_values_gfp, sockets, NUM_SPDZ_PARTIES);
     }
+    logger(logger_out, "correct 3rd");
     // receive result from the SPDZ parties
     int index_in_global_split_num = 0, impurities_size = 3;
     vector<float> impurities = receive_result_dt(sockets, NUM_SPDZ_PARTIES,
         impurities_size, index_in_global_split_num);
     EncodedNumber *encrypted_impurities = new EncodedNumber[impurities.size()];
-    for (int i = 0; i < impurities_size; i++) {
+    for (int i = 0; i < impurities.size(); i++) {
         encrypted_impurities[i].set_float(client.m_pk->n[0], impurities[i], FLOAT_PRECISION);
         djcs_t_aux_encrypt(client.m_pk, client.m_hr, encrypted_impurities[i], encrypted_impurities[i]);
     }
@@ -1224,8 +1228,8 @@ void DecisionTree::build_tree_node(Client & client, int node_index) {
         delete [] global_encrypted_statistics;
     }
     // free tree node sample_iv and encrypted_labels vectors for saving memory usage
-    delete [] tree_nodes[node_index].sample_iv;
-    delete [] tree_nodes[node_index].encrypted_labels;
+    // delete [] tree_nodes[node_index].sample_iv;
+    // delete [] tree_nodes[node_index].encrypted_labels;
 
     /** step 9: recursively build the next child tree nodes */
     internal_node_num += 1;
@@ -1777,7 +1781,7 @@ void DecisionTree::test_accuracy_enhanced(Client &client, float &accuracy) {
     string prep_data_prefix = get_prep_dir(NUM_SPDZ_PARTIES, SPDZ_LG2P, gf2n::default_degree());
     //logger(logger_out, "prep_data_prefix = %s \n", prep_data_prefix.c_str());
     initialise_fields(prep_data_prefix);
-    bigint::init_thread();
+    // bigint::init_thread();
     // setup sockets
     std::vector<int> sockets = setup_sockets(NUM_SPDZ_PARTIES,
         client.client_id, client.host_names, SPDZ_PORT_NUM_DT_ENHANCED);

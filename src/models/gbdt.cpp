@@ -547,6 +547,7 @@ void GBDT::build_gbdt_with_spdz(Client &client) {
             delete [] res_softmax_label_vector;
         }
     }
+    delete [] cur_predicted_labels;
 }
 
 void GBDT::init_simplified_single_tree_data(Client &client, int class_id, int tree_id) {
@@ -760,7 +761,7 @@ void GBDT::init_root_node_gbdt(Client &client, int real_tree_id, EncodedNumber *
     }
 
     // if super client, compute the encrypted label information and broadcast to the other clients
-    int used_classes_num = 2; // default is regression tree
+    int used_classes_num = CLASS_NUM_FOR_REGRESSION; // default is regression tree
     if (client.client_id == SUPER_CLIENT_ID) {
         std::string result_str;
         // one dimension encrypted label vector

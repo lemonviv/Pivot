@@ -116,7 +116,7 @@ void TreeNode::print_node() {
 
 TreeNode::~TreeNode() {
     if (is_leaf != -1) {
-//        delete [] sample_iv;
-//        delete [] encrypted_labels;
+        delete [] sample_iv;
+        delete [] encrypted_labels;
     }
 }

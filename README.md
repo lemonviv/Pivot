@@ -6,7 +6,7 @@ including **decision tree (DT)**, **random forest (RF)**, and **gradient boostin
 under the **vertical federated learning (VFL)** setting. The solution is based on a hybrid of threshold partially
 homomorphic encryption (TPHE) and secure multiparty computation (MPC) techniques.
 
-# Dependencies
+## Dependencies
 + [Pivot-SPDZ](https://github.com/lemonviv/Pivot-SPDZ)
     + This is a fork of [MP-SPDZ](https://github.com/data61/MP-SPDZ) repository.  
     + We have revised some codes and configurations in this repository. The Pivot program
@@ -27,9 +27,9 @@ homomorphic encryption (TPHE) and secure multiparty computation (MPC) techniques
      datasets using sklearn.
     + Install the necessary dependencies of python (see tools/README.md).
 
-# Program Executions
+## Executions
 
-## Configuration
+### Configuration
  * In Pivot, update the following if needed:
     + `data/networks/Parties.txt`: defining the participating parties' ip addresses and ports
     + `src/include/common.h`: 
@@ -54,7 +54,7 @@ homomorphic encryption (TPHE) and secure multiparty computation (MPC) techniques
         + `TESTING_NUM`: the number of samples in the testing stage, must be the exact at the moment
     + `fast-make.sh`: modify Setup.x and setup-online.sh (default is 3 clients and the security parameter is 128 bits)
 
-## Build programs
+### Build programs
  * Build Pivot-SPDZ
     + cd ${PIVOT_SPDZ_HOME}, make sure that `MY_CFLAGS = -DINSECURE` is in the CONFIG.mine file (for running fake online protocol)
     + cd ${PIVOT_SPDZ_HOME}, `make mpir` to generate required mpir lib;
@@ -67,7 +67,7 @@ homomorphic encryption (TPHE) and secure multiparty computation (MPC) techniques
  * Build Pivot
     + build the program using provided bash script `bash build.sh`
 
-## Basic protocol
+### Basic protocol
  * For example, if running the DT program with 3 clients
     + cd ${PIVOT_SPDZ_HOME}, run 3 MPC programs in separate terminals
         <pre><code>
@@ -97,7 +97,7 @@ homomorphic encryption (TPHE) and secure multiparty computation (MPC) techniques
  * To run RF and GBDT model, modify the corresponding parameter for invoking Pivot 
  * The program log can be found in ${PIVOT_HOME}/log folder
 
-## Enhanced protocol
+### Enhanced protocol
  * To run the enhanced protocol, besides of modifying the corresponding parameter for invoking Pivot,
  need to run another MPC program `vfl_dt_enhanced_prediction` for the model prediction stage.
     + cd ${PIVOT_SPDZ_HOME}, run another 3 MPC programs in separate terminals

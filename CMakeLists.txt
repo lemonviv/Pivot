@@ -2,9 +2,7 @@ cmake_minimum_required(VERSION 3.10)
 project(Pivot)
 set(CMAKE_CXX_STANDARD 11)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -fopenmp")
-#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -fopenmp -lboost_program_options -fsanitize=address -fno-common -fno-omit-frame-pointer")
-#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -fopenmp -lboost_program_options -fsanitize=address")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -fopenmp -lboost_program_options")
 
 set(SOURCE_FILES main.cpp
         src/client/Client.cpp
@@ -50,9 +48,10 @@ set(SPDZ_HOME "/home/wuyuncheng/Documents/projects/Pivot-SPDZ/")
 
 include(FindProtobuf)
 find_package(Protobuf REQUIRED)
+find_package(Boost COMPONENTS program_options REQUIRED)
 
 include_directories($ENV{HOME}/libscapi/include
-        $ENV{HOME}/Documents/projects/boost_1_64_0/stage/lib
+        ${Boost_INCLUDE_DIRS}
         ${PROTOBUF_INCLUDE_DIR}
         ${SPDZ_HOME}
         ${SPDZ_HOME}/local/include)
@@ -66,6 +65,7 @@ target_link_libraries(Pivot
         $ENV{HOME}/Documents/projects/libhcs/lib/libhcs.so
         $ENV{HOME}/libscapi/libscapi.a
         ${SPDZ_HOME}/libSPDZ.a
+        ${Boost_LIBRARIES}
         libboost_thread.a libboost_system.a pthread crypto ssl mpirxx mpir cryptopp sodium
         ${PROTOBUF_LIBRARY})
 

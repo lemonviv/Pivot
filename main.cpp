@@ -1,4 +1,5 @@
 #include <iostream>
+#include <boost/program_options.hpp>
 #include <string>
 #include <random>
 #include <ios>
@@ -26,6 +27,7 @@ djcs_t_auth_server **au = (djcs_t_auth_server **)malloc(TOTAL_CLIENT_NUM * sizeo
 mpz_t *si = (mpz_t *)malloc(TOTAL_CLIENT_NUM * sizeof(mpz_t));
 
 FILE * logger_out;
+bool gbdt_flag = false;
 
 void system_setup() {
     hr = hcs_init_random();
@@ -33,7 +35,6 @@ void system_setup() {
     vk = djcs_t_init_private_key();
 
     djcs_t_generate_key_pair(pk, vk, hr, 1, 1024, TOTAL_CLIENT_NUM, TOTAL_CLIENT_NUM);
-    hr = hcs_init_random();
     mpz_t *coeff = djcs_t_init_polynomial(vk, hr);
 
     for (int i = 0; i < TOTAL_CLIENT_NUM; i++) {
@@ -138,10 +139,10 @@ float decision_tree(Client & client, int solution_type,
 
     if (client.client_id == SUPER_CLIENT_ID) {
         logger(logger_out, "Accuracy = %f\n", accuracy);
-        std::string result_log_file = LOGGER_HOME;
-        result_log_file += "result.log";
-        std::ofstream result_log(result_log_file, std::ios_base::app | std::ios_base::out);
-        result_log << accuracy << std::endl;
+//        std::string result_log_file = LOGGER_HOME;
+//        result_log_file += "result.log";
+//        std::ofstream result_log(result_log_file, std::ios_base::app | std::ios_base::out);
+//        result_log << accuracy << std::endl;
     }
     return accuracy;
 }
@@ -211,10 +212,10 @@ float random_forest(Client & client, int solution_type,
 
     if (client.client_id == SUPER_CLIENT_ID) {
         logger(logger_out, "Accuracy = %f\n", accuracy);
-        std::string result_log_file = LOGGER_HOME;
-        result_log_file += "result.log";
-        std::ofstream result_log(result_log_file, std::ios_base::app | std::ios_base::out);
-        result_log << accuracy << std::endl;
+//        std::string result_log_file = LOGGER_HOME;
+//        result_log_file += "result.log";
+//        std::ofstream result_log(result_log_file, std::ios_base::app | std::ios_base::out);
+//        result_log << accuracy << std::endl;
     }
     return accuracy;
 }
@@ -284,98 +285,76 @@ float gbdt(Client & client, int solution_type,
     //model.test_accuracy_with_spdz(client, accuracy);
     if (client.client_id == SUPER_CLIENT_ID) {
         logger(logger_out, "Accuracy = %f\n", accuracy);
-        std::string result_log_file = LOGGER_HOME;
-        result_log_file += "result.log";
-        std::ofstream result_log(result_log_file, std::ios_base::app | std::ios_base::out);
-        result_log << accuracy << std::endl;
+//        std::string result_log_file = LOGGER_HOME;
+//        result_log_file += "result.log";
+//        std::ofstream result_log(result_log_file, std::ios_base::app | std::ios_base::out);
+//        result_log << accuracy << std::endl;
     }
     return accuracy;
 }
 
 int main(int argc, char *argv[]) {
-    int client_num = TOTAL_CLIENT_NUM;
-    int client_id = 0;
-    if (argv[1] != NULL) {
-        client_id = atoi(argv[1]);
-    }
-    bool has_label = (client_id == SUPER_CLIENT_ID);
-    std::string network_file = DEFAULT_NETWORK_FILE;
-    std::string s1 = DEFAULT_DATA_FILE_PREFIX;
-    int solution_type = 0;  // type = 0, basic solution; type = 1, enhanced solution
-    int optimization_type = 0;  // type = 0, no optimization; type = 1, combining splits; type = 2, parallelism; type = 3, full optimization
-    int class_num = DEFAULT_CLASSES_NUM;
-    int algorithm_type = 0;  // 0 for decision tree; 1 for random forest; 2 for gbdt
-    int tree_type = TREE_TYPE;   // 0 for classification tree; 1 for regression tree
-    int max_bins = MAX_BINS;
-    int max_depth = MAX_DEPTH;
-    int num_trees = NUM_TREES;
-    if (argc > 2) {
-        if (argv[2] != NULL) {
-            client_num = atoi(argv[2]);
-        }
-    }
-    if (argc > 3) {
-        if (argv[3] != NULL) {
-            class_num = atoi(argv[3]);
-        }
-    }
-    if (argc > 4) {
-        if (argv[4] != NULL) {
-            algorithm_type = atoi(argv[4]);
-        }
-    }
-    if (argc > 5) {
-        if (argv[5] != NULL) {
-            tree_type = atoi(argv[5]);
-        }
-    }
-    if (argc > 6) {
-        if (argv[6] != NULL) {
-            solution_type = atoi(argv[6]);
-        }
-    }
-    if (argc > 7) {
-        if (argv[7] != NULL) {
-            optimization_type = atoi(argv[7]);
-        }
-    }
-    if (argc > 8) {
-        if (argv[8] != NULL) {
-            network_file = argv[8];
-        }
-    }
-    std::string dataset = "datasets"; // default dataset
-    if (argc > 9) {
-        if (argv[9] != NULL) {
-            dataset = argv[9];
-        }
-    }
-    s1 += dataset;
+    int client_id, client_num, class_num, algorithm_type, tree_type;
+    int solution_type, optimization_type, max_bins, max_depth, num_trees;
+    std::string network_file, data_file, logger_file_name;
 
-    std::string s2 = std::to_string(client_id);
-    std::string data_file = s1 + "/client_" + s2 + ".txt";
-    if (argc > 10) {
-        if (argv[10] != NULL) {
-            max_bins = atoi(argv[10]);
+    try {
+        namespace po = boost::program_options;
+        po::options_description description("Usage:");
+        description.add_options()
+            ("help,h", "display this help message")
+            ("version,v", "display the version number")
+            ("client-id", po::value<int>(&client_id), "current client id")
+            ("client-num", po::value<int>(&client_num), "total client num")
+            ("class-num", po::value<int>(&class_num), "num of classes for the task")
+            ("algorithm-type", po::value<int>(&algorithm_type), "desired algorithm, decision tree, random forest, or gbdt")
+            ("tree-type", po::value<int>(&tree_type), "classification or regression")
+            ("solution-type", po::value<int>(&solution_type), "basic protocol or enhanced protocol")
+            ("optimization-type", po::value<int>(&optimization_type), "optimization used for this protocol")
+            ("network-file", po::value<std::string>(&network_file), "network file used")
+            ("data-file", po::value<std::string>(&data_file), "dataset used for the task")
+            ("logger-file", po::value<std::string>(&logger_file_name), "logger file header")
+            ("max-bins", po::value<int>(&max_bins), "maximum bins for splitting each feature")
+            ("max-depth", po::value<int>(&max_depth), "maximum tree depth")
+            ("num-trees", po::value<int>(&num_trees), "num of trees in ensemble models");
+
+        po::variables_map vm;
+        po::store(po::command_line_parser(argc, argv).options(description).run(), vm);
+        po::notify(vm);
+
+        if (vm.count("help")) {
+            std::cout << "Usage: options_description [options]\n";
+            std::cout << description;
+            return 0;
         }
+        std::cout << "parse parameters correct" << std::endl;
+
+        std::cout << "client-id: " << vm["client-id"].as<int>() << std::endl;
+        std::cout << "client-num: " << vm["client-num"].as<int>() << std::endl;
+        std::cout << "class-num: " << vm["class-num"].as<int>() << std::endl;
+        std::cout << "algorithm-type: " << vm["algorithm-type"].as<int>() << std::endl;
+        std::cout << "tree-type: " << vm["tree-type"].as<int>() << std::endl;
+        std::cout << "solution-type: " << vm["solution-type"].as<int>() << std::endl;
+        std::cout << "optimization-type: " << vm["optimization-type"].as<int>() << std::endl;
+        std::cout << "network-file: " << vm["network-file"].as< std::string >() << std::endl;
+        std::cout << "data-file: " << vm["data-file"].as< std::string >() << std::endl;
+        std::cout << "logger-file: " << vm["logger-file"].as< std::string >() << std::endl;
+        std::cout << "max-bins: " << vm["max-bins"].as<int>() << std::endl;
+        std::cout << "max-depth: " << vm["max-depth"].as<int>() << std::endl;
+        std::cout << "num-trees: " << vm["num-trees"].as<int>() << std::endl;
     }
-    if (argc > 11) {
-        if (argv[11] != NULL) {
-            max_depth = atoi(argv[11]);
-        }
+    catch(std::exception& e)
+    {
+        cout << e.what() << "\n";
+        return 1;
     }
-    if (argc > 12) {
-        if (argv[12] != NULL) {
-            num_trees = atoi(argv[12]);
-        }
-    }
+
     //test_pb();
 
     if (client_id == SUPER_CLIENT_ID) {
         system_setup();
     }
     // create logger file
-    std::string logger_file_name = LOGGER_HOME;
     std::string alg_name;
     switch (algorithm_type) {
         case RandomForestAlg:
@@ -388,7 +367,6 @@ int main(int argc, char *argv[]) {
             alg_name = "DT";
             break;
     }
-    logger_file_name += dataset;
     logger_file_name += "_";
     logger_file_name += alg_name;
     logger_file_name += "_";
@@ -397,6 +375,8 @@ int main(int argc, char *argv[]) {
     logger_file_name += to_string(client_id);
     logger_file_name += ".txt";
     logger_out = fopen(logger_file_name.c_str(), "wb");
+
+    bool has_label = (client_id == SUPER_CLIENT_ID);
 
     Client client(client_id, client_num, has_label, network_file, data_file);
     // set up keys
@@ -427,6 +407,7 @@ int main(int argc, char *argv[]) {
                 class_num, tree_type, max_bins, max_depth, num_trees);
             break;
         case GBDTAlg:
+            gbdt_flag = true;
             gbdt(client, solution_type, optimization_type,
                 class_num, tree_type, max_bins, max_depth, num_trees);
             break;

@@ -46,7 +46,6 @@ enum TreeType {Classification, Regression};
 
 /************************** GBDT parameters ***************************/
 
-#define GBDT_FLAG 0
 #define GBDT_LEARNING_RATE 1.0
 #define SIMULATE_VALUE1 0.25
 #define SIMULATE_VALUE2 1.5
@@ -55,22 +54,9 @@ enum TreeType {Classification, Regression};
 
 #define SPLIT_PERCENTAGE 0.8
 #define NUM_OMP_THREADS 4
-#define DEFAULT_HOST_NAME "localhost"
 enum Algorithm{DecisionTreeAlg, RandomForestAlg, GBDTAlg};
-
-// ${Program_Home}
-#define PROGRAM_HOME "/home/wuyuncheng/Documents/projects/Pivot/"
-
-// ${Program_Home}/data/networks/Parties.txt
-#define DEFAULT_NETWORK_FILE "/home/wuyuncheng/Documents/projects/Pivot/data/networks/Parties.txt"
-
-// ${Program_Home}/data/
-#define DEFAULT_DATA_FILE_PREFIX "/home/wuyuncheng/Documents/projects/Pivot/data/"
 
 // ${Program_Home}/../Pivot-SPDZ/Player-Data/3-128-128/Params-Data
 #define DEFAULT_PARAM_DATA_FILE "/home/wuyuncheng/Documents/projects/Pivot-SPDZ/Player-Data/3-128-128/Params-Data"
-
-// ${Program_Home}/log/
-#define LOGGER_HOME "/home/wuyuncheng/Documents/projects/Pivot/log/"
 
 #endif //PIVOT_COMMON_H

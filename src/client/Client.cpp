@@ -323,7 +323,6 @@ void Client::share_batch_decrypt(EncodedNumber *ciphers,
     free(dec);
 }
 
-
 void Client::decrypt_batch_piece(std::string s,
     std::string & response_s, int src_client_id, int parallel) {
     // deserialization
@@ -351,7 +350,7 @@ void Client::decrypt_batch_piece(std::string s,
 
 void Client::ciphers_conversion_to_shares(EncodedNumber *src_ciphers,
     std::vector<float> & shares, int size, int precision) {
-    if (client_id == 0) {
+    if (client_id == SUPER_CLIENT_ID) {
         EncodedNumber * aggregated_encrypted_shares = new EncodedNumber[size];
         for (int i = 0; i < size; i++) {
             aggregated_encrypted_shares[i] = src_ciphers[i];
@@ -412,10 +411,10 @@ void Client::ciphers_conversion_to_shares(EncodedNumber *src_ciphers,
         // serialize encrypted_shares and send to client 0
         std::string str_encrypted_shares;
         serialize_batch_sums(encrypted_shares, size, str_encrypted_shares);
-        send_long_messages(0, str_encrypted_shares);
+        send_long_messages(SUPER_CLIENT_ID, str_encrypted_shares);
         // receive share decryption string and decrypt
         std::string recv_str_share_decryption, response_str_share_decryption;
-        recv_long_messages(0, recv_str_share_decryption);
+        recv_long_messages(SUPER_CLIENT_ID, recv_str_share_decryption);
         decrypt_batch_piece(recv_str_share_decryption, response_str_share_decryption, 0);
 
         delete [] encrypted_shares;
@@ -441,7 +440,7 @@ void Client::cipher_vectors_multiplication(EncodedNumber *cipher_vec1,
     }
     // step 2
     EncodedNumber * copy_cipher_vec2;// = new EncodedNumber[size];
-    if (client_id == 0) {
+    if (client_id == SUPER_CLIENT_ID) {
         std::string cipher_vec2_str;
         serialize_batch_sums(cipher_vec2, size, cipher_vec2_str);
         for (int i = 0; i < client_num; i++) {
@@ -456,7 +455,7 @@ void Client::cipher_vectors_multiplication(EncodedNumber *cipher_vec1,
     } else {
         int recv_size = 0;
         std::string recv_cipher_vec2_str;
-        recv_long_messages(0, recv_cipher_vec2_str);
+        recv_long_messages(SUPER_CLIENT_ID, recv_cipher_vec2_str);
         deserialize_sums_from_string(copy_cipher_vec2, recv_size, recv_cipher_vec2_str);
     }
     // step 3
@@ -465,7 +464,7 @@ void Client::cipher_vectors_multiplication(EncodedNumber *cipher_vec1,
         djcs_t_aux_ep_mul(m_pk, local_multiplication_res[i], copy_cipher_vec2[i], encoded_cipher_vec1_shares[i]);
     }
     // step 4
-    if (client_id == 0) {
+    if (client_id == SUPER_CLIENT_ID) {
         for (int i = 0; i < size; i++) {
             res[i] = local_multiplication_res[i];
         }
@@ -486,7 +485,7 @@ void Client::cipher_vectors_multiplication(EncodedNumber *cipher_vec1,
     } else {
         std::string local_res_str;
         serialize_batch_sums(local_multiplication_res, size, local_res_str);
-        send_long_messages(0, local_res_str);
+        send_long_messages(SUPER_CLIENT_ID, local_res_str);
     }
     delete [] encoded_cipher_vec1_shares;
     delete [] copy_cipher_vec2;

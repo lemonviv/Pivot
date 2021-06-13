@@ -503,7 +503,7 @@ void RandomForest::test_accuracy_with_spdz(Client &client, float &accuracy) {
             delete [] updated_label_vector;
             delete [] label_vector;
         }
-
+        bigint::init_thread();
         if (client.client_id == SUPER_CLIENT_ID) {
             if (forest[0].type == Classification) { // classification, find the mode class label
                 // convert prediction_trees to secret shares and compute by the SPDZ parties
@@ -513,7 +513,7 @@ void RandomForest::test_accuracy_with_spdz(Client &client, float &accuracy) {
                 // communicate with spdz parties and receive mode
                 string prep_data_prefix = get_prep_dir(NUM_SPDZ_PARTIES, SPDZ_LG2P, gf2n::default_degree());
                 initialise_fields(prep_data_prefix);
-                bigint::init_thread();
+                // bigint::init_thread();
                 std::vector<int> sockets = setup_sockets(NUM_SPDZ_PARTIES,
                     client.client_id, client.host_names, SPDZ_PORT_NUM_RF_CLASSIFICATION_PREDICTION);
                 for (int jj = 0; jj < num_trees; jj++) {
@@ -548,7 +548,7 @@ void RandomForest::test_accuracy_with_spdz(Client &client, float &accuracy) {
                 // communicate with spdz parties
                 string prep_data_prefix = get_prep_dir(NUM_SPDZ_PARTIES, SPDZ_LG2P, gf2n::default_degree());
                 initialise_fields(prep_data_prefix);
-                bigint::init_thread();
+                // bigint::init_thread();
                 std::vector<int> sockets = setup_sockets(NUM_SPDZ_PARTIES,
                     client.client_id, client.host_names, SPDZ_PORT_NUM_RF_CLASSIFICATION_PREDICTION);
                 for (int jj = 0; jj < num_trees; jj++) {
