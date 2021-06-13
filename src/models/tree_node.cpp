@@ -116,7 +116,8 @@ void TreeNode::print_node() {
 
 TreeNode::~TreeNode() {
     if (is_leaf != -1) {
-        delete [] sample_iv;
-        delete [] encrypted_labels;
+//        bellow two vectors are freed during training the trees to save memory
+//        delete [] sample_iv;
+//        delete [] encrypted_labels;
     }
 }

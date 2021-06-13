@@ -485,8 +485,8 @@ bool DecisionTree::check_pruning_conditions_spdz(Client &client, int node_index)
             close_client_socket(sockets[i]);
         }
         // free tree node sample_iv and encrypted_labels vectors for saving memory usage
-        // delete [] tree_nodes[node_index].sample_iv;
-        // delete [] tree_nodes[node_index].encrypted_labels;
+         delete [] tree_nodes[node_index].sample_iv;
+         delete [] tree_nodes[node_index].encrypted_labels;
     }
     logger(logger_out, "Pruning conditions check finished\n");
     delete [] encrypted_sample_num;
@@ -1228,8 +1228,8 @@ void DecisionTree::build_tree_node(Client & client, int node_index) {
         delete [] global_encrypted_statistics;
     }
     // free tree node sample_iv and encrypted_labels vectors for saving memory usage
-    // delete [] tree_nodes[node_index].sample_iv;
-    // delete [] tree_nodes[node_index].encrypted_labels;
+     delete [] tree_nodes[node_index].sample_iv;
+     delete [] tree_nodes[node_index].encrypted_labels;
 
     /** step 9: recursively build the next child tree nodes */
     internal_node_num += 1;

@@ -1,31 +1,30 @@
 # Pivot
 This is the implementation of our paper: 
 "[Privacy preserving vertical federated learning for tree-based models](http://www.vldb.org/pvldb/vol13/p2090-wu.pdf)",
-which is accepted by VLDB 2020. This paper proposes a private and efficient solution for tree-based models,
+which is published in PVLDB 2020. This paper proposes a private and efficient solution for tree-based models,
 including **decision tree (DT)**, **random forest (RF)**, and **gradient boosting decision tree (GBDT)**, 
 under the **vertical federated learning (VFL)** setting. The solution is based on a hybrid of threshold partially
 homomorphic encryption (TPHE) and secure multiparty computation (MPC) techniques.
 
 ## Dependencies
 + [Pivot-SPDZ](https://github.com/lemonviv/Pivot-SPDZ)
-    + This is a fork of [MP-SPDZ](https://github.com/data61/MP-SPDZ) repository.  
-    + We have revised some codes and configurations in this repository. The Pivot program
-    calls Pivot-SPDZ as a library. The code base version used 
-    is [here](https://github.com/data61/MP-SPDZ/tree/2c3606ccb2658cea10826d670298e04b1385415a).
-    + Git clone Pivot-SPDZ and follow the guide in [MP-SPDZ](https://github.com/data61/MP-SPDZ) to install it.
+    + This is a fork of [MP-SPDZ](https://github.com/data61/MP-SPDZ/tree/2c3606ccb2658cea10826d670298e04b1385415a) repository. We 
+    have revised some codes and configurations in this repository. The Pivot program
+    calls Pivot-SPDZ as a library. 
+    + Clone Pivot-SPDZ and follow the guide in [MP-SPDZ](https://github.com/data61/MP-SPDZ) to install it.
 + [libhcs](https://github.com/lemonviv/libhcs) 
-    + This is a fork of [libhcs](https://github.com/tiehuis/libhcs). 
-    + We have fixed a threshold decryption bug in the original repo.
-    + Pivot uses libhcs for threshold homomorphic encryption computations. 
-    + Git clone this repository and follow the guide in [libhcs](https://github.com/tiehuis/libhcs) to install it.
-+ [libscapi](https://github.com/cryptobiu/libscapi)
-    + The version used is [here](https://github.com/cryptobiu/libscapi/tree/b77816a8ad09181be319316f4023f628ab7ffb88).
+    + This is a fork of [libhcs](https://github.com/tiehuis/libhcs). We have 
+    fixed a threshold decryption bug in the original repo. Pivot uses libhcs for threshold homomorphic encryption computations. 
+    + Clone this repository and follow the guide in [libhcs](https://github.com/tiehuis/libhcs) to install it.
++ [libscapi](https://github.com/cryptobiu/libscapi/tree/b77816a8ad09181be319316f4023f628ab7ffb88)
     + Pivot uses libscapi for network communications among clients. 
-    + Git clone this repository and follow the guide in [libscapi](https://github.com/cryptobiu/libscapi) to install it.
+    + Clone this repository and follow the guide in [libscapi](https://github.com/cryptobiu/libscapi) to install it.
 + Python
     + We implemented the non-private baselines and generated the synthetic 
      datasets using sklearn.
     + Install the necessary dependencies of python (see tools/README.md).
++ Protobuf
+    + We used protobuf version 3.14.0 for the messages communicated among clients. 
 
 ## Executions
 
@@ -33,10 +32,7 @@ homomorphic encryption (TPHE) and secure multiparty computation (MPC) techniques
  * In Pivot, update the following if needed:
     + `data/networks/Parties.txt`: defining the participating parties' ip addresses and ports
     + `src/include/common.h`: 
-        + `DEFAULT_NETWORK_FILE`: the above party path information
-        + `DEFAULT_DATA_FILE_PREFIX`: the dataset folder that will be used for training and testing
         + `DEFAULT_PARAM_DATA_FILE`: the SPDZ related party file (in the Pivot-SPDZ folder)
-        + `LOGGER_HOME`: the logger home 
         + `SPDZ_PORT_NUM_DT`: the port for connecting to SPDZ decision tree MPC program
         + `SPDZ_PORT_NUM_DT_ENHANCED`: the port for connecting to SPDZ decision tree prediction of the enhanced protocol
     + other algorithm-related default parameters in `src/include/common.h`: e.g., the number of parties
@@ -50,7 +46,7 @@ homomorphic encryption (TPHE) and secure multiparty computation (MPC) techniques
     + `Programs/Source/vfl_dt_enhanced_prediction.mpc`
         + `PORT_NUM`: same as `SPDZ_PORT_NUM_DT_ENHANCED`
         + `MAX_NUM_CLIENTS`: the maximum number of clients could handle, default is set to 3
-        + `MAX_TREE_DEPTH`: the maximum depth of the evaluated tree, must be the same as the setting in the training stage
+        + `MAX_TREE_DEPTH`: the maximum depth of the evaluated tree, must be the same as in Pivot
         + `TESTING_NUM`: the number of samples in the testing stage, must be the exact at the moment
     + `fast-make.sh`: modify Setup.x and setup-online.sh (default is 3 clients and the security parameter is 128 bits)
 
@@ -65,10 +61,16 @@ homomorphic encryption (TPHE) and secure multiparty computation (MPC) techniques
     ./compile.py ${PIVOT_SPDZ_HOME}/Programs/Source/vfl_dt_enhanced_prediction.mpc
     </code></pre>
  * Build Pivot
-    + build the program using provided bash script `bash build.sh`
+    + build the program as follows:
+     ```
+        mkdir build 
+        cmake -Bbuild -H.
+        cd build/
+        make
+     ```
 
 ### Basic protocol
- * For example, if running the DT program with 3 clients
+ * To run the Pivot training, for example, the DT algorithm with 3 clients, execute:
     + cd ${PIVOT_SPDZ_HOME}, run 3 MPC programs in separate terminals
         <pre><code>
         ./semi-party.x -F -N 3 -I -p 0 vfl_decision_tree
@@ -77,25 +79,40 @@ homomorphic encryption (TPHE) and secure multiparty computation (MPC) techniques
         </code></pre>
     + cd ${PIVOT_HOME}, run 3 programs in separate terminals for DT model
         <pre><code>
-        ./Pivot 0 3 2 0 0 0 1 ${PIVOT_HOME}/data/networks/Parties.txt bank_marketing_data 16 3
-        ./Pivot 1 3 2 0 0 0 1 ${PIVOT_HOME}/data/networks/Parties.txt bank_marketing_data 16 3
-        ./Pivot 2 3 2 0 0 0 1 ${PIVOT_HOME}/data/networks/Parties.txt bank_marketing_data 16 3
+        ./Pivot --client-id 0 --client-num 3 --class-num 2 --algorithm-type 0 
+                --tree-type 0 --solution-type 0 --optimization-type 1 
+                --network-file ${PIVOT_HOME}/data/networks/Parties.txt 
+                --data-file ${PIVOT_HOME}/data/bank_marketing_data/client_0.txt 
+                --logger-file ${PIVOT_HOME}/log/release_test/bank_marketing_data 
+                --max-bins 16 --max-depth 3 --num-trees 1 
+        ./Pivot --client-id 1 --client-num 3 --class-num 2 --algorithm-type 0
+                --tree-type 0 --solution-type 0 --optimization-type 1 
+                --network-file ${PIVOT_HOME}/data/networks/Parties.txt 
+                --data-file ${PIVOT_HOME}/data/bank_marketing_data/client_1.txt 
+                --logger-file ${PIVOT_HOME}/log/release_test/bank_marketing_data
+                 --max-bins 16 --max-depth 3 --num-trees 1
+        ./Pivot --client-id 2 --client-num 3 --class-num 2 --algorithm-type 0
+                --tree-type 0 --solution-type 0 --optimization-type 1 
+                --network-file ${PIVOT_HOME}/data/networks/Parties.txt 
+                --data-file ${PIVOT_HOME}/data/bank_marketing_data/client_2.txt 
+                --logger-file ${PIVOT_HOME}/log/release_test/bank_marketing_data 
+                --max-bins 16 --max-depth 3 --num-trees 1
         </code></pre>
     + the description of parameters in the Pivot program is as follows: 
-        + `1st is client id` 
-        + `2nd is the total client number`
-        + `3rd is the number of classes`
-        + `4th is algorithm type (0 for decision tree, 1 for random forest, 2 for GBDT)`
-        + `5th is tree type (0 for classification, 1 for regression)`
-        + `6th is protocol type (0 for basic, 1 for enhanced)`
-        + `7th is the optimization type (currently set 1 by default)`
-        + `8th is the party information file`
-        + `9th is the data folder under ${PIVOT_HOME}/data/`
-        + `10th is the maximum number of splits for any feature`
-        + `11th is the maximum tree depth`
-        + `12th is the number of trees for ensemble algorithms (for DT model can be ignored)`
+        + `client-id denotes the id of the client, the super client's id is 0 by default` 
+        + `client-num denotes the total number of participating clients`
+        + `class-num denotes the the number of classes in the classification, regression set to 1 by default`
+        + `algorithm-type: 0 for decision tree, 1 for random forest, 2 for GBDT`
+        + `tree-type: 0 for classification, 1 for regression`
+        + `solution-type: 0 for basic protocol, 1 for enhanced protocol`
+        + `optimization-type: currently set to 1`
+        + `network-file: the path that describes the party information, including ip and port`
+        + `data-file: the dataset used for this client`
+        + `logger-file: the log file path`
+        + `max-bins: the maximum number of splits for any feature`
+        + `max-depth: the maximum tree depth during training`
+        + `num-trees: the number of trees for ensemble algorithms (for DT set to 1 by default)`
  * To run RF and GBDT model, modify the corresponding parameter for invoking Pivot 
- * The program log can be found in ${PIVOT_HOME}/log folder
 
 ### Enhanced protocol
  * To run the enhanced protocol, besides of modifying the corresponding parameter for invoking Pivot,
