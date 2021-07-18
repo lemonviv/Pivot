@@ -7,7 +7,7 @@
 
 #include "tree_node.h"
 #include "feature.h"
-#include "../client/Client.h"
+#include "../client/client.h"
 #include "libhcs.h"
 #include "gmp.h"
 #include <vector>

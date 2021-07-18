@@ -2,7 +2,7 @@
 // Created by wuyuncheng on 10/10/19.
 //
 
-#include "Client.h"
+#include "client.h"
 #include <fstream>
 #include <sstream>
 #include <string>

@@ -5,8 +5,8 @@ set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -fopenmp -lboost_program_options")
 
 set(SOURCE_FILES main.cpp
-        src/client/Client.cpp
-        src/client/Client.h
+        src/client/client.cpp
+        src/client/client.h
         src/utils/util.h
         src/utils/util.cpp
         src/utils/encoder.h

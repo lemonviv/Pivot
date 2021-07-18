@@ -1,9 +1,8 @@
 # Pivot
-This is the implementation of our paper: 
-"[Privacy preserving vertical federated learning for tree-based models](http://www.vldb.org/pvldb/vol13/p2090-wu.pdf)",
-which is published in PVLDB 2020. This paper proposes a private and efficient solution for tree-based models,
-including **decision tree (DT)**, **random forest (RF)**, and **gradient boosting decision tree (GBDT)**, 
-under the **vertical federated learning (VFL)** setting. The solution is based on a hybrid of threshold partially
+This repository contains the implementation of 
+[Privacy preserving vertical federated learning for tree-based models](http://www.vldb.org/pvldb/vol13/p2090-wu.pdf). This paper proposes a private and efficient solution for tree-based models,
+including decision tree (DT), random forest (RF), and gradient boosting decision tree (GBDT), 
+under the vertical federated learning (VFL) setting. The solution is based on a hybrid of threshold partially
 homomorphic encryption (TPHE) and secure multiparty computation (MPC) techniques.
 
 ## Dependencies
@@ -40,15 +39,15 @@ homomorphic encryption (TPHE) and secure multiparty computation (MPC) techniques
  * In Pivot-SPDZ, update the following if needed:
     + `Programs/Source/vfl_decision_tree.mpc`
         + `PORT_NUM`: same as `SPDZ_PORT_NUM_DT`
-        + `MAX_NUM_CLIENTS`: the maximum number of clients could handle, default is set to 3
+        + `MAX_NUM_CLIENTS`: the maximum number of clients could handle
         + `MAX_CLASSES_NUM`: the maximum number of classes for classification (by default is 2 for regression)
         + other algorithm-related parameters
     + `Programs/Source/vfl_dt_enhanced_prediction.mpc`
         + `PORT_NUM`: same as `SPDZ_PORT_NUM_DT_ENHANCED`
-        + `MAX_NUM_CLIENTS`: the maximum number of clients could handle, default is set to 3
+        + `MAX_NUM_CLIENTS`: the maximum number of clients could handle
         + `MAX_TREE_DEPTH`: the maximum depth of the evaluated tree, must be the same as in Pivot
         + `TESTING_NUM`: the number of samples in the testing stage, must be the exact at the moment
-    + `fast-make.sh`: modify Setup.x and setup-online.sh (default is 3 clients and the security parameter is 128 bits)
+    + `fast-make.sh`: modify Setup.x and setup-online.sh (the security parameter is 128 bits)
 
 ### Build programs
  * Build Pivot-SPDZ
@@ -56,10 +55,10 @@ homomorphic encryption (TPHE) and secure multiparty computation (MPC) techniques
     + cd ${PIVOT_SPDZ_HOME}, `make mpir` to generate required mpir lib;
     + cd ${PIVOT_SPDZ_HOME}, run `bash fast-make.sh` to generate pre-requisite programs and parameters;
     + compile the MPC programs
-    <pre><code>
+    ```
     ./compile.py ${PIVOT_SPDZ_HOME}/Programs/Source/vfl_decision_tree.mpc
     ./compile.py ${PIVOT_SPDZ_HOME}/Programs/Source/vfl_dt_enhanced_prediction.mpc
-    </code></pre>
+    ```
  * Build Pivot
     + build the program as follows:
      ```
@@ -72,13 +71,13 @@ homomorphic encryption (TPHE) and secure multiparty computation (MPC) techniques
 ### Basic protocol
  * To run the Pivot training, for example, the DT algorithm with 3 clients, execute:
     + cd ${PIVOT_SPDZ_HOME}, run 3 MPC programs in separate terminals
-        <pre><code>
+        ```
         ./semi-party.x -F -N 3 -I -p 0 vfl_decision_tree
         ./semi-party.x -F -N 3 -I -p 1 vfl_decision_tree
         ./semi-party.x -F -N 3 -I -p 2 vfl_decision_tree
-        </code></pre>
+        ```
     + cd ${PIVOT_HOME}, run 3 programs in separate terminals for DT model
-        <pre><code>
+        ```
         ./Pivot --client-id 0 --client-num 3 --class-num 2 --algorithm-type 0 
                 --tree-type 0 --solution-type 0 --optimization-type 1 
                 --network-file ${PIVOT_HOME}/data/networks/Parties.txt 
@@ -97,31 +96,40 @@ homomorphic encryption (TPHE) and secure multiparty computation (MPC) techniques
                 --data-file ${PIVOT_HOME}/data/bank_marketing_data/client_2.txt 
                 --logger-file ${PIVOT_HOME}/log/release_test/bank_marketing_data 
                 --max-bins 16 --max-depth 3 --num-trees 1
-        </code></pre>
-    + the description of parameters in the Pivot program is as follows: 
-        + `client-id denotes the id of the client, the super client's id is 0 by default` 
-        + `client-num denotes the total number of participating clients`
-        + `class-num denotes the the number of classes in the classification, regression set to 1 by default`
-        + `algorithm-type: 0 for decision tree, 1 for random forest, 2 for GBDT`
-        + `tree-type: 0 for classification, 1 for regression`
-        + `solution-type: 0 for basic protocol, 1 for enhanced protocol`
-        + `optimization-type: currently set to 1`
-        + `network-file: the path that describes the party information, including ip and port`
-        + `data-file: the dataset used for this client`
-        + `logger-file: the log file path`
-        + `max-bins: the maximum number of splits for any feature`
-        + `max-depth: the maximum tree depth during training`
-        + `num-trees: the number of trees for ensemble algorithms (for DT set to 1 by default)`
+        ```
  * To run RF and GBDT model, modify the corresponding parameter for invoking Pivot 
 
 ### Enhanced protocol
  * To run the enhanced protocol, besides of modifying the corresponding parameter for invoking Pivot,
  need to run another MPC program `vfl_dt_enhanced_prediction` for the model prediction stage.
     + cd ${PIVOT_SPDZ_HOME}, run another 3 MPC programs in separate terminals
-        <pre><code>
+        ```
         ./semi-party.x -F -N 3 -I -p 0 -pn 6000 vfl_dt_enhanced_prediction
         ./semi-party.x -F -N 3 -I -p 1 -pn 6000 vfl_dt_enhanced_prediction
         ./semi-party.x -F -N 3 -I -p 2 -pn 6000 vfl_dt_enhanced_prediction
-        </code></pre>
+        ```
     + the above `-pn` parameter is the port for `vfl_dt_enhanced_prediction` connections (if not specified, 
     default is 5000, as used for `vfl_decision_tree`)
+
+
+### Citation
+
+If you use our code in your research, please kindly cite:
+```
+@article{DBLP:journals/pvldb/WuCXCO20,
+  author    = {Yuncheng Wu and
+               Shaofeng Cai and
+               Xiaokui Xiao and
+               Gang Chen and
+               Beng Chin Ooi},
+  title     = {Privacy Preserving Vertical Federated Learning for Tree-based Models},
+  journal   = {Proc. {VLDB} Endow.},
+  volume    = {13},
+  number    = {11},
+  pages     = {2090--2103},
+  year      = {2020}
+}
+```
+
+### Contact
+To ask questions or report issues, please drop us an [email](mailto:wuyc@comp.nus.edu.sg).

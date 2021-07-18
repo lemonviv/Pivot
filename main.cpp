@@ -8,7 +8,7 @@
 #include "src/utils/encoder.h"
 #include "src/utils/djcs_t_aux.h"
 #include "src/utils/pb_converter.h"
-#include "src/client/Client.h"
+#include "src/client/client.h"
 #include "src/models/cart_tree.h"
 #include "src/models/feature.h"
 #include "src/models/tree_node.h"
